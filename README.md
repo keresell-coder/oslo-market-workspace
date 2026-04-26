@@ -21,6 +21,7 @@ On iPhone/Android, open the same URL in the browser and use "Add to Home Screen"
 - Existing screener: embedded from `https://keresell-coder.github.io/oslo-screener-dashboard/`.
 - Screener/watchlist alerts: parsed from the published Oslo Screener dashboard cards and matched to the editable watchlist.
 - Fundamentals: `yfinance` where Yahoo Finance has coverage for `.OL` symbols.
+- Benchmarks: manual peer-group seeds plus cached `yfinance` metrics for descriptive peer context.
 - NewsWeb: MVP provides ticker-specific NewsWeb search links and classification structure; direct automated collection is intentionally conservative until we confirm a stable public endpoint/terms.
 
 ## Reliability Notes
@@ -30,6 +31,8 @@ Free market data is delayed, incomplete, rate-limited, and can change without no
 The Oslo Screener alert layer only links symbols from the published dashboard to the local watchlist. It does not verify that the underlying technical signal is correct.
 
 The fundamentals tab intentionally does not label stocks cheap, expensive, or neutral yet. Valuation judgments should only be shown after peer, sector, and own-history benchmarks are implemented and visible.
+
+The benchmark tab is descriptive. Peer groups are manually seeded and must be reviewed before relying on them. Own-history context starts from locally stored refresh snapshots and is not meaningful until enough observations accumulate.
 
 Metrics such as P/NAV, sector-specific NAV, fleet values, reserves, and detailed consensus estimates usually require company reports, broker data, paid APIs, or curated manual inputs. The MVP leaves these fields visible as "n/a" rather than inventing values.
 

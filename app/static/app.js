@@ -1,6 +1,7 @@
 const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 let screenerAlerts = { matches: [], bySymbol: new Map() };
+let watchlistItems = [];
 
 function value(v, suffix = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
@@ -39,6 +40,7 @@ function setupTabs() {
       button.classList.add("active");
       document.getElementById(button.dataset.tab).classList.add("active");
       if (button.dataset.tab === "fundamentals") loadFundamentals(false);
+      if (button.dataset.tab === "benchmarks") loadBenchmarkOptions();
       if (button.dataset.tab === "sources") loadSources();
     });
   });
@@ -46,6 +48,7 @@ function setupTabs() {
 
 async function loadWatchlist() {
   const [data, alerts] = await Promise.all([api("/api/watchlist"), loadScreenerAlerts(false)]);
+  watchlistItems = data.items;
   const rows = data.items
     .map(
       (row) => {
@@ -82,6 +85,11 @@ async function loadWatchlist() {
       await loadWatchlist();
     });
   });
+}
+
+function metricValue(v, unit = "") {
+  if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
+  return `${fmt.format(v)}${unit && unit !== "x" ? unit : unit}`;
 }
 
 function renderSignalBadge(alert) {
@@ -174,6 +182,7 @@ async function loadFundamentals(refresh = false) {
         <td>
           <span class="tag">${escapeHtml(row.cacheStatus)}</span><br>
           <span class="muted">${escapeHtml(row.fetchedAt || "")}</span>
+          <br><span class="muted">Target: ${escapeHtml(row.targetPriceSource || "Yahoo/yfinance")}</span>
         </td>
         <td>
           <a class="link" href="${escapeHtml(row.newswebUrl)}" target="_blank" rel="noreferrer">NewsWeb</a><br>
@@ -192,12 +201,187 @@ async function loadFundamentals(refresh = false) {
           <th class="number">P/B</th><th class="number">P/NAV</th>
           <th class="number">EV/EBITDA</th><th class="number">EV/EBIT</th>
           <th class="number">EPS TTM</th><th class="number">Div Yield</th>
-          <th class="number">Mkt Cap</th><th class="number">Target</th>
-          <th class="number">Upside</th><th>Source</th><th>Links</th>
+          <th class="number">Mkt Cap</th><th class="number">Yahoo Target</th>
+          <th class="number">Target Upside</th><th>Source</th><th>Links</th>
         </tr>
       </thead>
       <tbody>${rows || `<tr><td colspan="16">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
+  `;
+}
+
+async function loadBenchmarkOptions() {
+  if (!watchlistItems.length) {
+    const data = await api("/api/watchlist");
+    watchlistItems = data.items;
+  }
+  const select = document.getElementById("benchmark-symbol");
+  if (!select.options.length) {
+    select.innerHTML = watchlistItems
+      .map((row) => `<option value="${escapeHtml(row.symbol)}">${escapeHtml(row.symbol)} - ${escapeHtml(row.name || "")}</option>`)
+      .join("");
+  }
+  if (select.options.length && !document.getElementById("benchmark-content").innerHTML) {
+    await loadBenchmark(false);
+  }
+}
+
+async function loadBenchmark(refresh = false) {
+  const symbol = document.getElementById("benchmark-symbol").value;
+  if (!symbol) return;
+  const target = document.getElementById("benchmark-content");
+  target.innerHTML = `<div class="method-card"><strong>Loading benchmark context...</strong><span>Free sources may be slow or incomplete.</span></div>`;
+  const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
+  target.innerHTML = renderBenchmark(data);
+}
+
+function renderBenchmark(data) {
+  if (!data.groups?.length) {
+    return `
+      <div class="method-card">
+        <strong>No peer group configured for ${escapeHtml(data.symbol)}</strong>
+        <span>${escapeHtml(data.message || "Add a peer group before drawing relative valuation context.")}</span>
+      </div>
+      ${renderSectorContext(data.sectorContext)}
+      ${renderOwnHistory(data.ownHistory)}
+    `;
+  }
+  return `
+    <div class="benchmark-policy">
+      <strong>${escapeHtml(data.symbol)}</strong>
+      <span>${escapeHtml(data.policy || "Descriptive benchmark context only.")}</span>
+    </div>
+    ${renderSectorContext(data.sectorContext)}
+    ${data.groups.map(renderBenchmarkGroup).join("")}
+    ${renderOwnHistory(data.ownHistory)}
+  `;
+}
+
+function renderSectorContext(sector) {
+  if (!sector) return "";
+  return `
+    <section class="benchmark-group">
+      <div class="benchmark-group-head">
+        <div>
+          <h3>Sector context</h3>
+          <p class="muted">${escapeHtml(sector.requirement || "")}</p>
+        </div>
+        <span class="tag">${escapeHtml(sector.status || "not configured")}</span>
+      </div>
+      <div class="source-grid compact-grid">
+        <article class="source-card">
+          <h3>Current classification</h3>
+          <p><strong>Sector:</strong> ${escapeHtml(sector.sector || "n/a")}</p>
+          <p><strong>Industry:</strong> ${escapeHtml(sector.industry || "n/a")}</p>
+        </article>
+        <article class="source-card">
+          <h3>Sector benchmark</h3>
+          <p>${escapeHtml(sector.message || "No sector benchmark configured.")}</p>
+        </article>
+      </div>
+    </section>
+  `;
+}
+
+function renderBenchmarkGroup(group) {
+  const metricRows = group.metricSummaries
+    .map(
+      (metric) => `
+      <tr>
+        <td>
+          <strong>${escapeHtml(metric.label)}</strong><br>
+          <span class="muted">${escapeHtml(metric.positionNote)}</span>
+        </td>
+        <td class="number">${metricValue(metric.focusValue, metric.unit)}</td>
+        <td class="number">${metricValue(metric.peerMedian, metric.unit)}</td>
+        <td class="number">${metricValue(metric.peerMin, metric.unit)}</td>
+        <td class="number">${metricValue(metric.peerMax, metric.unit)}</td>
+        <td class="number">${metricValue(metric.vsPeerMedianPct, "%")}</td>
+        <td class="number">${metric.peerCount}</td>
+      </tr>
+    `,
+    )
+    .join("");
+  const peerRows = group.items
+    .map(
+      (row) => `
+      <tr>
+        <td><strong>${escapeHtml(row.symbol)}</strong><br><span class="muted">${escapeHtml(row.name || "")}</span></td>
+        <td>${escapeHtml(row.peerRole || "")}</td>
+        <td>${escapeHtml(row.peerMarket || "")}</td>
+        <td class="number">${metricValue(row.trailingPE, "x")}</td>
+        <td class="number">${metricValue(row.priceToBook, "x")}</td>
+        <td class="number">${metricValue(row.enterpriseToEbitda, "x")}</td>
+        <td class="number">${metricValue(row.dividendYield, "%")}</td>
+        <td><span class="tag">${escapeHtml(row.cacheStatus || "")}</span></td>
+      </tr>
+    `,
+    )
+    .join("");
+  return `
+    <section class="benchmark-group">
+      <div class="benchmark-group-head">
+        <div>
+          <h3>${escapeHtml(group.name)}</h3>
+          <p class="muted">${escapeHtml(group.description)}</p>
+        </div>
+        <span class="tag">${escapeHtml(group.confidence)}</span>
+      </div>
+      <p class="muted">${escapeHtml(group.confidenceReason)}</p>
+      ${group.errors?.length ? `<div class="error-box">${group.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>` : ""}
+      <div class="table-wrap benchmark-table">
+        <table>
+          <thead>
+            <tr><th>Metric</th><th class="number">Company</th><th class="number">Peer median</th><th class="number">Peer min</th><th class="number">Peer max</th><th class="number">Vs median</th><th class="number">Peer count</th></tr>
+          </thead>
+          <tbody>${metricRows}</tbody>
+        </table>
+      </div>
+      <details class="peer-details">
+        <summary>Peer data used</summary>
+        <div class="table-wrap benchmark-table">
+          <table>
+            <thead><tr><th>Company</th><th>Role</th><th>Market</th><th class="number">TTM P/E</th><th class="number">P/B</th><th class="number">EV/EBITDA</th><th class="number">Div Yield</th><th>Source</th></tr></thead>
+            <tbody>${peerRows}</tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  `;
+}
+
+function renderOwnHistory(history) {
+  if (!history) return "";
+  const rows = history.metrics
+    .map(
+      (metric) => `
+      <tr>
+        <td>${escapeHtml(metric.label)}</td>
+        <td class="number">${metricValue(metric.current, metric.unit)}</td>
+        <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
+        <td class="number">${metricValue(metric.historyMin, metric.unit)}</td>
+        <td class="number">${metricValue(metric.historyMax, metric.unit)}</td>
+        <td class="number">${metric.observations}</td>
+      </tr>
+    `,
+    )
+    .join("");
+  return `
+    <section class="benchmark-group">
+      <div class="benchmark-group-head">
+        <div>
+          <h3>Own history</h3>
+          <p class="muted">${escapeHtml(history.requirement)}</p>
+        </div>
+        <span class="tag">${escapeHtml(history.status)}</span>
+      </div>
+      <div class="table-wrap benchmark-table">
+        <table>
+          <thead><tr><th>Metric</th><th class="number">Current</th><th class="number">History median</th><th class="number">History min</th><th class="number">History max</th><th class="number">Obs.</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
   `;
 }
 
@@ -237,6 +421,11 @@ async function boot() {
     await loadScreenerAlerts(true);
     await loadWatchlist();
   });
+  document.getElementById("benchmark-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await loadBenchmark(false);
+  });
+  document.getElementById("refresh-benchmark").addEventListener("click", () => loadBenchmark(true));
   document.getElementById("refresh-fundamentals").addEventListener("click", () => loadFundamentals(true));
   document.getElementById("fundamental-universe").addEventListener("change", () => loadFundamentals(false));
   document.getElementById("reload-sources").addEventListener("click", loadSources);

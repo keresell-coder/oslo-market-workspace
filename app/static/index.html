@@ -23,6 +23,7 @@
     <nav class="tabs" aria-label="Workspace tabs">
       <button class="tab active" data-tab="watchlist">Watchlist</button>
       <button class="tab" data-tab="fundamentals">Fundamentals</button>
+      <button class="tab" data-tab="benchmarks">Benchmarks</button>
       <button class="tab" data-tab="dashboard">Oslo Screener</button>
       <button class="tab" data-tab="sources">Sources</button>
     </nav>
@@ -52,7 +53,7 @@
           <div>
             <h2>Fundamental Valuation Screener</h2>
             <p class="muted">Cached open/free data. Empty fields mean the source did not provide a reliable value.</p>
-            <p class="muted">No cheap/expensive flagging is shown until peer, sector, and own-history benchmarks are implemented.</p>
+            <p class="muted">No valuation flagging is shown. Use the benchmark tab for peer, sector, and own-history context.</p>
           </div>
           <div class="actions">
             <select id="fundamental-universe">
@@ -63,7 +64,26 @@
           </div>
         </div>
         <div id="fundamental-errors"></div>
+        <div class="method-card">
+          <strong>Target-price policy</strong>
+          <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
+        </div>
         <div id="fundamentals-table" class="table-wrap"></div>
+      </section>
+
+      <section id="benchmarks" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Peer, Sector & Own-History Benchmarks</h2>
+            <p class="muted">Descriptive comparison only. No valuation verdict is produced.</p>
+          </div>
+          <form id="benchmark-form" class="actions">
+            <select id="benchmark-symbol"></select>
+            <button type="submit">Load benchmark</button>
+            <button type="button" id="refresh-benchmark" class="secondary">Refresh data</button>
+          </form>
+        </div>
+        <div id="benchmark-content"></div>
       </section>
 
       <section id="dashboard" class="panel">

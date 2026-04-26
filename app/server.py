@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from statistics import median
 
 try:
     import yfinance as yf
@@ -68,6 +69,128 @@ PUBLISHED_SCREENER_TICKERS = [
     "ZAL.OL",
 ]
 
+BENCHMARK_METRICS = [
+    {
+        "key": "trailingPE",
+        "label": "TTM P/E",
+        "unit": "x",
+        "positionNote": "Lower/higher is context dependent; compare with growth, cyclicality, and margins.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "forwardPE",
+        "label": "Forward P/E",
+        "unit": "x",
+        "positionNote": "Forward data depends on estimates and source coverage.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "priceToBook",
+        "label": "P/B",
+        "unit": "x",
+        "positionNote": "Most useful for banks, asset-heavy sectors, and capital-intensive businesses.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "unit": "x",
+        "positionNote": "Sector and leverage structure matter; not comparable across all business models.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "dividendYield",
+        "label": "Dividend yield",
+        "unit": "%",
+        "positionNote": "Higher yield can reflect payout strength or market risk.",
+        "positiveOnly": False,
+    },
+    {
+        "key": "targetUpsidePct",
+        "label": "Target upside",
+        "unit": "%",
+        "positionNote": "Current MVP uses Yahoo/yfinance target fields only; verify against other consensus sources.",
+        "positiveOnly": False,
+    },
+]
+
+INITIAL_PEER_GROUPS = {
+    "semiconductors-global": {
+        "name": "Semiconductors - global",
+        "description": "Initial manual peer group for Nordic Semiconductor. Review before relying on conclusions.",
+        "source": "manual seed",
+        "items": [
+            ("NOD.OL", "focus", "Oslo"),
+            ("STM", "peer", "International"),
+            ("IFX.DE", "peer", "International"),
+            ("NXPI", "peer", "International"),
+            ("ON", "peer", "International"),
+            ("SWKS", "peer", "International"),
+        ],
+    },
+    "seafood-norway": {
+        "name": "Seafood - Norway",
+        "description": "Initial Oslo seafood peers for Mowi. Sector KPIs like EBIT/kg and biomass are not yet collected.",
+        "source": "manual seed",
+        "items": [
+            ("MOWI.OL", "focus", "Oslo"),
+            ("SALM.OL", "peer", "Oslo"),
+            ("LSG.OL", "peer", "Oslo"),
+            ("AUSS.OL", "peer", "Oslo"),
+            ("GSF.OL", "peer", "Oslo"),
+            ("BAKKA.OL", "peer", "Oslo"),
+        ],
+    },
+    "tankers-global": {
+        "name": "Tankers - global",
+        "description": "Initial peer group for Frontline and Hafnia. NAV/fleet value is not yet collected.",
+        "source": "manual seed",
+        "items": [
+            ("FRO.OL", "focus", "Oslo"),
+            ("HAFNI.OL", "focus", "Oslo"),
+            ("STNG", "peer", "International"),
+            ("INSW", "peer", "International"),
+            ("EURN.BR", "peer", "International"),
+            ("TORM.CO", "peer", "International"),
+        ],
+    },
+    "offshore-energy-services": {
+        "name": "Offshore energy services",
+        "description": "Initial peer group for offshore service/drilling exposure. Backlog, fleet, and day-rate data are not yet collected.",
+        "source": "manual seed",
+        "items": [
+            ("DOFG.OL", "focus", "Oslo"),
+            ("ODL.OL", "focus", "Oslo"),
+            ("SUBC.OL", "peer", "Oslo"),
+            ("AKSO.OL", "peer", "Oslo"),
+            ("BORR.OL", "peer", "Oslo"),
+            ("SDRL.OL", "peer", "Oslo"),
+        ],
+    },
+    "defence-aerospace-europe": {
+        "name": "Defence and aerospace - Europe",
+        "description": "Initial European peer group for Kongsberg Gruppen. Segment mix differs materially by company.",
+        "source": "manual seed",
+        "items": [
+            ("KOG.OL", "focus", "Oslo"),
+            ("SAAB-B.ST", "peer", "International"),
+            ("LDO.MI", "peer", "International"),
+            ("HO.PA", "peer", "International"),
+            ("BA.L", "peer", "International"),
+        ],
+    },
+    "communications-software": {
+        "name": "Communications software",
+        "description": "Initial peer group for Link Mobility. Growth, gross margin, and leverage should be added before conclusions.",
+        "source": "manual seed",
+        "items": [
+            ("LINK.OL", "focus", "Oslo"),
+            ("SINCH.ST", "peer", "International"),
+            ("CMCOM.AS", "peer", "International"),
+        ],
+    },
+}
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -122,6 +245,33 @@ def init_db() -> None:
                 fetched_at_epoch integer not null,
                 fetched_at text not null
             );
+
+            create table if not exists fundamentals_snapshots (
+                id integer primary key autoincrement,
+                symbol text not null,
+                payload text not null,
+                fetched_at_epoch integer not null,
+                fetched_at text not null
+            );
+
+            create table if not exists peer_groups (
+                group_key text primary key,
+                name text not null,
+                description text default '',
+                source text default 'manual',
+                created_at text not null
+            );
+
+            create table if not exists peer_group_items (
+                group_key text not null,
+                symbol text not null,
+                role text default 'peer',
+                market text default '',
+                source text default 'manual',
+                created_at text not null,
+                primary key (group_key, symbol),
+                foreign key (group_key) references peer_groups(group_key) on delete cascade
+            );
             """
         )
         now = utc_now()
@@ -144,6 +294,34 @@ def init_db() -> None:
                 values (?, ?, ?)
                 """,
                 ("Core Watchlist", symbol, now),
+            )
+        seed_peer_groups(con, now)
+
+
+def seed_peer_groups(con: sqlite3.Connection, now: str) -> None:
+    for group_key, group in INITIAL_PEER_GROUPS.items():
+        con.execute(
+            """
+            insert or ignore into peer_groups(group_key, name, description, source, created_at)
+            values (?, ?, ?, ?, ?)
+            """,
+            (group_key, group["name"], group["description"], group["source"], now),
+        )
+        for symbol, role, market in group["items"]:
+            normalized = normalize_symbol(symbol) if market == "Oslo" and "." not in symbol else symbol.upper()
+            con.execute(
+                """
+                insert or ignore into tickers(symbol, name, source, created_at)
+                values (?, ?, ?, ?)
+                """,
+                (normalized, normalized.replace(".OL", ""), "peer-group seed", now),
+            )
+            con.execute(
+                """
+                insert or ignore into peer_group_items(group_key, symbol, role, market, source, created_at)
+                values (?, ?, ?, ?, ?, ?)
+                """,
+                (group_key, normalized, role, market, group["source"], now),
             )
 
 
@@ -212,6 +390,9 @@ def fetch_yfinance(symbol: str) -> dict:
         "recommendationMean": pick_number(info, "recommendationMean"),
         "recommendationKey": info.get("recommendationKey"),
         "targetUpsidePct": upside,
+        "targetPriceSource": "Yahoo Finance via yfinance",
+        "targetPriceMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
+        "recommendationScale": "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
         "pnAv": None,
         "evToEbit": None,
         "source": "Yahoo Finance via yfinance",
@@ -324,8 +505,8 @@ def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict
     }
 
 
-def cached_fundamental(symbol: str, refresh: bool = False) -> dict:
-    symbol = normalize_symbol(symbol)
+def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = True) -> dict:
+    symbol = normalize_symbol(symbol) if assume_oslo else symbol.strip().upper()
     now_epoch = int(time.time())
     with connect() as con:
         row = con.execute(
@@ -353,16 +534,25 @@ def cached_fundamental(symbol: str, refresh: bool = False) -> dict:
         )
         con.execute(
             """
-            insert into tickers(symbol, name, sector, industry, source, created_at)
-            values (?, ?, ?, ?, ?, ?)
+            insert into fundamentals_snapshots(symbol, payload, fetched_at_epoch, fetched_at)
+            values (?, ?, ?, ?)
+            """,
+            (symbol, json.dumps(payload), now_epoch, payload["fetchedAt"]),
+        )
+        con.execute(
+            """
+            insert into tickers(symbol, name, exchange, sector, industry, source, created_at)
+            values (?, ?, ?, ?, ?, ?, ?)
             on conflict(symbol) do update set
                 name = coalesce(excluded.name, tickers.name),
+                exchange = coalesce(excluded.exchange, tickers.exchange),
                 sector = coalesce(excluded.sector, tickers.sector),
                 industry = coalesce(excluded.industry, tickers.industry)
             """,
             (
                 symbol,
                 payload.get("name"),
+                "Oslo Bors" if symbol.endswith(".OL") else "International",
                 payload.get("sector"),
                 payload.get("industry"),
                 "Yahoo Finance via yfinance",
@@ -371,6 +561,220 @@ def cached_fundamental(symbol: str, refresh: bool = False) -> dict:
         )
         payload["cacheStatus"] = "fresh"
         return payload
+
+
+def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
+    value = row.get(key)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if positive_only and value <= 0:
+        return None
+    return float(value)
+
+
+def pct_diff(current: float | None, benchmark: float | None) -> float | None:
+    if current is None or benchmark in (None, 0):
+        return None
+    return (current / benchmark - 1) * 100
+
+
+def percentile_position(current: float | None, values: list[float]) -> float | None:
+    if current is None or not values:
+        return None
+    ordered = sorted(values)
+    below_or_equal = sum(1 for value in ordered if value <= current)
+    return below_or_equal / len(ordered) * 100
+
+
+def peer_groups_for_symbol(symbol: str) -> list[dict]:
+    symbol = symbol.strip().upper()
+    with connect() as con:
+        rows = con.execute(
+            """
+            select pg.group_key, pg.name, pg.description, pg.source
+            from peer_groups pg
+            join peer_group_items pgi on pgi.group_key = pg.group_key
+            where pgi.symbol = ?
+            order by pg.name
+            """,
+            (symbol,),
+        ).fetchall()
+    return rows_to_dicts(rows)
+
+
+def peer_group_items(group_key: str) -> list[dict]:
+    with connect() as con:
+        rows = con.execute(
+            """
+            select pgi.group_key, pgi.symbol, pgi.role, pgi.market, pgi.source,
+                   t.name, t.sector, t.industry
+            from peer_group_items pgi
+            left join tickers t on t.symbol = pgi.symbol
+            where pgi.group_key = ?
+            order by case when pgi.role = 'focus' then 0 else 1 end, pgi.symbol
+            """,
+            (group_key,),
+        ).fetchall()
+    return rows_to_dicts(rows)
+
+
+def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
+    key = metric["key"]
+    focus_value = numeric_metric(focus, key, metric.get("positiveOnly", False))
+    peer_values = [
+        value
+        for value in (numeric_metric(peer, key, metric.get("positiveOnly", False)) for peer in peers)
+        if value is not None
+    ]
+    all_values = peer_values + ([focus_value] if focus_value is not None else [])
+    peer_median = median(peer_values) if peer_values else None
+    return {
+        "key": key,
+        "label": metric["label"],
+        "unit": metric["unit"],
+        "focusValue": focus_value,
+        "peerCount": len(peer_values),
+        "peerMedian": peer_median,
+        "peerMin": min(peer_values) if peer_values else None,
+        "peerMax": max(peer_values) if peer_values else None,
+        "vsPeerMedianPct": pct_diff(focus_value, peer_median),
+        "percentileInGroup": percentile_position(focus_value, all_values),
+        "positionNote": metric["positionNote"],
+    }
+
+
+def own_history_summary(symbol: str) -> dict:
+    with connect() as con:
+        rows = con.execute(
+            """
+            select payload, fetched_at
+            from fundamentals_snapshots
+            where symbol = ?
+            order by fetched_at_epoch asc
+            """,
+            (symbol,),
+        ).fetchall()
+        if not rows:
+            cached = con.execute(
+                "select payload, fetched_at from fundamentals_cache where symbol = ?",
+                (symbol,),
+            ).fetchall()
+            rows = cached
+    payloads = [json.loads(row["payload"]) for row in rows]
+    summaries = []
+    for metric in BENCHMARK_METRICS:
+        values = [
+            value
+            for value in (
+                numeric_metric(payload, metric["key"], metric.get("positiveOnly", False)) for payload in payloads
+            )
+            if value is not None
+        ]
+        current = values[-1] if values else None
+        summaries.append(
+            {
+                "key": metric["key"],
+                "label": metric["label"],
+                "unit": metric["unit"],
+                "observations": len(values),
+                "current": current,
+                "historyMedian": median(values) if values else None,
+                "historyMin": min(values) if values else None,
+                "historyMax": max(values) if values else None,
+                "percentileInOwnHistory": percentile_position(current, values) if len(values) >= 2 else None,
+            }
+        )
+    return {
+        "symbol": symbol,
+        "snapshotCount": len(rows),
+        "firstSnapshotAt": rows[0]["fetched_at"] if rows else None,
+        "lastSnapshotAt": rows[-1]["fetched_at"] if rows else None,
+        "metrics": summaries,
+        "status": "insufficient history" if len(rows) < 5 else "usable history",
+        "requirement": "Own-history valuation context should use several observations across time; the MVP starts collecting snapshots now.",
+    }
+
+
+def sector_context(symbol: str) -> dict:
+    with connect() as con:
+        row = con.execute(
+            "select symbol, name, exchange, sector, industry from tickers where symbol = ?",
+            (symbol,),
+        ).fetchone()
+    payload = dict(row) if row else {"symbol": symbol}
+    return {
+        **payload,
+        "status": "not configured",
+        "message": "No Oslo sector-index or reviewed sector peer benchmark is configured yet.",
+        "requirement": "Sector context should use a reviewed Oslo sector group, official sector index, or both before any valuation score is shown.",
+    }
+
+
+def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: bool = False) -> dict:
+    symbol = normalize_symbol(symbol)
+    groups = peer_groups_for_symbol(symbol)
+    if group_key:
+        groups = [group for group in groups if group["group_key"] == group_key]
+    if not groups:
+        return {
+            "symbol": symbol,
+            "groups": [],
+            "ownHistory": own_history_summary(symbol),
+            "sectorContext": sector_context(symbol),
+            "status": "no peer group",
+            "message": "No peer group is configured for this symbol yet.",
+        }
+
+    results = []
+    for group in groups:
+        items = peer_group_items(group["group_key"])
+        rows = []
+        errors = []
+        for item in items:
+            try:
+                row = cached_fundamental(item["symbol"], refresh=refresh, assume_oslo=False)
+                row["peerRole"] = item["role"]
+                row["peerMarket"] = item["market"]
+                rows.append(row)
+            except Exception as exc:
+                errors.append({"symbol": item["symbol"], "error": str(exc)})
+
+        focus = next((row for row in rows if row["symbol"] == symbol), None)
+        if focus is None:
+            try:
+                focus = cached_fundamental(symbol, refresh=refresh, assume_oslo=False)
+                focus["peerRole"] = "focus"
+                focus["peerMarket"] = "Oslo"
+                rows.append(focus)
+            except Exception as exc:
+                errors.append({"symbol": symbol, "error": str(exc)})
+                focus = {"symbol": symbol}
+
+        peers = [row for row in rows if row.get("symbol") != symbol]
+        results.append(
+            {
+                **group,
+                "items": rows,
+                "errors": errors,
+                "metricSummaries": [metric_summary(focus, peers, metric) for metric in BENCHMARK_METRICS],
+                "coverage": {
+                    "configuredPeers": len(items),
+                    "loadedRows": len(rows),
+                    "errors": len(errors),
+                },
+                "confidence": "review required",
+                "confidenceReason": "Peer groups are manual seeds and yfinance coverage is incomplete; use as context, not a valuation call.",
+            }
+        )
+
+    return {
+        "symbol": symbol,
+        "groups": results,
+        "ownHistory": own_history_summary(symbol),
+        "sectorContext": sector_context(symbol),
+        "status": "benchmark context available",
+        "policy": "No cheap/expensive label is produced. Metrics are descriptive until peer group, sector context, own-history coverage, and source quality are reviewed.",
+    }
 
 
 class AppHandler(SimpleHTTPRequestHandler):
@@ -390,6 +794,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_watchlist_get(parsed)
         if parsed.path == "/api/fundamentals":
             return self.handle_fundamentals(parsed)
+        if parsed.path == "/api/peer-groups":
+            return self.handle_peer_groups(parsed)
+        if parsed.path == "/api/benchmarks":
+            return self.handle_benchmarks(parsed)
         if parsed.path == "/api/screener-signals":
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
@@ -515,6 +923,25 @@ class AppHandler(SimpleHTTPRequestHandler):
                 errors.append({"symbol": symbol, "error": str(exc)})
         send_json(self, {"rows": rows, "errors": errors, "sourceNotes": source_notes()})
 
+    def handle_peer_groups(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = qs.get("symbol", [""])[0].strip()
+        with connect() as con:
+            if symbol:
+                groups = peer_groups_for_symbol(normalize_symbol(symbol))
+            else:
+                groups = rows_to_dicts(con.execute("select * from peer_groups order by name").fetchall())
+        send_json(self, {"groups": groups})
+
+    def handle_benchmarks(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = qs.get("symbol", [""])[0].strip()
+        if not symbol:
+            return send_json(self, {"error": "symbol is required"}, HTTPStatus.BAD_REQUEST)
+        group_key = qs.get("group", [None])[0]
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        send_json(self, benchmark_for_symbol(symbol, group_key=group_key, refresh=refresh))
+
     def handle_screener_signals(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         refresh = qs.get("refresh", ["0"])[0] == "1"
@@ -541,7 +968,11 @@ def source_notes() -> dict:
         },
         "yfinance": {
             "use": "Open/free Yahoo Finance data for price, multiples, analyst target fields where available.",
-            "limitations": "Delayed, rate-limited, not guaranteed complete. Verify important values against primary filings, company reports, or licensed data.",
+            "limitations": "Delayed, rate-limited, not guaranteed complete. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
+        },
+        "benchmarks": {
+            "use": "Manual peer groups plus cached yfinance metrics for descriptive relative context.",
+            "limitations": "No cheap/expensive verdict is produced. Peer groups are initial seeds and require review; own-history context starts accumulating from local refresh snapshots.",
         },
         "newsweb": {
             "use": "Ticker-specific search links in the MVP.",

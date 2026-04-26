@@ -327,10 +327,70 @@ tr:last-child td {
   margin-bottom: 12px;
 }
 
+.method-card,
+.benchmark-policy,
+.benchmark-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.method-card strong,
+.benchmark-policy strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.method-card span,
+.benchmark-policy span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.84rem;
+  margin-top: 4px;
+}
+
+.benchmark-policy {
+  border-color: rgba(122, 167, 255, 0.45);
+  background: rgba(122, 167, 255, 0.08);
+}
+
+.benchmark-group-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.benchmark-group h3 {
+  font-size: 0.96rem;
+  margin: 0;
+}
+
+.benchmark-table {
+  margin-top: 10px;
+}
+
+.peer-details {
+  margin-top: 12px;
+}
+
+.peer-details summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 .source-grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.compact-grid {
+  margin-top: 10px;
 }
 
 .source-card {
@@ -380,6 +440,10 @@ tr:last-child td {
 
   .alert-list {
     justify-content: flex-start;
+  }
+
+  .benchmark-group-head {
+    flex-direction: column;
   }
 
   .screener-frame {

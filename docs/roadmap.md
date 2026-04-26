@@ -5,6 +5,7 @@
 - Local web app with watchlist, fundamentals screener, embedded Oslo Screener tab, and source-quality notes.
 - SQLite-backed ticker database and editable watchlist.
 - Cached `yfinance` fundamentals for `.OL` tickers where Yahoo Finance has coverage.
+- Descriptive benchmark tab with manual peer-group seeds and own-history snapshot collection.
 
 ## Next Sprint
 
@@ -21,10 +22,14 @@
    - no cheap/expensive/neutral flagging from standalone multiples
    - require peer group, sector context, and own-history comparison
    - display criteria and data confidence next to any future score
+6. Review and curate peer groups:
+   - verify whether each international peer is actually comparable
+   - add Oslo sector groups where public data allows it
+   - tag peer groups as draft, reviewed, or trusted
 
 ## Peer Benchmarking Sprint
 
-Peer benchmarking should be added after the ticker database is stronger.
+Peer benchmarking has started as a descriptive layer. It should not become a scoring layer until peer groups and source coverage are reviewed.
 
 Initial design:
 
