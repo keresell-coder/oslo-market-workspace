@@ -61,6 +61,24 @@ Deliverable:
 
 ## Sprint 2: Peer Group Curation
 
+Before Sprint 2, do this immediate UI refinement:
+
+### Next Sprint: Watchlist Consensus Column
+
+Goal: make the Watchlist consensus cell clearly derive from the Fundamentals/consensus data.
+
+Tasks:
+
+- Show consensus target price and target upside together in the Watchlist row.
+- Show BUY/HOLD/SELL summary with source count, confidence, and freshness.
+- Make the cell link to or focus the corresponding Fundamentals/consensus detail.
+- Ensure the result is based on the same data shown in the Fundamentals tab.
+- Keep the wording clear that this is source data, not verified investment advice.
+
+Deliverable:
+
+- Watchlist consensus column is compact, traceable, and consistent with Fundamentals.
+
 Goal: make the benchmark tab credible enough to use as research context.
 
 Tasks:

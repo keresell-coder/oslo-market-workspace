@@ -105,3 +105,18 @@ This repository is separate from the existing Oslo Screener project.
 ## Roadmap
 
 See [docs/roadmap.md](docs/roadmap.md).
+
+## Continuing In A New Codex Chat
+
+Use these files to continue with full context:
+
+- [AGENTS.md](AGENTS.md)
+- [docs/project-handoff.md](docs/project-handoff.md)
+- [docs/links-and-resources.md](docs/links-and-resources.md)
+- [docs/roadmap.md](docs/roadmap.md)
+
+Recommended first prompt in a new chat:
+
+```text
+Please read AGENTS.md, docs/project-handoff.md, docs/links-and-resources.md, and docs/roadmap.md, then continue with the next sprint: tweak the Watchlist consensus column so it is linked to the Fundamentals target and target upside.
+```
