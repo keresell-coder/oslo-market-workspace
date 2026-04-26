@@ -207,6 +207,108 @@ tr:last-child td {
   background: var(--panel-2);
 }
 
+.alert-panel {
+  margin-bottom: 14px;
+}
+
+.alert-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--panel);
+}
+
+.alert-card strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.alert-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+
+.active-alert {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.alert-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.alert-chip,
+.signal-badge {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.alert-chip {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  padding: 6px 9px;
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.alert-chip span {
+  margin: 0;
+  color: inherit;
+}
+
+.signal-cell {
+  display: grid;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.signal-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 3px 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.signal-section {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.signal-buy {
+  border-color: rgba(91, 191, 155, 0.65);
+  background: rgba(91, 191, 155, 0.14);
+  color: #9de7cb;
+}
+
+.signal-sell {
+  border-color: rgba(248, 113, 113, 0.65);
+  background: rgba(248, 113, 113, 0.14);
+  color: #fecaca;
+}
+
+.signal-neutral {
+  border-color: rgba(122, 167, 255, 0.6);
+  background: rgba(122, 167, 255, 0.12);
+  color: #bfd3ff;
+}
+
+.watchlist-hit {
+  background: rgba(251, 191, 36, 0.05);
+}
+
 .flag-expensive {
   color: var(--danger);
 }
@@ -283,8 +385,16 @@ tr:last-child td {
     grid-template-columns: 1fr;
   }
 
+  .alert-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .alert-list {
+    justify-content: flex-start;
+  }
+
   .screener-frame {
     min-height: 560px;
   }
 }
-

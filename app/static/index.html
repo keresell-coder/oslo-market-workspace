@@ -38,8 +38,12 @@
         </div>
         <div class="section-head">
           <h2>Core Watchlist</h2>
-          <button id="refresh-watchlist" class="secondary">Refresh</button>
+          <div class="actions">
+            <button id="refresh-screener-alerts" class="secondary">Refresh screener alerts</button>
+            <button id="refresh-watchlist" class="secondary">Refresh</button>
+          </div>
         </div>
+        <div id="screener-alerts" class="alert-panel"></div>
         <div id="watchlist-table" class="table-wrap"></div>
       </section>
 
@@ -88,4 +92,3 @@
     <script src="/app.js"></script>
   </body>
 </html>
-

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import sys
 import time
@@ -15,12 +16,22 @@ try:
 except Exception:  # pragma: no cover
     yf = None
 
+try:
+    import requests
+    from bs4 import BeautifulSoup
+except Exception:  # pragma: no cover
+    requests = None
+    BeautifulSoup = None
+
 
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DATA = ROOT / "data"
 DB_PATH = DATA / "oslo_workspace.sqlite3"
 CACHE_TTL_SECONDS = 60 * 60 * 6
+SCREENER_URL = "https://keresell-coder.github.io/oslo-screener-dashboard/"
+SCREENER_CACHE_TTL_SECONDS = 60 * 15
+SCREENER_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
 
 INITIAL_WATCHLIST = [
     "NOD.OL",
@@ -250,6 +261,97 @@ def valuation_flag(row: dict) -> str:
     return "mixed/neutral"
 
 
+def normalize_dashboard_ticker(ticker: str) -> str:
+    value = re.sub(r"[^A-Z0-9.]", "", ticker.upper())
+    if value and "." not in value:
+        value = f"{value}.OL"
+    return value
+
+
+def fetch_screener_signals(refresh: bool = False) -> dict:
+    now_epoch = int(time.time())
+    cached = SCREENER_CACHE.get("payload")
+    if cached and not refresh and now_epoch - int(SCREENER_CACHE["fetched_at_epoch"]) < SCREENER_CACHE_TTL_SECONDS:
+        payload = dict(cached)
+        payload["cacheStatus"] = "cached"
+        return payload
+
+    if requests is None or BeautifulSoup is None:
+        raise RuntimeError("requests and beautifulsoup4 are required for screener signal extraction")
+
+    response = requests.get(SCREENER_URL, timeout=20)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    signals = []
+    for card in soup.select(".stock-card"):
+        ticker_el = card.select_one(".stock-ticker")
+        if not ticker_el:
+            continue
+        symbol = normalize_dashboard_ticker(ticker_el.get_text(" ", strip=True))
+        badge_el = card.select_one(".signal-badge")
+        section_el = None
+        parent_section = card.find_parent("details")
+        if parent_section:
+            section_el = parent_section.select_one("summary")
+        price_el = card.select_one(".stock-price")
+        card_text = " ".join(card.get_text(" ", strip=True).split())
+        signal = badge_el.get_text(" ", strip=True) if badge_el else ""
+        section = section_el.get_text(" ", strip=True) if section_el else signal
+        signals.append(
+            {
+                "symbol": symbol,
+                "ticker": symbol.replace(".OL", ""),
+                "signal": signal,
+                "section": section,
+                "price": price_el.get_text(" ", strip=True) if price_el else None,
+                "summary": card_text[:260],
+                "url": SCREENER_URL,
+            }
+        )
+
+    payload = {
+        "url": SCREENER_URL,
+        "fetchedAt": utc_now(),
+        "signals": signals,
+        "count": len(signals),
+        "sourceReliability": "Parsed from the published Oslo Screener Dashboard. This is a link/alert layer only; it does not verify the screener logic.",
+    }
+    SCREENER_CACHE["payload"] = payload
+    SCREENER_CACHE["fetched_at_epoch"] = now_epoch
+    result = dict(payload)
+    result["cacheStatus"] = "fresh"
+    return result
+
+
+def watchlist_symbols(name: str = "Core Watchlist") -> list[str]:
+    with connect() as con:
+        return [
+            row["symbol"]
+            for row in con.execute(
+                "select symbol from watchlist_items where watchlist_name = ? order by symbol",
+                (name,),
+            )
+        ]
+
+
+def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict:
+    screener = fetch_screener_signals(refresh=refresh)
+    watched = set(watchlist_symbols(name))
+    matches = [signal for signal in screener["signals"] if signal["symbol"] in watched]
+    return {
+        "watchlist": name,
+        "matches": matches,
+        "matchCount": len(matches),
+        "watchlistCount": len(watched),
+        "screenerCount": screener["count"],
+        "fetchedAt": screener["fetchedAt"],
+        "url": screener["url"],
+        "cacheStatus": screener.get("cacheStatus"),
+        "sourceReliability": screener["sourceReliability"],
+    }
+
+
 def cached_fundamental(symbol: str, refresh: bool = False) -> dict:
     symbol = normalize_symbol(symbol)
     now_epoch = int(time.time())
@@ -314,6 +416,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_watchlist_get(parsed)
         if parsed.path == "/api/fundamentals":
             return self.handle_fundamentals(parsed)
+        if parsed.path == "/api/screener-signals":
+            return self.handle_screener_signals(parsed)
+        if parsed.path == "/api/screener-alerts":
+            return self.handle_screener_alerts(parsed)
         if parsed.path == "/api/sources":
             return send_json(self, source_notes())
         return super().do_GET()
@@ -435,12 +541,29 @@ class AppHandler(SimpleHTTPRequestHandler):
                 errors.append({"symbol": symbol, "error": str(exc)})
         send_json(self, {"rows": rows, "errors": errors, "sourceNotes": source_notes()})
 
+    def handle_screener_signals(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        try:
+            send_json(self, fetch_screener_signals(refresh=refresh))
+        except Exception as exc:
+            send_json(self, {"error": str(exc)}, HTTPStatus.BAD_GATEWAY)
+
+    def handle_screener_alerts(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        name = qs.get("watchlist", ["Core Watchlist"])[0]
+        try:
+            send_json(self, screener_alerts(name=name, refresh=refresh))
+        except Exception as exc:
+            send_json(self, {"error": str(exc)}, HTTPStatus.BAD_GATEWAY)
+
 
 def source_notes() -> dict:
     return {
         "existingDashboard": {
             "url": "https://keresell-coder.github.io/oslo-screener-dashboard/",
-            "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP.",
+            "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist alerts parse ticker/signal cards from the published page.",
         },
         "yfinance": {
             "use": "Open/free Yahoo Finance data for price, multiples, analyst target fields where available.",
@@ -471,4 +594,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

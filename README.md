@@ -19,12 +19,15 @@ On iPhone/Android, open the same URL in the browser and use "Add to Home Screen"
 ## Current Data Sources
 
 - Existing screener: embedded from `https://keresell-coder.github.io/oslo-screener-dashboard/`.
+- Screener/watchlist alerts: parsed from the published Oslo Screener dashboard cards and matched to the editable watchlist.
 - Fundamentals: `yfinance` where Yahoo Finance has coverage for `.OL` symbols.
 - NewsWeb: MVP provides ticker-specific NewsWeb search links and classification structure; direct automated collection is intentionally conservative until we confirm a stable public endpoint/terms.
 
 ## Reliability Notes
 
 Free market data is delayed, incomplete, rate-limited, and can change without notice. The app stores source labels and timestamps so values can be treated as screening inputs, not verified investment facts.
+
+The Oslo Screener alert layer only links symbols from the published dashboard to the local watchlist. It does not verify that the underlying technical signal is correct.
 
 Metrics such as P/NAV, sector-specific NAV, fleet values, reserves, and detailed consensus estimates usually require company reports, broker data, paid APIs, or curated manual inputs. The MVP leaves these fields visible as "n/a" rather than inventing values.
 

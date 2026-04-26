@@ -1,5 +1,6 @@
 const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+let screenerAlerts = { matches: [], bySymbol: new Map() };
 
 function value(v, suffix = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
@@ -44,28 +45,33 @@ function setupTabs() {
 }
 
 async function loadWatchlist() {
-  const data = await api("/api/watchlist");
+  const [data, alerts] = await Promise.all([api("/api/watchlist"), loadScreenerAlerts(false)]);
   const rows = data.items
     .map(
-      (row) => `
-        <tr>
+      (row) => {
+        const alert = alerts.bySymbol.get(row.symbol);
+        return `
+        <tr class="${alert ? "watchlist-hit" : ""}">
           <td><strong>${escapeHtml(row.symbol)}</strong></td>
+          <td>${renderSignalBadge(alert)}</td>
           <td>${escapeHtml(row.name || "")}</td>
           <td>${escapeHtml(row.sector || "")}</td>
           <td>${escapeHtml(row.note || "")}</td>
           <td class="row-actions">
             <a class="link" href="https://finance.yahoo.com/quote/${encodeURIComponent(row.symbol)}" target="_blank" rel="noreferrer">Yahoo</a>
             <a class="link" href="https://newsweb.oslobors.no/search?query=${encodeURIComponent(row.symbol.replace(".OL", ""))}" target="_blank" rel="noreferrer">NewsWeb</a>
+            <a class="link" href="https://keresell-coder.github.io/oslo-screener-dashboard/" target="_blank" rel="noreferrer">Screener</a>
             <button class="secondary" data-remove="${escapeHtml(row.symbol)}">Remove</button>
           </td>
         </tr>
-      `,
+      `;
+      },
     )
     .join("");
   document.getElementById("watchlist-table").innerHTML = `
     <table>
-      <thead><tr><th>Symbol</th><th>Name</th><th>Sector</th><th>Note</th><th>Links</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="5">No watchlist items yet.</td></tr>`}</tbody>
+      <thead><tr><th>Symbol</th><th>Screener</th><th>Name</th><th>Sector</th><th>Note</th><th>Links</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="6">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
   document.querySelectorAll("[data-remove]").forEach((button) => {
@@ -76,6 +82,66 @@ async function loadWatchlist() {
       await loadWatchlist();
     });
   });
+}
+
+function renderSignalBadge(alert) {
+  if (!alert) return `<span class="muted">No current signal</span>`;
+  const klass = signalClass(alert.signal);
+  return `
+    <div class="signal-cell">
+      <span class="signal-badge ${klass}">${escapeHtml(alert.signal || "Signal")}</span>
+      <span class="signal-section">${escapeHtml(alert.section || "")}</span>
+    </div>
+  `;
+}
+
+function signalClass(signal) {
+  const value = String(signal || "").toLowerCase();
+  if (value.includes("sell")) return "signal-sell";
+  if (value.includes("buy")) return "signal-buy";
+  return "signal-neutral";
+}
+
+async function loadScreenerAlerts(refresh = false) {
+  const data = await api(`/api/screener-alerts?watchlist=Core%20Watchlist&refresh=${refresh ? "1" : "0"}`);
+  const bySymbol = new Map(data.matches.map((item) => [item.symbol, item]));
+  screenerAlerts = { ...data, bySymbol };
+  renderScreenerAlerts(screenerAlerts);
+  return screenerAlerts;
+}
+
+function renderScreenerAlerts(alerts) {
+  const target = document.getElementById("screener-alerts");
+  if (!target) return;
+  if (!alerts.matches?.length) {
+    target.innerHTML = `
+      <div class="alert-card calm">
+        <strong>No watchlist stocks are currently in the Oslo Screener output.</strong>
+        <span>Checked ${escapeHtml(alerts.screenerCount ?? 0)} screener symbols. Source: published dashboard, ${escapeHtml(alerts.cacheStatus || "unknown")}.</span>
+      </div>
+    `;
+    return;
+  }
+  target.innerHTML = `
+    <div class="alert-card active-alert">
+      <div>
+        <strong>${alerts.matchCount} watchlist ${alerts.matchCount === 1 ? "stock is" : "stocks are"} in the Oslo Screener</strong>
+        <span>Parsed from ${escapeHtml(alerts.screenerCount)} screener cards. ${escapeHtml(alerts.sourceReliability || "")}</span>
+      </div>
+      <div class="alert-list">
+        ${alerts.matches
+          .map(
+            (item) => `
+              <a class="alert-chip ${signalClass(item.signal)}" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
+                <strong>${escapeHtml(item.symbol)}</strong>
+                <span>${escapeHtml(item.signal || "Signal")}</span>
+              </a>
+            `,
+          )
+          .join("")}
+      </div>
+    </div>
+  `;
 }
 
 function flagClass(flag) {
@@ -176,6 +242,10 @@ async function boot() {
     await loadWatchlist();
   });
   document.getElementById("refresh-watchlist").addEventListener("click", loadWatchlist);
+  document.getElementById("refresh-screener-alerts").addEventListener("click", async () => {
+    await loadScreenerAlerts(true);
+    await loadWatchlist();
+  });
   document.getElementById("refresh-fundamentals").addEventListener("click", () => loadFundamentals(true));
   document.getElementById("fundamental-universe").addEventListener("change", () => loadFundamentals(false));
   document.getElementById("reload-sources").addEventListener("click", loadSources);
@@ -190,4 +260,3 @@ async function boot() {
 }
 
 boot();
-
