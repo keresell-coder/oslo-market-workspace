@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#172033" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Oslo Workspace" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="/manifest.json" />
+    <title>Oslo Market Workspace</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Oslo Market Workspace</h1>
+        <p>Watchlists, fundamentals, and your existing Oslo screener in one local app.</p>
+      </div>
+      <div class="status-pill" id="health">Local</div>
+    </header>
+
+    <nav class="tabs" aria-label="Workspace tabs">
+      <button class="tab active" data-tab="watchlist">Watchlist</button>
+      <button class="tab" data-tab="fundamentals">Fundamentals</button>
+      <button class="tab" data-tab="dashboard">Oslo Screener</button>
+      <button class="tab" data-tab="sources">Sources</button>
+    </nav>
+
+    <main>
+      <section id="watchlist" class="panel active">
+        <div class="toolbar">
+          <form id="add-watchlist-form" class="inline-form">
+            <input id="watchlist-symbol" name="symbol" placeholder="Ticker, e.g. DNB or DNB.OL" autocomplete="off" />
+            <input id="watchlist-note" name="note" placeholder="Optional note" autocomplete="off" />
+            <button type="submit">Add</button>
+          </form>
+        </div>
+        <div class="section-head">
+          <h2>Core Watchlist</h2>
+          <button id="refresh-watchlist" class="secondary">Refresh</button>
+        </div>
+        <div id="watchlist-table" class="table-wrap"></div>
+      </section>
+
+      <section id="fundamentals" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Fundamental Valuation Screener</h2>
+            <p class="muted">Cached open/free data. Empty fields mean the source did not provide a reliable value.</p>
+          </div>
+          <div class="actions">
+            <select id="fundamental-universe">
+              <option value="watchlist">Watchlist</option>
+              <option value="all">Ticker database</option>
+            </select>
+            <button id="refresh-fundamentals">Refresh data</button>
+          </div>
+        </div>
+        <div id="fundamental-errors"></div>
+        <div id="fundamentals-table" class="table-wrap"></div>
+      </section>
+
+      <section id="dashboard" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Existing Oslo Screener</h2>
+            <p class="muted">Embedded from the published GitHub Pages dashboard. This MVP does not edit that project.</p>
+          </div>
+          <a class="button-link" href="https://keresell-coder.github.io/oslo-screener-dashboard/" target="_blank" rel="noreferrer">Open original</a>
+        </div>
+        <iframe
+          class="screener-frame"
+          title="Oslo Screener Dashboard"
+          src="https://keresell-coder.github.io/oslo-screener-dashboard/"
+        ></iframe>
+      </section>
+
+      <section id="sources" class="panel">
+        <div class="section-head">
+          <h2>Source Quality</h2>
+          <button id="reload-sources" class="secondary">Reload</button>
+        </div>
+        <div id="sources-content" class="source-grid"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
+
