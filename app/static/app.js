@@ -144,14 +144,6 @@ function renderScreenerAlerts(alerts) {
   `;
 }
 
-function flagClass(flag) {
-  if (!flag) return "";
-  if (flag.includes("expensive")) return "flag-expensive";
-  if (flag.includes("cheap")) return "flag-cheap";
-  if (flag.includes("insufficient")) return "flag-insufficient";
-  return "";
-}
-
 async function loadFundamentals(refresh = false) {
   const universe = document.getElementById("fundamental-universe").value;
   const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
@@ -179,7 +171,6 @@ async function loadFundamentals(refresh = false) {
         <td class="number">${compact(row.marketCap)}</td>
         <td class="number">${value(row.targetMeanPrice)}</td>
         <td class="number">${value(row.targetUpsidePct, "%")}</td>
-        <td><span class="${flagClass(row.valuationFlag)}">${escapeHtml(row.valuationFlag)}</span></td>
         <td>
           <span class="tag">${escapeHtml(row.cacheStatus)}</span><br>
           <span class="muted">${escapeHtml(row.fetchedAt || "")}</span>
@@ -202,10 +193,10 @@ async function loadFundamentals(refresh = false) {
           <th class="number">EV/EBITDA</th><th class="number">EV/EBIT</th>
           <th class="number">EPS TTM</th><th class="number">Div Yield</th>
           <th class="number">Mkt Cap</th><th class="number">Target</th>
-          <th class="number">Upside</th><th>Flag</th><th>Source</th><th>Links</th>
+          <th class="number">Upside</th><th>Source</th><th>Links</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="17">No fundamentals loaded.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="16">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
   `;
 }

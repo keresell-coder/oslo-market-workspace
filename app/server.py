@@ -220,7 +220,6 @@ def fetch_yfinance(symbol: str) -> dict:
         "newswebUrl": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
-    payload["valuationFlag"] = valuation_flag(payload)
     return payload
 
 
@@ -232,33 +231,6 @@ def pick_number(info: dict, *keys: str) -> float | None:
         if isinstance(value, (int, float)):
             return float(value)
     return None
-
-
-def valuation_flag(row: dict) -> str:
-    pe = row.get("trailingPE")
-    ev_ebitda = row.get("enterpriseToEbitda")
-    pb = row.get("priceToBook")
-    if pe is None and ev_ebitda is None and pb is None:
-        return "insufficient data"
-    expensive = sum(
-        [
-            pe is not None and pe > 30,
-            ev_ebitda is not None and ev_ebitda > 18,
-            pb is not None and pb > 4,
-        ]
-    )
-    cheap = sum(
-        [
-            pe is not None and 0 < pe < 12,
-            ev_ebitda is not None and 0 < ev_ebitda < 8,
-            pb is not None and 0 < pb < 1.5,
-        ]
-    )
-    if expensive >= 2:
-        return "expensive on basic multiples"
-    if cheap >= 2:
-        return "cheap on basic multiples"
-    return "mixed/neutral"
 
 
 def normalize_dashboard_ticker(ticker: str) -> str:
@@ -362,10 +334,12 @@ def cached_fundamental(symbol: str, refresh: bool = False) -> dict:
         ).fetchone()
         if row and not refresh and now_epoch - int(row["fetched_at_epoch"]) < CACHE_TTL_SECONDS:
             payload = json.loads(row["payload"])
+            payload.pop("valuationFlag", None)
             payload["cacheStatus"] = "cached"
             return payload
 
         payload = fetch_yfinance(symbol)
+        payload.pop("valuationFlag", None)
         con.execute(
             """
             insert into fundamentals_cache(symbol, payload, fetched_at_epoch, fetched_at)

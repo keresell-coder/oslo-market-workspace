@@ -29,6 +29,8 @@ Free market data is delayed, incomplete, rate-limited, and can change without no
 
 The Oslo Screener alert layer only links symbols from the published dashboard to the local watchlist. It does not verify that the underlying technical signal is correct.
 
+The fundamentals tab intentionally does not label stocks cheap, expensive, or neutral yet. Valuation judgments should only be shown after peer, sector, and own-history benchmarks are implemented and visible.
+
 Metrics such as P/NAV, sector-specific NAV, fleet values, reserves, and detailed consensus estimates usually require company reports, broker data, paid APIs, or curated manual inputs. The MVP leaves these fields visible as "n/a" rather than inventing values.
 
 ## Planned Repository

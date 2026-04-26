@@ -17,6 +17,10 @@
    - per-field source labels
    - stale-data warnings
    - manual override fields for values that free data cannot supply
+5. Replace absolute valuation labels with benchmark-driven scoring only:
+   - no cheap/expensive/neutral flagging from standalone multiples
+   - require peer group, sector context, and own-history comparison
+   - display criteria and data confidence next to any future score
 
 ## Peer Benchmarking Sprint
 
@@ -43,3 +47,4 @@ Initial design:
 
 Important constraint: some sector metrics require company reports, broker estimates, or manual inputs. The app should show missing data honestly rather than manufacturing values.
 
+No valuation flag should be shown unless its peer group, sector benchmark, own-history range, source timestamp, and confidence level are visible.
