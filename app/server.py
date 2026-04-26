@@ -291,6 +291,20 @@ def init_db() -> None:
                 collected_at text not null,
                 primary key (symbol, source)
             );
+
+            create table if not exists significant_events (
+                id integer primary key autoincrement,
+                symbol text not null,
+                title text not null,
+                category text default 'update',
+                importance text default 'normal',
+                source text default 'manual',
+                url text default '',
+                note text default '',
+                published_at text,
+                created_at_epoch integer not null,
+                created_at text not null
+            );
             """
         )
         now = utc_now()
@@ -530,6 +544,7 @@ def consensus_for_symbol(symbol: str) -> dict:
         "sourceCount": len(rows),
         "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
         "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
+        "recommendationSummary": consensus_recommendation_summary(rows),
         "confidence": consensus_confidence(rows),
         "status": "missing" if not rows else ("multi-source" if len(rows) >= 2 else "single-source"),
         "note": "Consensus is not verified unless multiple source rows are present and reviewed.",
@@ -546,6 +561,74 @@ def consensus_confidence(rows: list[dict]) -> str:
     if len(fresh_rows) >= 2:
         return "medium"
     return "low"
+
+
+def recommendation_bucket(value: str | None) -> str:
+    text = (value or "").strip().lower()
+    if not text:
+        return "unknown"
+    if any(token in text for token in ["strong buy", "buy", "outperform", "overweight", "accumulate"]):
+        return "BUY"
+    if any(token in text for token in ["sell", "underperform", "underweight", "reduce"]):
+        return "SELL"
+    if any(token in text for token in ["hold", "neutral", "market perform", "equal weight"]):
+        return "HOLD"
+    return text.upper()
+
+
+def consensus_recommendation_summary(rows: list[dict]) -> dict:
+    counts = {"BUY": 0, "HOLD": 0, "SELL": 0, "unknown": 0}
+    for row in rows:
+        bucket = recommendation_bucket(row.get("recommendation"))
+        counts[bucket] = counts.get(bucket, 0) + 1
+    known = {key: value for key, value in counts.items() if key != "unknown" and value}
+    if not known:
+        label = "n/a"
+    else:
+        label = sorted(known.items(), key=lambda item: (-item[1], item[0]))[0][0]
+    return {
+        "label": label,
+        "counts": counts,
+        "sourceCount": len(rows),
+        "method": "Simple source-count summary. It is not analyst-count weighted unless source data explicitly supports that.",
+    }
+
+
+def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
+    with connect() as con:
+        rows = con.execute(
+            """
+            select *
+            from significant_events
+            where symbol = ?
+            order by
+              case importance when 'high' then 0 when 'medium' then 1 else 2 end,
+              created_at_epoch desc
+            limit ?
+            """,
+            (symbol, limit),
+        ).fetchall()
+    return rows_to_dicts(rows)
+
+
+def event_alert_summary(events: list[dict]) -> dict:
+    if not events:
+        return {
+            "level": "none",
+            "label": "No tracked significant updates",
+            "count": 0,
+            "latest": None,
+            "source": "manual/significant-events table",
+        }
+    high = [event for event in events if event.get("importance") == "high"]
+    latest = events[0]
+    return {
+        "level": "high" if high else "normal",
+        "label": latest.get("title") or "Significant update",
+        "count": len(events),
+        "latest": latest,
+        "source": "manual/significant-events table",
+    }
 
 
 def enrich_fundamental_payload(payload: dict) -> dict:
@@ -655,6 +738,78 @@ def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict
         "url": screener["url"],
         "cacheStatus": screener.get("cacheStatus"),
         "sourceReliability": screener["sourceReliability"],
+    }
+
+
+def safe_screener_alert_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+    try:
+        alerts = screener_alerts(name=name, refresh=False)
+        return {item["symbol"]: item for item in alerts.get("matches", [])}, None
+    except Exception as exc:
+        return {}, str(exc)
+
+
+def watchlist_overview(name: str = "Core Watchlist") -> dict:
+    with connect() as con:
+        items = rows_to_dicts(
+            con.execute(
+                """
+                select wi.watchlist_name, wi.symbol, wi.note, t.name, t.sector, t.industry
+                from watchlist_items wi
+                left join tickers t on t.symbol = wi.symbol
+                where wi.watchlist_name = ?
+                order by wi.symbol
+                """,
+                (name,),
+            ).fetchall()
+        )
+
+    screener_map, screener_error = safe_screener_alert_map(name)
+    rows = []
+    errors = []
+    for item in items:
+        symbol = item["symbol"]
+        try:
+            fundamental = cached_fundamental(symbol, refresh=False)
+        except Exception as exc:
+            fundamental = {}
+            errors.append({"symbol": symbol, "error": str(exc)})
+
+        consensus = consensus_for_symbol(symbol)
+        events = significant_events_for_symbol(symbol)
+        rows.append(
+            {
+                **item,
+                "name": item.get("name") or fundamental.get("name") or symbol,
+                "sector": item.get("sector") or fundamental.get("sector"),
+                "industry": item.get("industry") or fundamental.get("industry"),
+                "screenerSignal": screener_map.get(symbol),
+                "consensusTarget": consensus.get("targetMeanAcrossSources"),
+                "consensusRecommendation": consensus.get("recommendationSummary", {}),
+                "consensusConfidence": consensus.get("confidence"),
+                "consensusStatus": consensus.get("status"),
+                "consensusSourceCount": consensus.get("sourceCount"),
+                "consensusAnalystCount": consensus.get("analystCountKnown"),
+                "consensusSources": consensus.get("sources", []),
+                "significantEvents": events,
+                "eventAlert": event_alert_summary(events),
+                "links": {
+                    "yahoo": f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}",
+                    "newsweb": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+                    "screener": SCREENER_URL,
+                },
+            }
+        )
+
+    return {
+        "watchlist": name,
+        "rows": rows,
+        "errors": errors,
+        "screenerError": screener_error,
+        "sourceNotes": {
+            "consensus": "Target and recommendation fields are source-count summaries. They are not verified analyst-count weighted consensus unless reviewed sources are added.",
+            "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
+        },
     }
 
 
@@ -947,6 +1102,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_tickers()
         if parsed.path == "/api/watchlist":
             return self.handle_watchlist_get(parsed)
+        if parsed.path == "/api/watchlist-overview":
+            return self.handle_watchlist_overview(parsed)
         if parsed.path == "/api/fundamentals":
             return self.handle_fundamentals(parsed)
         if parsed.path == "/api/peer-groups":
@@ -955,6 +1112,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_benchmarks(parsed)
         if parsed.path == "/api/consensus":
             return self.handle_consensus_get(parsed)
+        if parsed.path == "/api/events":
+            return self.handle_events_get(parsed)
         if parsed.path == "/api/screener-signals":
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
@@ -971,6 +1130,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_watchlist_post()
         if parsed.path == "/api/consensus":
             return self.handle_consensus_post()
+        if parsed.path == "/api/events":
+            return self.handle_events_post()
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
     def do_DELETE(self) -> None:
@@ -1016,6 +1177,11 @@ class AppHandler(SimpleHTTPRequestHandler):
                 (name,),
             ).fetchall()
         send_json(self, {"watchlists": rows_to_dicts(lists), "active": name, "items": rows_to_dicts(items)})
+
+    def handle_watchlist_overview(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        name = qs.get("name", ["Core Watchlist"])[0]
+        send_json(self, watchlist_overview(name))
 
     def handle_watchlist_post(self) -> None:
         body = get_json_body(self)
@@ -1159,6 +1325,55 @@ class AppHandler(SimpleHTTPRequestHandler):
                 ),
             )
         send_json(self, consensus_for_symbol(symbol))
+
+    def handle_events_get(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = qs.get("symbol", [""])[0].strip()
+        with connect() as con:
+            if symbol:
+                rows = rows_to_dicts(
+                    con.execute(
+                        "select * from significant_events where symbol = ? order by created_at_epoch desc",
+                        (normalize_symbol(symbol),),
+                    ).fetchall()
+                )
+            else:
+                rows = rows_to_dicts(
+                    con.execute("select * from significant_events order by created_at_epoch desc").fetchall()
+                )
+        send_json(self, {"events": rows})
+
+    def handle_events_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        title = body.get("title", "").strip()
+        if not symbol or not title:
+            return send_json(self, {"error": "symbol and title are required"}, HTTPStatus.BAD_REQUEST)
+        now_epoch = int(time.time())
+        created_at = utc_now()
+        with connect() as con:
+            con.execute(
+                """
+                insert into significant_events(
+                    symbol, title, category, importance, source, url, note,
+                    published_at, created_at_epoch, created_at
+                )
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    symbol,
+                    title,
+                    body.get("category", "update"),
+                    body.get("importance", "normal"),
+                    body.get("source", "manual"),
+                    body.get("url", ""),
+                    body.get("note", ""),
+                    body.get("publishedAt"),
+                    now_epoch,
+                    created_at,
+                ),
+            )
+        send_json(self, {"events": significant_events_for_symbol(symbol, limit=10)})
 
     def handle_screener_signals(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)

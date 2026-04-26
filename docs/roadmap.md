@@ -7,9 +7,12 @@ The MVP is a local-first Oslo Bors workspace with:
 - Editable SQLite-backed watchlist.
 - Embedded Oslo Screener Dashboard tab.
 - Watchlist alerts when published Oslo Screener signals overlap with watched stocks.
+- Front-page watchlist dashboard with ticker/name, sector, screener signal, consensus target/recommendation, and significant-update status.
 - Fundamentals table backed by cached Yahoo/yfinance data.
 - Explicit source/provenance notes for target prices.
 - Consensus/source table added for target-price provenance.
+- Consensus source editor added for manual/reviewed source entry.
+- Significant-events table added for manually tracked alerts.
 - Descriptive peer benchmark tab.
 - Own-history snapshot collection started.
 - Source quality page.
@@ -25,53 +28,36 @@ The MVP is a local-first Oslo Bors workspace with:
 
 ## Sprint 1: Data Provenance And Consensus Quality
 
-Status: partially complete.
+Status: complete for MVP scope.
 
 Completed:
 
 - Added local `consensus_sources` table.
 - Added `/api/consensus` read endpoint.
 - Added manual consensus/source write endpoint.
+- Added consensus source editor UI.
 - Fundamentals rows now expose:
   - target source count
   - target confidence
   - target status
   - consensus source stale status
   - Yahoo/yfinance method warning
+- Watchlist front page now shows consensus target and recommendation summary.
 - Watchlist loading no longer depends on screener-alert loading.
 - Benchmark loading now shows UI errors instead of silently failing.
 
 Goal: make the fundamentals tab more trustworthy before expanding the analysis.
 
-Remaining tasks:
+Carried forward:
 
-- Split target price fields by source:
-  - Yahoo/yfinance
-  - TradingView lookup/manual entry
-  - MarketScreener lookup/manual entry
-  - other manually verified sources
-- Add consensus source table:
-  - symbol
-  - source
-  - target mean
-  - target high/low
-  - analyst count
-  - recommendation text/score if available
-  - source URL
-  - collected timestamp
-  - confidence level
 - Add manual override fields for values not reliably available from free APIs.
-- Make target price display clearly say whether values are single-source or multi-source.
+- Automate collection from additional sources only if reliable and permitted.
+- Improve consensus source display into a dedicated sortable table if the current editor becomes too cramped.
 
 Deliverable:
 
 - Fundamentals tab shows source quality per target/consensus field.
 - No consensus value is presented as verified unless at least the source and timestamp are visible.
-
-Remaining deliverable:
-
-- Add an editable UI for manually entering/reviewing TradingView, MarketScreener, or other verified consensus sources.
-- Improve consensus source display into a dedicated editable table instead of compact per-row text.
 
 ## Sprint 2: Peer Group Curation
 
@@ -136,6 +122,14 @@ Deliverable:
 ## Sprint 4: NewsWeb And Event Monitoring
 
 Goal: monitor relevant company events without becoming a noisy news site.
+
+Status: data model started; automated collection not started.
+
+Completed foundation:
+
+- Added local `significant_events` table.
+- Added `/api/events` read/write endpoint.
+- Watchlist front page displays significant-update alert status.
 
 Tasks:
 

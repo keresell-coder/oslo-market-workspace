@@ -140,6 +140,31 @@ main {
   width: 100%;
 }
 
+.editor-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.editor-panel summary {
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.editor-grid button {
+  min-width: 130px;
+}
+
 input,
 select {
   min-height: 36px;
@@ -312,6 +337,7 @@ tr:last-child td {
 .row-actions {
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .link {

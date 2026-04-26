@@ -53,29 +53,40 @@ function setupTabs() {
 }
 
 async function loadWatchlist() {
-  const data = await api("/api/watchlist");
-  let alerts = screenerAlerts;
-  try {
-    alerts = await loadScreenerAlerts(false);
-  } catch (error) {
-    renderScreenerAlertError(error);
+  const data = await api("/api/watchlist-overview");
+  watchlistItems = data.rows;
+  if (data.screenerError) {
+    renderScreenerAlertError(new Error(data.screenerError));
+  } else {
+    const matches = data.rows.filter((row) => row.screenerSignal).map((row) => row.screenerSignal);
+    const bySymbol = new Map(matches.map((item) => [item.symbol, item]));
+    renderScreenerAlerts({
+      matches,
+      bySymbol,
+      matchCount: matches.length,
+      screenerCount: matches.length,
+      sourceReliability: "Parsed from the published Oslo Screener Dashboard.",
+      cacheStatus: "overview",
+    });
   }
-  watchlistItems = data.items;
-  const rows = data.items
+  const rows = data.rows
     .map(
       (row) => {
-        const alert = alerts.bySymbol.get(row.symbol);
+        const alert = row.screenerSignal;
         return `
         <tr class="${alert ? "watchlist-hit" : ""}">
-          <td><strong>${escapeHtml(row.symbol)}</strong></td>
-          <td>${renderSignalBadge(alert)}</td>
-          <td>${escapeHtml(row.name || "")}</td>
+          <td>
+            <strong>${escapeHtml(row.symbol)}</strong><br>
+            <span class="muted">${escapeHtml(row.name || "")}</span>
+          </td>
           <td>${escapeHtml(row.sector || "")}</td>
-          <td>${escapeHtml(row.note || "")}</td>
+          <td>${renderSignalBadge(alert)}</td>
+          <td>${renderConsensusCell(row)}</td>
+          <td>${renderEventCell(row.eventAlert)}</td>
           <td class="row-actions">
-            <a class="link" href="https://finance.yahoo.com/quote/${encodeURIComponent(row.symbol)}" target="_blank" rel="noreferrer">Yahoo</a>
-            <a class="link" href="https://newsweb.oslobors.no/search?query=${encodeURIComponent(row.symbol.replace(".OL", ""))}" target="_blank" rel="noreferrer">NewsWeb</a>
-            <a class="link" href="https://keresell-coder.github.io/oslo-screener-dashboard/" target="_blank" rel="noreferrer">Screener</a>
+            <a class="link" href="${escapeHtml(row.links?.yahoo || "#")}" target="_blank" rel="noreferrer">Yahoo</a>
+            <a class="link" href="${escapeHtml(row.links?.newsweb || "#")}" target="_blank" rel="noreferrer">NewsWeb</a>
+            <a class="link" href="${escapeHtml(row.links?.screener || "#")}" target="_blank" rel="noreferrer">Screener</a>
             <button class="secondary" data-remove="${escapeHtml(row.symbol)}">Remove</button>
           </td>
         </tr>
@@ -85,7 +96,7 @@ async function loadWatchlist() {
     .join("");
   document.getElementById("watchlist-table").innerHTML = `
     <table>
-      <thead><tr><th>Symbol</th><th>Screener</th><th>Name</th><th>Sector</th><th>Note</th><th>Links</th></tr></thead>
+      <thead><tr><th>Ticker / Name</th><th>Sector</th><th>Screener</th><th>Consensus</th><th>Updates</th><th>Links</th></tr></thead>
       <tbody>${rows || `<tr><td colspan="6">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
@@ -97,6 +108,41 @@ async function loadWatchlist() {
       await loadWatchlist();
     });
   });
+}
+
+function renderConsensusCell(row) {
+  const rec = row.consensusRecommendation || {};
+  const label = rec.label || "n/a";
+  return `
+    <div class="signal-cell">
+      <strong>${value(row.consensusTarget)}</strong>
+      <span class="signal-badge ${recommendationClass(label)}">${escapeHtml(label)}</span>
+      <span class="muted">${escapeHtml(row.consensusConfidence || "missing")} / ${escapeHtml(row.consensusStatus || "missing")} / ${escapeHtml(row.consensusSourceCount ?? 0)} source(s)</span>
+      <span class="muted">${row.consensusAnalystCount ? `${fmt.format(row.consensusAnalystCount)} known analyst refs` : "analyst count n/a"}</span>
+    </div>
+  `;
+}
+
+function recommendationClass(label) {
+  const value = String(label || "").toLowerCase();
+  if (value.includes("buy")) return "signal-buy";
+  if (value.includes("sell")) return "signal-sell";
+  if (value.includes("hold")) return "signal-neutral";
+  return "";
+}
+
+function renderEventCell(alert) {
+  if (!alert || alert.count === 0) {
+    return `<span class="muted">No significant updates tracked</span>`;
+  }
+  const klass = alert.level === "high" ? "signal-sell" : "signal-neutral";
+  return `
+    <div class="signal-cell">
+      <span class="signal-badge ${klass}">${escapeHtml(alert.level || "update")}</span>
+      <strong>${escapeHtml(alert.label || "Significant update")}</strong>
+      <span class="muted">${escapeHtml(alert.count)} tracked update(s)</span>
+    </div>
+  `;
 }
 
 function metricValue(v, unit = "") {
@@ -237,6 +283,35 @@ async function loadFundamentals(refresh = false) {
       <tbody>${rows || `<tr><td colspan="17">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
   `;
+}
+
+async function saveConsensusSource(event) {
+  event.preventDefault();
+  const body = {
+    symbol: document.getElementById("consensus-symbol").value,
+    source: document.getElementById("consensus-source").value,
+    targetMean: document.getElementById("consensus-target").value,
+    targetHigh: document.getElementById("consensus-high").value,
+    targetLow: document.getElementById("consensus-low").value,
+    analystCount: document.getElementById("consensus-analysts").value,
+    recommendation: document.getElementById("consensus-recommendation").value,
+    confidence: document.getElementById("consensus-confidence").value,
+    sourceUrl: document.getElementById("consensus-url").value,
+    methodNote: document.getElementById("consensus-note").value,
+  };
+  const status = document.getElementById("consensus-editor-status");
+  try {
+    const result = await api("/api/consensus", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    status.textContent = `Saved ${result.sourceCount} consensus source(s) for ${result.symbol}.`;
+    document.getElementById("consensus-form").reset();
+    await loadWatchlist();
+    await loadFundamentals(false);
+  } catch (error) {
+    status.textContent = `Could not save consensus source: ${error.message}`;
+  }
 }
 
 function renderConsensusStatus(consensus) {
@@ -478,6 +553,7 @@ async function boot() {
     event.preventDefault();
     await loadBenchmark(false);
   });
+  document.getElementById("consensus-form").addEventListener("submit", saveConsensusSource);
   document.getElementById("refresh-benchmark").addEventListener("click", () => loadBenchmark(true));
   document.getElementById("refresh-fundamentals").addEventListener("click", () => loadFundamentals(true));
   document.getElementById("fundamental-universe").addEventListener("change", () => loadFundamentals(false));

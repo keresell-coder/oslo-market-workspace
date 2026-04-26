@@ -27,6 +27,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
   - Initial test watchlist is seeded from the first user list.
   - Add/remove symbols from the app.
   - Watchlist rendering is independent from screener-alert fetching, so a failed alert refresh should not blank the watchlist.
+  - Front page shows ticker/name, sector, screener signal, consensus target/recommendation, and significant-update status.
 
 - **Oslo Screener tab**
   - Embeds the existing published Oslo Screener Dashboard:
@@ -44,6 +45,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
   - Labels target price as Yahoo/yfinance source data only.
   - Does not treat Yahoo recommendation fields as verified BUY/HOLD/SELL weighting.
   - Shows consensus quality as low/single-source unless additional reviewed sources are added.
+  - Includes a consensus source editor for adding reviewed/manual target-price and recommendation sources.
 
 - **Benchmarks tab**
   - Adds a descriptive peer benchmark layer.
@@ -61,6 +63,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
 - Screener/watchlist alerts: parsed from the published dashboard cards.
 - Fundamentals: Yahoo Finance through `yfinance`.
 - Consensus/target provenance: local `consensus_sources` table, currently populated from Yahoo/yfinance and ready for manual/reviewed source entries.
+- Significant updates: local `significant_events` table, currently manual/tracked entries only.
 - Benchmarks: manual peer-group seeds plus cached `yfinance` metrics.
 - NewsWeb: ticker-specific search links only for now.
 - TradingView: search links only for now.
@@ -84,7 +87,8 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
 - Sector index benchmarking is not implemented.
 - Own-history benchmarking needs more refresh snapshots before it is useful.
 - Yahoo/yfinance target prices are not enough for verified analyst consensus.
-- Sprint 1 consensus infrastructure exists, but multi-source collection is not automated yet.
+- Sprint 1 consensus infrastructure and UI exists, but multi-source collection is not automated yet.
+- Significant update alerts exist, but automated NewsWeb/event collection is not implemented yet.
 - P/NAV, NAV discount/premium, fleet values, reserves, EBIT/kg, backlog, ROE, CET1, LTV, WAULT, and similar sector metrics require reports, curated manual inputs, or better data sources.
 - The current app is local-first. Sharing with friends needs a hosting/deployment step.
 

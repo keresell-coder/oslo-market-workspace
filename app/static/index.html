@@ -68,6 +68,32 @@
           <strong>Target-price policy</strong>
           <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
         </div>
+        <details class="editor-panel">
+          <summary>Consensus source editor</summary>
+          <form id="consensus-form" class="editor-grid">
+            <input id="consensus-symbol" placeholder="Ticker, e.g. MOWI.OL" autocomplete="off" />
+            <input id="consensus-source" placeholder="Source, e.g. MarketScreener" autocomplete="off" />
+            <input id="consensus-target" placeholder="Target mean" inputmode="decimal" />
+            <input id="consensus-high" placeholder="Target high" inputmode="decimal" />
+            <input id="consensus-low" placeholder="Target low" inputmode="decimal" />
+            <input id="consensus-analysts" placeholder="Analyst count" inputmode="decimal" />
+            <select id="consensus-recommendation">
+              <option value="">Recommendation</option>
+              <option value="buy">BUY</option>
+              <option value="hold">HOLD</option>
+              <option value="sell">SELL</option>
+            </select>
+            <select id="consensus-confidence">
+              <option value="manual">manual</option>
+              <option value="reviewed">reviewed</option>
+              <option value="verified">verified</option>
+            </select>
+            <input id="consensus-url" placeholder="Source URL" autocomplete="off" />
+            <input id="consensus-note" placeholder="Method note" autocomplete="off" />
+            <button type="submit">Save source</button>
+          </form>
+          <div id="consensus-editor-status" class="muted"></div>
+        </details>
         <div id="fundamentals-table" class="table-wrap"></div>
       </section>
 
