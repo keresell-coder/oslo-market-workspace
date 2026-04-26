@@ -9,6 +9,7 @@ The MVP is a local-first Oslo Bors workspace with:
 - Watchlist alerts when published Oslo Screener signals overlap with watched stocks.
 - Fundamentals table backed by cached Yahoo/yfinance data.
 - Explicit source/provenance notes for target prices.
+- Consensus/source table added for target-price provenance.
 - Descriptive peer benchmark tab.
 - Own-history snapshot collection started.
 - Source quality page.
@@ -24,9 +25,25 @@ The MVP is a local-first Oslo Bors workspace with:
 
 ## Sprint 1: Data Provenance And Consensus Quality
 
+Status: partially complete.
+
+Completed:
+
+- Added local `consensus_sources` table.
+- Added `/api/consensus` read endpoint.
+- Added manual consensus/source write endpoint.
+- Fundamentals rows now expose:
+  - target source count
+  - target confidence
+  - target status
+  - consensus source stale status
+  - Yahoo/yfinance method warning
+- Watchlist loading no longer depends on screener-alert loading.
+- Benchmark loading now shows UI errors instead of silently failing.
+
 Goal: make the fundamentals tab more trustworthy before expanding the analysis.
 
-Tasks:
+Remaining tasks:
 
 - Split target price fields by source:
   - Yahoo/yfinance
@@ -44,17 +61,17 @@ Tasks:
   - collected timestamp
   - confidence level
 - Add manual override fields for values not reliably available from free APIs.
-- Add stale-data warnings:
-  - fresh
-  - stale
-  - old
-  - missing
 - Make target price display clearly say whether values are single-source or multi-source.
 
 Deliverable:
 
 - Fundamentals tab shows source quality per target/consensus field.
 - No consensus value is presented as verified unless at least the source and timestamp are visible.
+
+Remaining deliverable:
+
+- Add an editable UI for manually entering/reviewing TradingView, MarketScreener, or other verified consensus sources.
+- Improve consensus source display into a dedicated editable table instead of compact per-row text.
 
 ## Sprint 2: Peer Group Curation
 
@@ -176,4 +193,3 @@ Deliverable:
 - Automated broker-estimate scraping.
 - Any buy/sell recommendation engine.
 - Financial transaction or portfolio execution features.
-

@@ -27,7 +27,13 @@ async function api(path, options = {}) {
     headers: { "content-type": "application/json" },
     ...options,
   });
-  const data = await response.json();
+  const text = await response.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Expected JSON from ${path}, got ${text.slice(0, 120) || "empty response"}`);
+  }
   if (!response.ok) throw new Error(data.error || response.statusText);
   return data;
 }
@@ -47,7 +53,13 @@ function setupTabs() {
 }
 
 async function loadWatchlist() {
-  const [data, alerts] = await Promise.all([api("/api/watchlist"), loadScreenerAlerts(false)]);
+  const data = await api("/api/watchlist");
+  let alerts = screenerAlerts;
+  try {
+    alerts = await loadScreenerAlerts(false);
+  } catch (error) {
+    renderScreenerAlertError(error);
+  }
   watchlistItems = data.items;
   const rows = data.items
     .map(
@@ -118,6 +130,18 @@ async function loadScreenerAlerts(refresh = false) {
   return screenerAlerts;
 }
 
+function renderScreenerAlertError(error) {
+  const target = document.getElementById("screener-alerts");
+  if (!target) return;
+  screenerAlerts = { matches: [], bySymbol: new Map(), error: error.message };
+  target.innerHTML = `
+    <div class="alert-card">
+      <strong>Screener alerts unavailable</strong>
+      <span>${escapeHtml(error.message)}. The watchlist still loads independently.</span>
+    </div>
+  `;
+}
+
 function renderScreenerAlerts(alerts) {
   const target = document.getElementById("screener-alerts");
   if (!target) return;
@@ -180,6 +204,11 @@ async function loadFundamentals(refresh = false) {
         <td class="number">${value(row.targetMeanPrice)}</td>
         <td class="number">${value(row.targetUpsidePct, "%")}</td>
         <td>
+          <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span><br>
+          <span class="muted">${escapeHtml(row.targetStatus || "single-source")} / ${escapeHtml(row.targetSourceCount ?? 0)} source(s)</span>
+          <br><span class="muted">${renderConsensusStatus(row.consensus)}</span>
+        </td>
+        <td>
           <span class="tag">${escapeHtml(row.cacheStatus)}</span><br>
           <span class="muted">${escapeHtml(row.fetchedAt || "")}</span>
           <br><span class="muted">Target: ${escapeHtml(row.targetPriceSource || "Yahoo/yfinance")}</span>
@@ -202,24 +231,44 @@ async function loadFundamentals(refresh = false) {
           <th class="number">EV/EBITDA</th><th class="number">EV/EBIT</th>
           <th class="number">EPS TTM</th><th class="number">Div Yield</th>
           <th class="number">Mkt Cap</th><th class="number">Yahoo Target</th>
-          <th class="number">Target Upside</th><th>Source</th><th>Links</th>
+          <th class="number">Target Upside</th><th>Consensus quality</th><th>Source</th><th>Links</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="16">No fundamentals loaded.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="17">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
   `;
 }
 
+function renderConsensusStatus(consensus) {
+  if (!consensus?.sources?.length) return "consensus: missing";
+  return consensus.sources
+    .map((source) => `${source.source}: ${source.staleStatus || "unknown"}`)
+    .join("; ");
+}
+
 async function loadBenchmarkOptions() {
   if (!watchlistItems.length) {
-    const data = await api("/api/watchlist");
-    watchlistItems = data.items;
+    try {
+      const data = await api("/api/watchlist");
+      watchlistItems = data.items;
+    } catch (error) {
+      document.getElementById("benchmark-content").innerHTML = `
+        <div class="error-box">Could not load watchlist symbols: ${escapeHtml(error.message)}</div>
+      `;
+      return;
+    }
   }
   const select = document.getElementById("benchmark-symbol");
   if (!select.options.length) {
     select.innerHTML = watchlistItems
       .map((row) => `<option value="${escapeHtml(row.symbol)}">${escapeHtml(row.symbol)} - ${escapeHtml(row.name || "")}</option>`)
       .join("");
+  }
+  if (!select.options.length) {
+    document.getElementById("benchmark-content").innerHTML = `
+      <div class="method-card"><strong>No watchlist symbols</strong><span>Add symbols to the watchlist before loading benchmark context.</span></div>
+    `;
+    return;
   }
   if (select.options.length && !document.getElementById("benchmark-content").innerHTML) {
     await loadBenchmark(false);
@@ -231,8 +280,12 @@ async function loadBenchmark(refresh = false) {
   if (!symbol) return;
   const target = document.getElementById("benchmark-content");
   target.innerHTML = `<div class="method-card"><strong>Loading benchmark context...</strong><span>Free sources may be slow or incomplete.</span></div>`;
-  const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
-  target.innerHTML = renderBenchmark(data);
+  try {
+    const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
+    target.innerHTML = renderBenchmark(data);
+  } catch (error) {
+    target.innerHTML = `<div class="error-box">Benchmark could not load for ${escapeHtml(symbol)}: ${escapeHtml(error.message)}</div>`;
+  }
 }
 
 function renderBenchmark(data) {
@@ -436,7 +489,11 @@ async function boot() {
   } catch {
     document.getElementById("health").textContent = "Offline";
   }
-  await loadWatchlist();
+  try {
+    await loadWatchlist();
+  } catch (error) {
+    document.getElementById("watchlist-table").innerHTML = `<div class="error-box">Watchlist could not load: ${escapeHtml(error.message)}</div>`;
+  }
 }
 
 boot();

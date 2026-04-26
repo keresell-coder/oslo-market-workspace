@@ -30,6 +30,8 @@ STATIC = ROOT / "static"
 DATA = ROOT / "data"
 DB_PATH = DATA / "oslo_workspace.sqlite3"
 CACHE_TTL_SECONDS = 60 * 60 * 6
+CONSENSUS_FRESH_SECONDS = 60 * 60 * 24 * 3
+CONSENSUS_OLD_SECONDS = 60 * 60 * 24 * 14
 SCREENER_URL = "https://keresell-coder.github.io/oslo-screener-dashboard/"
 SCREENER_CACHE_TTL_SECONDS = 60 * 15
 SCREENER_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
@@ -272,6 +274,23 @@ def init_db() -> None:
                 primary key (group_key, symbol),
                 foreign key (group_key) references peer_groups(group_key) on delete cascade
             );
+
+            create table if not exists consensus_sources (
+                symbol text not null,
+                source text not null,
+                target_mean real,
+                target_high real,
+                target_low real,
+                analyst_count real,
+                recommendation text,
+                recommendation_score real,
+                source_url text,
+                confidence text default 'single-source',
+                method_note text default '',
+                collected_at_epoch integer not null,
+                collected_at text not null,
+                primary key (symbol, source)
+            );
             """
         )
         now = utc_now()
@@ -414,6 +433,140 @@ def pick_number(info: dict, *keys: str) -> float | None:
     return None
 
 
+def pick_body_number(body: dict, key: str) -> float | None:
+    value = body.get(key)
+    if value in (None, ""):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def stale_status(collected_at_epoch: int | None, fresh_seconds: int = CONSENSUS_FRESH_SECONDS) -> str:
+    if not collected_at_epoch:
+        return "missing"
+    age = int(time.time()) - int(collected_at_epoch)
+    if age <= fresh_seconds:
+        return "fresh"
+    if age <= CONSENSUS_OLD_SECONDS:
+        return "stale"
+    return "old"
+
+
+def record_consensus_source(payload: dict) -> None:
+    symbol = payload.get("symbol")
+    if not symbol:
+        return
+    target_fields = [
+        payload.get("targetMeanPrice"),
+        payload.get("targetHighPrice"),
+        payload.get("targetLowPrice"),
+        payload.get("numberOfAnalystOpinions"),
+        payload.get("recommendationKey"),
+        payload.get("recommendationMean"),
+    ]
+    if all(value in (None, "") for value in target_fields):
+        return
+    now_epoch = int(time.time())
+    collected_at = utc_now()
+    with connect() as con:
+        con.execute(
+            """
+            insert into consensus_sources(
+                symbol, source, target_mean, target_high, target_low, analyst_count,
+                recommendation, recommendation_score, source_url, confidence, method_note,
+                collected_at_epoch, collected_at
+            )
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            on conflict(symbol, source) do update set
+                target_mean = excluded.target_mean,
+                target_high = excluded.target_high,
+                target_low = excluded.target_low,
+                analyst_count = excluded.analyst_count,
+                recommendation = excluded.recommendation,
+                recommendation_score = excluded.recommendation_score,
+                source_url = excluded.source_url,
+                confidence = excluded.confidence,
+                method_note = excluded.method_note,
+                collected_at_epoch = excluded.collected_at_epoch,
+                collected_at = excluded.collected_at
+            """,
+            (
+                symbol,
+                "Yahoo Finance via yfinance",
+                payload.get("targetMeanPrice"),
+                payload.get("targetHighPrice"),
+                payload.get("targetLowPrice"),
+                payload.get("numberOfAnalystOpinions"),
+                payload.get("recommendationKey"),
+                payload.get("recommendationMean"),
+                f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}/analysis/",
+                "single-source",
+                "Yahoo/yfinance target and recommendation fields are not treated as verified consensus weighting.",
+                now_epoch,
+                collected_at,
+            ),
+        )
+
+
+def consensus_for_symbol(symbol: str) -> dict:
+    symbol = symbol.strip().upper()
+    with connect() as con:
+        rows = rows_to_dicts(
+            con.execute(
+                "select * from consensus_sources where symbol = ? order by source",
+                (symbol,),
+            ).fetchall()
+        )
+    for row in rows:
+        row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+
+    numeric_targets = [row["target_mean"] for row in rows if isinstance(row.get("target_mean"), (int, float))]
+    analyst_counts = [row["analyst_count"] for row in rows if isinstance(row.get("analyst_count"), (int, float))]
+    return {
+        "symbol": symbol,
+        "sources": rows,
+        "sourceCount": len(rows),
+        "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
+        "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
+        "confidence": consensus_confidence(rows),
+        "status": "missing" if not rows else ("multi-source" if len(rows) >= 2 else "single-source"),
+        "note": "Consensus is not verified unless multiple source rows are present and reviewed.",
+    }
+
+
+def consensus_confidence(rows: list[dict]) -> str:
+    if not rows:
+        return "missing"
+    fresh_rows = [row for row in rows if row.get("staleStatus") == "fresh"]
+    reviewed_rows = [row for row in rows if row.get("confidence") in {"reviewed", "verified"}]
+    if len(reviewed_rows) >= 2:
+        return "higher"
+    if len(fresh_rows) >= 2:
+        return "medium"
+    return "low"
+
+
+def enrich_fundamental_payload(payload: dict) -> dict:
+    payload.setdefault("targetPriceSource", "Yahoo Finance via yfinance")
+    payload.setdefault(
+        "targetPriceMethod",
+        "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
+    )
+    payload.setdefault(
+        "recommendationScale",
+        "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
+    )
+    record_consensus_source(payload)
+    consensus = consensus_for_symbol(payload["symbol"])
+    payload["consensus"] = consensus
+    payload["targetSourceCount"] = consensus["sourceCount"]
+    payload["targetConfidence"] = consensus["confidence"]
+    payload["targetStatus"] = consensus["status"]
+    return payload
+
+
 def normalize_dashboard_ticker(ticker: str) -> str:
     value = re.sub(r"[^A-Z0-9.]", "", ticker.upper())
     if value and "." not in value:
@@ -516,11 +669,13 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
         if row and not refresh and now_epoch - int(row["fetched_at_epoch"]) < CACHE_TTL_SECONDS:
             payload = json.loads(row["payload"])
             payload.pop("valuationFlag", None)
+            payload = enrich_fundamental_payload(payload)
             payload["cacheStatus"] = "cached"
             return payload
 
         payload = fetch_yfinance(symbol)
         payload.pop("valuationFlag", None)
+        payload = enrich_fundamental_payload(payload)
         con.execute(
             """
             insert into fundamentals_cache(symbol, payload, fetched_at_epoch, fetched_at)
@@ -798,6 +953,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_peer_groups(parsed)
         if parsed.path == "/api/benchmarks":
             return self.handle_benchmarks(parsed)
+        if parsed.path == "/api/consensus":
+            return self.handle_consensus_get(parsed)
         if parsed.path == "/api/screener-signals":
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
@@ -812,6 +969,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_ticker_post()
         if parsed.path == "/api/watchlist":
             return self.handle_watchlist_post()
+        if parsed.path == "/api/consensus":
+            return self.handle_consensus_post()
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
     def do_DELETE(self) -> None:
@@ -850,7 +1009,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 """
                 select wi.watchlist_name, wi.symbol, wi.note, t.name, t.sector, t.industry
                 from watchlist_items wi
-                join tickers t on t.symbol = wi.symbol
+                left join tickers t on t.symbol = wi.symbol
                 where wi.watchlist_name = ?
                 order by wi.symbol
                 """,
@@ -941,6 +1100,65 @@ class AppHandler(SimpleHTTPRequestHandler):
         group_key = qs.get("group", [None])[0]
         refresh = qs.get("refresh", ["0"])[0] == "1"
         send_json(self, benchmark_for_symbol(symbol, group_key=group_key, refresh=refresh))
+
+    def handle_consensus_get(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = qs.get("symbol", [""])[0].strip()
+        if symbol:
+            return send_json(self, consensus_for_symbol(normalize_symbol(symbol)))
+        with connect() as con:
+            rows = rows_to_dicts(con.execute("select * from consensus_sources order by symbol, source").fetchall())
+        for row in rows:
+            row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+        send_json(self, {"sources": rows})
+
+    def handle_consensus_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        source = body.get("source", "").strip()
+        if not symbol or not source:
+            return send_json(self, {"error": "symbol and source are required"}, HTTPStatus.BAD_REQUEST)
+        now_epoch = int(time.time())
+        collected_at = utc_now()
+        with connect() as con:
+            con.execute(
+                """
+                insert into consensus_sources(
+                    symbol, source, target_mean, target_high, target_low, analyst_count,
+                    recommendation, recommendation_score, source_url, confidence, method_note,
+                    collected_at_epoch, collected_at
+                )
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(symbol, source) do update set
+                    target_mean = excluded.target_mean,
+                    target_high = excluded.target_high,
+                    target_low = excluded.target_low,
+                    analyst_count = excluded.analyst_count,
+                    recommendation = excluded.recommendation,
+                    recommendation_score = excluded.recommendation_score,
+                    source_url = excluded.source_url,
+                    confidence = excluded.confidence,
+                    method_note = excluded.method_note,
+                    collected_at_epoch = excluded.collected_at_epoch,
+                    collected_at = excluded.collected_at
+                """,
+                (
+                    symbol,
+                    source,
+                    pick_body_number(body, "targetMean"),
+                    pick_body_number(body, "targetHigh"),
+                    pick_body_number(body, "targetLow"),
+                    pick_body_number(body, "analystCount"),
+                    body.get("recommendation"),
+                    pick_body_number(body, "recommendationScore"),
+                    body.get("sourceUrl"),
+                    body.get("confidence", "manual"),
+                    body.get("methodNote", "Manual consensus/source entry."),
+                    now_epoch,
+                    collected_at,
+                ),
+            )
+        send_json(self, consensus_for_symbol(symbol))
 
     def handle_screener_signals(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)

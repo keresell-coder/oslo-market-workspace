@@ -16,6 +16,8 @@ Then open:
 http://127.0.0.1:8765
 ```
 
+If an old local process is stuck on `8765`, run the server on another port from Python or restart the terminal/session. During development this has also been verified on `http://127.0.0.1:8768`.
+
 On iPhone/Android, open the app in the browser and use "Add to Home Screen" once the app is reachable from the phone. `localhost` only works on the machine running the app; phone access needs same-network hosting or a later deployed version.
 
 ## What Works In The MVP
@@ -24,6 +26,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
   - SQLite-backed editable watchlist.
   - Initial test watchlist is seeded from the first user list.
   - Add/remove symbols from the app.
+  - Watchlist rendering is independent from screener-alert fetching, so a failed alert refresh should not blank the watchlist.
 
 - **Oslo Screener tab**
   - Embeds the existing published Oslo Screener Dashboard:
@@ -40,6 +43,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
   - Shows price, market cap, P/E, P/B, EV/EBITDA, EPS, dividend yield, target price, and target upside where available.
   - Labels target price as Yahoo/yfinance source data only.
   - Does not treat Yahoo recommendation fields as verified BUY/HOLD/SELL weighting.
+  - Shows consensus quality as low/single-source unless additional reviewed sources are added.
 
 - **Benchmarks tab**
   - Adds a descriptive peer benchmark layer.
@@ -56,6 +60,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
 - Existing screener: GitHub Pages published Oslo Screener dashboard.
 - Screener/watchlist alerts: parsed from the published dashboard cards.
 - Fundamentals: Yahoo Finance through `yfinance`.
+- Consensus/target provenance: local `consensus_sources` table, currently populated from Yahoo/yfinance and ready for manual/reviewed source entries.
 - Benchmarks: manual peer-group seeds plus cached `yfinance` metrics.
 - NewsWeb: ticker-specific search links only for now.
 - TradingView: search links only for now.
@@ -79,6 +84,7 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
 - Sector index benchmarking is not implemented.
 - Own-history benchmarking needs more refresh snapshots before it is useful.
 - Yahoo/yfinance target prices are not enough for verified analyst consensus.
+- Sprint 1 consensus infrastructure exists, but multi-source collection is not automated yet.
 - P/NAV, NAV discount/premium, fleet values, reserves, EBIT/kg, backlog, ROE, CET1, LTV, WAULT, and similar sector metrics require reports, curated manual inputs, or better data sources.
 - The current app is local-first. Sharing with friends needs a hosting/deployment step.
 
@@ -95,4 +101,3 @@ This repository is separate from the existing Oslo Screener project.
 ## Roadmap
 
 See [docs/roadmap.md](docs/roadmap.md).
-
