@@ -2,12 +2,12 @@
 
 ## Current MVP Status
 
-The MVP is a local-first Oslo Bors workspace with:
+**Oslo Stock web-app** is a local-first Oslo Bors workspace with:
 
 - Editable SQLite-backed watchlist.
 - Embedded Oslo Screener Dashboard tab.
 - Watchlist alerts when published Oslo Screener signals overlap with watched stocks.
-- Front-page watchlist dashboard with ticker/name, sector, screener signal, consensus target/recommendation, and significant-update status.
+- Front-page watchlist dashboard with ticker/name, sector, screener signal, Fundamentals target, target upside, source-count recommendation summary, source quality, freshness, and significant-update status.
 - Fundamentals table backed by cached Yahoo/yfinance data.
 - Explicit source/provenance notes for target prices.
 - Consensus/source table added for target-price provenance.
@@ -17,6 +17,17 @@ The MVP is a local-first Oslo Bors workspace with:
 - Own-history snapshot collection started.
 - Source quality page.
 - GitHub repository established at `keresell-coder/oslo-market-workspace`.
+- Local `main` branch connected to `origin/main`.
+- Local project folder renamed to `/Users/ke/Documents/Oslo Stock web-app`.
+
+## Documentation Practice
+
+After each completed task, update the relevant documents so the project record stays current:
+
+- `README.md` for current behavior and limitations.
+- `docs/roadmap.md` for completed work and next planned work.
+- `docs/project-handoff.md` for continuation context.
+- `docs/links-and-resources.md` when locations, links, endpoints, or source notes change.
 
 ## Design Principles
 
@@ -61,13 +72,13 @@ Deliverable:
 
 ## Sprint 2: Peer Group Curation
 
-Before Sprint 2, do this immediate UI refinement:
+### Watchlist Consensus Column
 
-### Next Sprint: Watchlist Consensus Column
+Status: complete.
 
 Goal: make the Watchlist consensus cell clearly derive from the Fundamentals/consensus data.
 
-Tasks:
+Completed:
 
 - Show consensus target price and target upside together in the Watchlist row.
 - Show BUY/HOLD/SELL summary with source count, confidence, and freshness.
@@ -78,6 +89,8 @@ Tasks:
 Deliverable:
 
 - Watchlist consensus column is compact, traceable, and consistent with Fundamentals.
+
+### Peer Group Curation
 
 Goal: make the benchmark tab credible enough to use as research context.
 

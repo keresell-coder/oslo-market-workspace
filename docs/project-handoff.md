@@ -2,12 +2,24 @@
 
 ## Current State
 
-The project is a working local MVP for an Oslo Bors research workspace.
+The project is **Oslo Stock web-app**, a working local MVP for an Oslo Bors research workspace.
+
+Local folder:
+
+```text
+/Users/ke/Documents/Oslo Stock web-app
+```
 
 Repository:
 
 ```text
 https://github.com/keresell-coder/oslo-market-workspace
+```
+
+Local git status:
+
+```text
+main tracks origin/main
 ```
 
 Local app:
@@ -39,9 +51,12 @@ The existing Oslo Screener repo/project should not be edited unless explicitly r
   - ticker/name
   - sector
   - Oslo Screener signal
-  - consensus target
-  - consensus recommendation summary
+  - Fundamentals target
+  - target upside
+  - source-count recommendation summary
+  - source quality, source count, and freshness
   - significant-update status
+- Watchlist consensus cell opens the matching Fundamentals row for the ticker.
 - Fundamentals endpoint:
   - `/api/fundamentals`
 - Consensus source infrastructure:
@@ -88,35 +103,42 @@ Restart:
 python3 app/server.py
 ```
 
+## Codex Chat/Project Notes
+
+- User requested the Codex project/folder name **Oslo Stock web-app**.
+- User requested the chat named **Add GitHub account to Codex** be added to this project. That chat exists locally and was created against the same original generated workspace path, but no supported Codex project/chat membership tool was exposed in this session. If the Codex UI still shows it outside the project after the folder rename, move it manually in the Codex app.
+- After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, and `docs/links-and-resources.md` stay aligned with completed work and next plans.
+
+## Completed This Sprint
+
+- Watchlist consensus cell now uses the same Fundamentals target and target upside fields shown in the Fundamentals table.
+- The cell shows source-count BUY/HOLD/SELL summary, confidence, source count, freshness, analyst references, and target source.
+- Clicking the Watchlist target opens the Fundamentals tab and focuses the matching ticker row.
+- The wording avoids implying verified analyst-count weighted advice.
+
 ## Next Sprint Brief
 
-First priority: tweak the consensus column in the Watchlist tab.
+Next priority: peer group curation.
 
-Problem:
+Goal:
 
-- The current watchlist consensus cell is too detached from the Fundamentals tab.
-- The target price shown on Watchlist should clearly derive from the same target/consensus data shown in Fundamentals.
-- Target upside should be visible on Watchlist.
-- BUY/HOLD/SELL should be visibly source-quality-aware.
+- Make benchmark context credible enough to use as research context.
 
-Expected direction:
+Tasks:
 
-- Watchlist consensus cell should show:
-  - target price
-  - target upside
-  - BUY/HOLD/SELL summary
-  - confidence/source-count badge
-  - stale/fresh status
-- The consensus cell should link or navigate to the relevant Fundamentals/consensus detail for that ticker.
-- The implementation should continue to avoid investment advice or valuation flags.
+- Add editable peer groups in the app.
+- Add peer group status: draft, reviewed, trusted.
+- Add role labels: focus company, Oslo peer, Nordic peer, international peer, sector index/proxy.
+- Review initial peer groups for NOD, MOWI, FRO/HAFNI, DOFG/ODL, KOG, and LINK.
+- Add notes explaining why each peer belongs or does not belong.
+- Keep unreviewed groups clearly marked as draft.
 
 ## Verification Checklist For Next Chat
 
 1. Start server.
 2. Open Watchlist tab.
-3. Confirm rows render.
-4. Confirm MOWI or NOD row shows consensus target and recommendation.
-5. Open Fundamentals tab.
-6. Confirm same target/consensus data appears there.
+3. Confirm rows render and the Watchlist consensus cells show target, upside, source quality, source count, freshness, and source-count recommendation.
+4. Click a Watchlist consensus target and confirm Fundamentals opens at the matching row.
+5. Open Benchmarks tab.
+6. Confirm current peer groups still render.
 7. Confirm no cheap/expensive/neutral labels exist.
-

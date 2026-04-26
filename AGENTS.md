@@ -2,7 +2,15 @@
 
 ## Project
 
-This repository is `keresell-coder/oslo-market-workspace`, a local-first Oslo Bors research workspace.
+This project is **Oslo Stock web-app**, backed by the repository `keresell-coder/oslo-market-workspace`.
+
+Local folder:
+
+```text
+/Users/ke/Documents/Oslo Stock web-app
+```
+
+It is a local-first Oslo Bors research workspace.
 
 Primary app:
 
@@ -37,6 +45,16 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `docs/project-handoff.md`: continuation context for new Codex chats.
 - `docs/links-and-resources.md`: important links and source notes.
 
+## Documentation Discipline
+
+After each completed task, update the relevant project documents so they reflect:
+
+- what changed
+- what was verified
+- what remains planned next
+
+At minimum, consider `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, and `docs/links-and-resources.md`.
+
 ## Verification Before Finishing Work
 
 Run:
@@ -57,10 +75,10 @@ Use the in-app browser for visual verification when possible.
 
 ## Next Sprint Priority
 
-Tweak the watchlist consensus column. The watchlist result must be based on the other tabs/source data:
+Peer group curation:
 
-- consensus target price should link directly to the fundamentals target field
-- target upside should be visible on the watchlist
-- BUY/HOLD/SELL should clearly show source quality and not imply verified weighted consensus unless the data supports it
-- clicking/using the consensus cell should make it easy to inspect the underlying fundamentals/consensus sources
-
+- add editable peer groups in the app
+- add draft/reviewed/trusted peer-group status
+- add peer role labels
+- review initial peer groups for NOD, MOWI, FRO/HAFNI, DOFG/ODL, KOG, and LINK
+- keep unreviewed groups clearly marked as draft

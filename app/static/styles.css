@@ -232,6 +232,70 @@ tr:last-child td {
   background: var(--panel-2);
 }
 
+.consensus-cell {
+  display: grid;
+  gap: 6px;
+  min-width: 230px;
+}
+
+.consensus-target {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  width: fit-content;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.consensus-target:hover {
+  background: transparent;
+  color: var(--accent-2);
+}
+
+.consensus-target span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.consensus-target strong {
+  font-size: 1rem;
+}
+
+.consensus-target em {
+  font-style: normal;
+  font-size: 0.82rem;
+}
+
+.target-upside {
+  color: var(--muted);
+}
+
+.target-upside-positive {
+  color: #9de7cb;
+}
+
+.target-upside-negative {
+  color: #fecaca;
+}
+
+.consensus-meta {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.row-focus {
+  outline: 2px solid rgba(122, 167, 255, 0.75);
+  outline-offset: -2px;
+  background: rgba(122, 167, 255, 0.1);
+}
+
 .alert-panel {
   margin-bottom: 14px;
 }

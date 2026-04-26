@@ -1,8 +1,14 @@
-# Oslo Market Workspace
+# Oslo Stock web-app
 
 Local MVP for a personal Oslo Bors research workspace. It combines an editable watchlist, the existing Oslo Screener dashboard, screening alerts, fundamentals data, and early descriptive peer benchmarks.
 
 The app is intentionally conservative: it shows source data and benchmark context, but does not label stocks cheap, expensive, or neutral.
+
+Local project folder:
+
+```text
+/Users/ke/Documents/Oslo Stock web-app
+```
 
 ## Run Locally
 
@@ -27,7 +33,8 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
   - Initial test watchlist is seeded from the first user list.
   - Add/remove symbols from the app.
   - Watchlist rendering is independent from screener-alert fetching, so a failed alert refresh should not blank the watchlist.
-  - Front page shows ticker/name, sector, screener signal, consensus target/recommendation, and significant-update status.
+  - Front page shows ticker/name, sector, screener signal, Fundamentals target, target upside, source-count recommendation summary, source quality, freshness, and significant-update status.
+  - The Watchlist consensus cell opens the matching Fundamentals row so target and source details can be inspected in context.
 
 - **Oslo Screener tab**
   - Embeds the existing published Oslo Screener Dashboard:
@@ -92,6 +99,15 @@ On iPhone/Android, open the app in the browser and use "Add to Home Screen" once
 - P/NAV, NAV discount/premium, fleet values, reserves, EBIT/kg, backlog, ROE, CET1, LTV, WAULT, and similar sector metrics require reports, curated manual inputs, or better data sources.
 - The current app is local-first. Sharing with friends needs a hosting/deployment step.
 
+## Documentation Practice
+
+After each completed task, update the relevant documents so the project record stays current:
+
+- `README.md` for current user-facing behavior and limitations.
+- `docs/roadmap.md` for completed work and next planned work.
+- `docs/project-handoff.md` for continuation context in a new Codex chat.
+- `docs/links-and-resources.md` when locations, links, endpoints, or source notes change.
+
 ## Repository
 
 GitHub:
@@ -118,5 +134,5 @@ Use these files to continue with full context:
 Recommended first prompt in a new chat:
 
 ```text
-Please read AGENTS.md, docs/project-handoff.md, docs/links-and-resources.md, and docs/roadmap.md, then continue with the next sprint: tweak the Watchlist consensus column so it is linked to the Fundamentals target and target upside.
+Please read AGENTS.md, docs/project-handoff.md, docs/links-and-resources.md, and docs/roadmap.md, then continue with the next sprint: peer group curation.
 ```

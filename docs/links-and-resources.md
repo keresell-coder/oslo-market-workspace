@@ -2,6 +2,8 @@
 
 ## Project Links
 
+- Project name: Oslo Stock web-app
+- Local folder: `/Users/ke/Documents/Oslo Stock web-app`
 - Repository: https://github.com/keresell-coder/oslo-market-workspace
 - Existing Oslo Screener Dashboard: https://keresell-coder.github.io/oslo-screener-dashboard/
 - Local app default: http://127.0.0.1:8765
@@ -18,6 +20,12 @@
 - `app/static/app.js`
 - `app/static/styles.css`
 - `requirements.txt`
+
+## Codex Chats
+
+- Current project chat: Link consensus to fundamentals.
+- Related chat requested for this project: Add GitHub account to Codex.
+- The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
 ## Current API Endpoints
 
@@ -52,4 +60,3 @@
 - NewsWeb/Euronext announcement feeds
 
 These should only be automated if a reliable, permitted, and stable source path is confirmed. Until then, use manual/reviewed source entries.
-

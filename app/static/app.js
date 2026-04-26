@@ -8,6 +8,11 @@ function value(v, suffix = "") {
   return `${fmt.format(v)}${suffix}`;
 }
 
+function signedPctValue(v) {
+  if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
+  return `${v > 0 ? "+" : ""}${pct.format(v)}%`;
+}
+
 function compact(v) {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(v);
@@ -41,15 +46,19 @@ async function api(path, options = {}) {
 function setupTabs() {
   document.querySelectorAll(".tab").forEach((button) => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach((tab) => tab.classList.remove("active"));
-      document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
-      button.classList.add("active");
-      document.getElementById(button.dataset.tab).classList.add("active");
-      if (button.dataset.tab === "fundamentals") loadFundamentals(false);
-      if (button.dataset.tab === "benchmarks") loadBenchmarkOptions();
-      if (button.dataset.tab === "sources") loadSources();
+      activateTab(button.dataset.tab);
     });
   });
+}
+
+function activateTab(tabName, options = {}) {
+  const shouldLoad = options.load !== false;
+  document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
+  document.querySelectorAll(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === tabName));
+  if (!shouldLoad) return;
+  if (tabName === "fundamentals") loadFundamentals(false);
+  if (tabName === "benchmarks") loadBenchmarkOptions();
+  if (tabName === "sources") loadSources();
 }
 
 async function loadWatchlist() {
@@ -108,19 +117,66 @@ async function loadWatchlist() {
       await loadWatchlist();
     });
   });
+  document.querySelectorAll("[data-open-fundamentals]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await openFundamentalsForSymbol(button.dataset.openFundamentals);
+    });
+  });
 }
 
 function renderConsensusCell(row) {
   const rec = row.consensusRecommendation || {};
   const label = rec.label || "n/a";
+  const freshness = consensusFreshness(row.consensusSources || []);
+  const sourceCount = row.consensusSourceCount ?? 0;
+  const targetMethod = row.consensusTargetMethod || "Open the Fundamentals tab to inspect target source details.";
   return `
-    <div class="signal-cell">
-      <strong>${value(row.consensusTarget)}</strong>
-      <span class="signal-badge ${recommendationClass(label)}">${escapeHtml(label)}</span>
-      <span class="muted">${escapeHtml(row.consensusConfidence || "missing")} / ${escapeHtml(row.consensusStatus || "missing")} / ${escapeHtml(row.consensusSourceCount ?? 0)} source(s)</span>
-      <span class="muted">${row.consensusAnalystCount ? `${fmt.format(row.consensusAnalystCount)} known analyst refs` : "analyst count n/a"}</span>
+    <div class="consensus-cell">
+      <button class="consensus-target" data-open-fundamentals="${escapeHtml(row.symbol)}" title="${escapeHtml(targetMethod)}">
+        <span>Fundamentals target</span>
+        <strong>${value(row.consensusTarget)}</strong>
+        <em class="${targetUpsideClass(row.targetUpsidePct)}">${signedPctValue(row.targetUpsidePct)} upside</em>
+      </button>
+      <div class="consensus-meta">
+        <span class="signal-badge ${recommendationClass(label)}">Source-count ${escapeHtml(label)}</span>
+        <span class="tag">${escapeHtml(row.consensusConfidence || "missing")}</span>
+        <span class="tag">${escapeHtml(sourceCount)} source${sourceCount === 1 ? "" : "s"}</span>
+        <span class="tag">${escapeHtml(freshness)}</span>
+      </div>
+      <span class="muted">${row.consensusAnalystCount ? `${fmt.format(row.consensusAnalystCount)} known analyst refs` : "analyst count n/a"}; not verified weighted advice</span>
+      <span class="muted">Target source: ${escapeHtml(row.consensusTargetSource || "n/a")}</span>
     </div>
   `;
+}
+
+function targetUpsideClass(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "target-upside";
+  if (value > 0) return "target-upside target-upside-positive";
+  if (value < 0) return "target-upside target-upside-negative";
+  return "target-upside";
+}
+
+function consensusFreshness(sources) {
+  const statuses = sources.map((source) => source.staleStatus).filter(Boolean);
+  if (!statuses.length) return "freshness n/a";
+  if (statuses.every((status) => status === "fresh")) return "fresh";
+  if (statuses.every((status) => status === "stale")) return "stale";
+  if (statuses.includes("fresh")) return "mixed freshness";
+  return "freshness unknown";
+}
+
+async function openFundamentalsForSymbol(symbol) {
+  activateTab("fundamentals", { load: false });
+  const universe = document.getElementById("fundamental-universe");
+  if (universe) universe.value = "watchlist";
+  await loadFundamentals(false);
+  const target = Array.from(document.querySelectorAll("[data-fundamental-symbol]")).find(
+    (row) => row.dataset.fundamentalSymbol === symbol,
+  );
+  if (!target) return;
+  document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
+  target.classList.add("row-focus");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function recommendationClass(label) {
@@ -231,7 +287,7 @@ async function loadFundamentals(refresh = false) {
   const rows = data.rows
     .map(
       (row) => `
-      <tr>
+      <tr data-fundamental-symbol="${escapeHtml(row.symbol)}">
         <td>
           <strong>${escapeHtml(row.symbol)}</strong><br>
           <span class="muted">${escapeHtml(row.name || "")}</span>

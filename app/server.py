@@ -784,7 +784,12 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "sector": item.get("sector") or fundamental.get("sector"),
                 "industry": item.get("industry") or fundamental.get("industry"),
                 "screenerSignal": screener_map.get(symbol),
-                "consensusTarget": consensus.get("targetMeanAcrossSources"),
+                "consensusTarget": fundamental.get("targetMeanPrice"),
+                "consensusTargetSource": fundamental.get("targetPriceSource"),
+                "consensusTargetMethod": fundamental.get("targetPriceMethod"),
+                "consensusTargetAcrossSources": consensus.get("targetMeanAcrossSources"),
+                "targetUpsidePct": fundamental.get("targetUpsidePct"),
+                "price": fundamental.get("price"),
                 "consensusRecommendation": consensus.get("recommendationSummary", {}),
                 "consensusConfidence": consensus.get("confidence"),
                 "consensusStatus": consensus.get("status"),
@@ -1423,7 +1428,7 @@ def main() -> None:
     host = "127.0.0.1"
     port = 8765
     server = ThreadingHTTPServer((host, port), AppHandler)
-    print(f"Oslo Market Workspace running at http://{host}:{port}")
+    print(f"Oslo Stock web-app running at http://{host}:{port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
