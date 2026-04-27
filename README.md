@@ -53,8 +53,10 @@ Local folder:
 
 - The Fundamentals table includes an **Own history** column.
 - Price history uses Yahoo/yfinance 1-year daily close data, including observation count, low/high range, percentile, source, freshness, confidence, and limitations.
-- Local multiple history uses dated `fundamentals_snapshots`; it starts as insufficient until enough refresh snapshots exist.
+- Price history also exposes last-four-calendar-quarter windows from the same daily close source.
+- Local multiple history uses dated `fundamentals_snapshots`; it starts as insufficient until enough refresh snapshots exist, but the Fundamentals detail view still shows available observations.
 - The Watchlist Fundamentals cell can show one descriptive own-history signal only when the price window or snapshot history passes minimum observation requirements.
+- Fundamentals rows include expandable own-history detail tables for price windows, largest own-multiple gaps, and snapshot history.
 - Refresh actions show a visible spinner in the clicked control and status pill while loading.
 - Current signals are descriptive labels such as “near 52-week high/low” or “P/B above own-history median”; they are not buy/sell/hold guidance and do not label valuation cheap, expensive, or fair.
 - Remaining gaps: true quarterly fundamental history, sector-specific metrics, sector/index benchmarks, charts, and manual sector KPI inputs.

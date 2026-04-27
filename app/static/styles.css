@@ -502,6 +502,60 @@ tr:last-child td {
   min-width: 220px;
 }
 
+.history-details {
+  margin-top: 8px;
+}
+
+.history-details summary {
+  cursor: pointer;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+}
+
+.history-subsection {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.history-subsection strong {
+  font-size: 0.82rem;
+}
+
+.history-range {
+  display: grid;
+  grid-template-columns: max-content minmax(90px, 1fr) max-content;
+  gap: 8px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.history-range meter {
+  width: 100%;
+  height: 8px;
+}
+
+.mini-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.mini-table {
+  min-width: 520px;
+}
+
+.wide-mini-table {
+  min-width: 760px;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 6px 7px;
+  font-size: 0.76rem;
+}
+
 .signal-badge {
   display: inline-flex;
   width: fit-content;

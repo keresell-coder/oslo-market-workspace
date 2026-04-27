@@ -700,6 +700,43 @@ def history_index_date(index_value) -> str | None:
     return str(index_value)[:10]
 
 
+def history_quarter_label(index_value) -> str:
+    if hasattr(index_value, "year") and hasattr(index_value, "quarter"):
+        return f"{int(index_value.year)} Q{int(index_value.quarter)}"
+    date_text = history_index_date(index_value) or ""
+    if len(date_text) >= 7:
+        month = int(date_text[5:7])
+        return f"{date_text[:4]} Q{((month - 1) // 3) + 1}"
+    return "quarter n/a"
+
+
+def price_window_stats(label: str, items: list[tuple[object, float]]) -> dict:
+    values = [value for _, value in items]
+    first_index = items[0][0] if items else None
+    last_index = items[-1][0] if items else None
+    return {
+        "label": label,
+        "observationCount": len(values),
+        "firstObservationAt": history_index_date(first_index),
+        "lastObservationAt": history_index_date(last_index),
+        "median": median(values) if values else None,
+        "low": min(values) if values else None,
+        "high": max(values) if values else None,
+        "close": values[-1] if values else None,
+    }
+
+
+def quarterly_price_windows(close) -> list[dict]:
+    grouped: dict[str, list[tuple[object, float]]] = {}
+    for index_value, raw_value in close.items():
+        value = finite_float(raw_value)
+        if value is None or value <= 0:
+            continue
+        grouped.setdefault(history_quarter_label(index_value), []).append((index_value, value))
+    labels = sorted(grouped.keys())
+    return [price_window_stats(label, grouped[label]) for label in labels[-4:]]
+
+
 def fetch_yfinance_price_history(ticker, current_price: float | None, currency: str, fetched_at: str) -> dict:
     base = {
         "source": "Yahoo Finance via yfinance",
@@ -745,6 +782,7 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
         "lastObservationAt": history_index_date(close.index[-1]) if len(close.index) else None,
         "pctFromLow": pct_diff(current, low),
         "pctFromHigh": pct_diff(current, high),
+        "quarterWindows": quarterly_price_windows(close),
     }
 
 
@@ -1173,10 +1211,11 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
         ).fetchone()
         if row and not refresh and now_epoch - int(row["fetched_at_epoch"]) < CACHE_TTL_SECONDS:
             payload = json.loads(row["payload"])
-            payload.pop("valuationFlag", None)
-            payload = enrich_fundamental_payload(payload)
-            payload["cacheStatus"] = "cached"
-            return payload
+            if not needs_historical_context_refresh(payload):
+                payload.pop("valuationFlag", None)
+                payload = enrich_fundamental_payload(payload)
+                payload["cacheStatus"] = "cached"
+                return payload
 
         payload = fetch_yfinance(symbol)
         payload.pop("valuationFlag", None)
@@ -1221,6 +1260,13 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
         )
         payload["cacheStatus"] = "fresh"
         return payload
+
+
+def needs_historical_context_refresh(payload: dict) -> bool:
+    price_history = payload.get("priceHistory") or {}
+    if not price_history:
+        return True
+    return "quarterWindows" not in price_history
 
 
 def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
@@ -1789,6 +1835,15 @@ def historical_pricing_context(symbol: str, payload: dict) -> dict:
             }
         )
     snapshot_history["metrics"] = metric_rows
+    snapshot_history["largestGaps"] = [
+        metric
+        for metric in sorted(
+            metric_rows,
+            key=lambda item: abs(item.get("vsHistoryMedianPct") or 0),
+            reverse=True,
+        )
+        if metric.get("vsHistoryMedianPct") is not None and metric.get("observations", 0) >= 2
+    ][:3]
 
     signals = [signal for signal in [price_window_signal(price_window), own_snapshot_signal(snapshot_history)] if signal]
     signals.sort(key=lambda item: item.get("magnitude") or 0, reverse=True)

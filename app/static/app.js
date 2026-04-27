@@ -360,6 +360,105 @@ function renderHistoricalContext(row) {
       <span class="muted">${escapeHtml(sourceLine)}</span>
       <span class="muted">${escapeHtml(obsLine)}</span>
       <span class="muted">${escapeHtml(snapshot.status || "snapshot history n/a")} / ${escapeHtml(snapshot.snapshotCount ?? 0)} snapshot${snapshot.snapshotCount === 1 ? "" : "s"}</span>
+      ${renderHistoricalContextDetails(context)}
+    </div>
+  `;
+}
+
+function renderHistoricalContextDetails(context) {
+  const priceWindow = context.priceWindow || {};
+  const snapshot = context.snapshotHistory || {};
+  return `
+    <details class="history-details">
+      <summary>Details</summary>
+      ${renderPriceHistoryDetails(priceWindow)}
+      ${renderSnapshotHistoryDetails(snapshot)}
+      <p class="muted">${escapeHtml(context.policy || "Descriptive context only.")}</p>
+    </details>
+  `;
+}
+
+function renderPriceHistoryDetails(priceWindow) {
+  const quarterRows = (priceWindow.quarterWindows || [])
+    .map(
+      (quarter) => `
+        <tr>
+          <td>${escapeHtml(quarter.label)}</td>
+          <td class="number">${metricValue(quarter.close, "")}</td>
+          <td class="number">${metricValue(quarter.median, "")}</td>
+          <td class="number">${metricValue(quarter.low, "")}</td>
+          <td class="number">${metricValue(quarter.high, "")}</td>
+          <td class="number">${escapeHtml(quarter.observationCount ?? 0)}</td>
+        </tr>
+      `,
+    )
+    .join("");
+  return `
+    <div class="history-subsection">
+      <strong>52-week price window</strong>
+      <div class="history-range">
+        <span>${metricValue(priceWindow.low, "")}</span>
+        <meter min="0" max="100" value="${Number(priceWindow.rangePositionPct ?? 0)}"></meter>
+        <span>${metricValue(priceWindow.high, "")}</span>
+      </div>
+      <p class="muted">${escapeHtml(priceWindow.observationCount ?? 0)} daily closes; ${escapeHtml(priceWindow.confidence || "missing")}.</p>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Quarter</th><th class="number">Close</th><th class="number">Median</th><th class="number">Low</th><th class="number">High</th><th class="number">Obs.</th></tr></thead>
+          <tbody>${quarterRows || `<tr><td colspan="6">Quarter windows unavailable.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderSnapshotHistoryDetails(snapshot) {
+  const gapRows = (snapshot.largestGaps || [])
+    .map(
+      (metric) => `
+        <tr>
+          <td>${escapeHtml(metric.label)}</td>
+          <td class="number">${metricValue(metric.current, metric.unit)}</td>
+          <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
+          <td class="number">${signedPctValue(metric.vsHistoryMedianPct)}</td>
+          <td class="number">${escapeHtml(metric.observations ?? 0)}</td>
+        </tr>
+      `,
+    )
+    .join("");
+  const metricRows = (snapshot.metrics || [])
+    .map(
+      (metric) => `
+        <tr>
+          <td>${escapeHtml(metric.label)}</td>
+          <td class="number">${metricValue(metric.current, metric.unit)}</td>
+          <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
+          <td class="number">${metricValue(metric.historyMin, metric.unit)}</td>
+          <td class="number">${metricValue(metric.historyMax, metric.unit)}</td>
+          <td class="number">${metric.percentileInOwnHistory === null || metric.percentileInOwnHistory === undefined ? "n/a" : `${pct.format(metric.percentileInOwnHistory)}%`}</td>
+          <td class="number">${signedPctValue(metric.vsHistoryMedianPct)}</td>
+          <td class="number">${escapeHtml(metric.observations ?? 0)}</td>
+        </tr>
+      `,
+    )
+    .join("");
+  return `
+    <div class="history-subsection">
+      <strong>Largest own-multiple gaps</strong>
+      <div class="mini-table-wrap">
+        <table class="mini-table">
+          <thead><tr><th>Metric</th><th class="number">Current</th><th class="number">Median</th><th class="number">Gap</th><th class="number">Obs.</th></tr></thead>
+          <tbody>${gapRows || `<tr><td colspan="5">Need at least two local snapshots.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <strong>Snapshot history</strong>
+      <div class="mini-table-wrap">
+        <table class="mini-table wide-mini-table">
+          <thead><tr><th>Metric</th><th class="number">Current</th><th class="number">Median</th><th class="number">Min</th><th class="number">Max</th><th class="number">Pctile</th><th class="number">Gap</th><th class="number">Obs.</th></tr></thead>
+          <tbody>${metricRows || `<tr><td colspan="8">Snapshot metrics unavailable.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <p class="muted">${escapeHtml(snapshot.requirement || "")}</p>
     </div>
   `;
 }

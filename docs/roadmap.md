@@ -82,7 +82,9 @@ Completed:
 
 - Add a Fundamentals own-history column.
 - Add Yahoo/yfinance 1-year daily close context with current value, median, low/high range, percentile/range position, observation count, source, confidence, freshness, and limitations.
+- Add last-four-calendar-quarter price windows from Yahoo/yfinance daily closes.
 - Add local fundamentals snapshot context for common multiples, including current value, historical median, min/max, percentile, observation count, and versus-history median gap.
+- Add expandable Fundamentals detail tables for 52-week price range, quarterly price windows, largest own-multiple gaps, and snapshot history.
 - Surface one Watchlist own-history signal only when minimum observation thresholds are met.
 - Keep language descriptive, for example near 52-week high/low or above/below own-history median, without cheap/expensive/fair or buy/sell/hold conclusions.
 
@@ -93,12 +95,11 @@ Verified:
 - Required local API checks for Watchlist overview and MOWI fundamentals.
 - In-app browser check of the Fundamentals tab.
 
-Remaining:
+Closed sprint boundaries:
 
-- Build true quarterly fundamental history rather than relying only on local refresh snapshots.
-- Add charts or compact trend views once enough history exists.
-- Add sector-specific historical metrics such as EBIT/kg, NAV/fleet values, backlog, ROE/CET1, LTV/WAULT, and CPaaS margin/growth/leverage.
-- Keep sector and peer context separate from own-history signals until source quality and missing-data rules are stronger.
+- True quarterly fundamental statement history remains a later data-model task; this sprint uses daily price windows plus local fundamentals refresh snapshots.
+- Sector-specific historical KPIs such as EBIT/kg, NAV/fleet values, backlog, ROE/CET1, LTV/WAULT, and CPaaS margin/growth/leverage remain later manual/source-data work.
+- Sector and peer context remain separate from own-history signals until source quality and missing-data rules are stronger.
 
 ## Later Sprints
 
