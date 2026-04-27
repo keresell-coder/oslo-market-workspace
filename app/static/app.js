@@ -2,6 +2,8 @@ const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 let screenerAlerts = { matches: [], bySymbol: new Map() };
 let watchlistItems = [];
+const peerStatuses = ["draft", "reviewed", "trusted"];
+const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer", "international peer", "sector index/proxy"];
 
 function value(v, suffix = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
@@ -164,6 +166,13 @@ function toneClass(tone) {
   return "signal-buy";
 }
 
+function peerStatusClass(status) {
+  if (status === "trusted") return "signal-buy";
+  if (status === "reviewed") return "signal-neutral";
+  if (status === "missing") return "";
+  return "signal-draft";
+}
+
 function renderFundamentalHighlight(row) {
   const item = row.fundamentalHighlight || {};
   return `
@@ -180,7 +189,7 @@ function renderPeerContext(row) {
   const vsMedian = peer.vsPeerMedianPct === null || peer.vsPeerMedianPct === undefined ? "" : ` (${signedPctValue(peer.vsPeerMedianPct)} vs median)`;
   return `
     <button class="summary-button" data-open-benchmarks="${escapeHtml(row.symbol)}">
-      <span class="signal-badge signal-neutral">${escapeHtml(peer.status || "peer context")}</span>
+      <span class="signal-badge ${peerStatusClass(peer.status)}">${escapeHtml(peer.status || "peer context")}</span>
       <strong>${escapeHtml(peer.label || "Peer context")}${escapeHtml(vsMedian)}</strong>
       <span class="muted">${escapeHtml(peer.detail || "Open Benchmarks")}</span>
     </button>
@@ -510,6 +519,7 @@ async function loadBenchmark(refresh = false) {
   try {
     const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
     target.innerHTML = renderBenchmark(data);
+    bindPeerEditors();
   } catch (error) {
     target.innerHTML = `<div class="error-box">Benchmark could not load for ${escapeHtml(symbol)}: ${escapeHtml(error.message)}</div>`;
   }
@@ -589,6 +599,7 @@ function renderBenchmarkGroup(group) {
         <td><strong>${escapeHtml(row.symbol)}</strong><br><span class="muted">${escapeHtml(row.name || "")}</span></td>
         <td>${escapeHtml(row.peerRole || "")}</td>
         <td>${escapeHtml(row.peerMarket || "")}</td>
+        <td>${escapeHtml(row.peerNote || "")}</td>
         <td class="number">${metricValue(row.trailingPE, "x")}</td>
         <td class="number">${metricValue(row.priceToBook, "x")}</td>
         <td class="number">${metricValue(row.enterpriseToEbitda, "x")}</td>
@@ -605,9 +616,11 @@ function renderBenchmarkGroup(group) {
           <h3>${escapeHtml(group.name)}</h3>
           <p class="muted">${escapeHtml(group.description)}</p>
         </div>
-        <span class="tag">${escapeHtml(group.confidence)}</span>
+        <span class="signal-badge ${peerStatusClass(group.status)}">${escapeHtml(group.status || "draft")}</span>
       </div>
-      <p class="muted">${escapeHtml(group.confidenceReason)}</p>
+      <p class="muted">${escapeHtml(group.confidenceReason)} Source: ${escapeHtml(group.source || "manual")}; updated ${escapeHtml(shortDate(group.updated_at || group.created_at))}.</p>
+      ${group.curator_note ? `<p class="muted">${escapeHtml(group.curator_note)}</p>` : ""}
+      ${renderPeerGroupEditor(group)}
       ${group.errors?.length ? `<div class="error-box">${group.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>` : ""}
       <div class="table-wrap benchmark-table">
         <table>
@@ -621,13 +634,108 @@ function renderBenchmarkGroup(group) {
         <summary>Peer data used</summary>
         <div class="table-wrap benchmark-table">
           <table>
-            <thead><tr><th>Company</th><th>Role</th><th>Market</th><th class="number">TTM P/E</th><th class="number">P/B</th><th class="number">EV/EBITDA</th><th class="number">Div Yield</th><th>Source</th></tr></thead>
+            <thead><tr><th>Company</th><th>Role</th><th>Market</th><th>Peer note</th><th class="number">TTM P/E</th><th class="number">P/B</th><th class="number">EV/EBITDA</th><th class="number">Div Yield</th><th>Source</th></tr></thead>
             <tbody>${peerRows}</tbody>
           </table>
         </div>
       </details>
     </section>
   `;
+}
+
+function renderPeerGroupEditor(group) {
+  const rows = [...(group.configuredItems || group.items || []), {}, {}, {}]
+    .map((row) => renderPeerEditorRow(row))
+    .join("");
+  return `
+    <details class="peer-editor">
+      <summary>Edit peer group</summary>
+      <form class="peer-group-form" data-group-key="${escapeHtml(group.group_key)}">
+        <div class="editor-grid peer-group-fields">
+          <label>
+            <span>Name</span>
+            <input name="name" value="${escapeHtml(group.name || "")}" />
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="status">${peerStatuses.map((status) => `<option value="${status}" ${status === group.status ? "selected" : ""}>${status}</option>`).join("")}</select>
+          </label>
+          <label>
+            <span>Description</span>
+            <textarea name="description" rows="2">${escapeHtml(group.description || "")}</textarea>
+          </label>
+          <label>
+            <span>Curation note</span>
+            <textarea name="curatorNote" rows="2">${escapeHtml(group.curator_note || "")}</textarea>
+          </label>
+        </div>
+        <div class="table-wrap peer-edit-table">
+          <table>
+            <thead><tr><th>Symbol</th><th>Role</th><th>Market</th><th>Peer note</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="actions peer-editor-actions">
+          <button type="submit">Save peer group</button>
+          <span class="muted" data-peer-editor-status></span>
+        </div>
+      </form>
+    </details>
+  `;
+}
+
+function renderPeerEditorRow(row) {
+  const role = row.peerRole || row.role || "";
+  const market = row.peerMarket || row.market || "";
+  const note = row.peerNote || row.note || "";
+  return `
+    <tr data-peer-edit-row>
+      <td><input data-peer-symbol value="${escapeHtml(row.symbol || "")}" placeholder="Ticker" /></td>
+      <td><select data-peer-role>${peerRoles.map((option) => `<option value="${option}" ${option === role ? "selected" : ""}>${option}</option>`).join("")}</select></td>
+      <td><input data-peer-market value="${escapeHtml(market)}" placeholder="Oslo, Nordic, International" /></td>
+      <td><input data-peer-note value="${escapeHtml(note)}" placeholder="Why this peer belongs or needs review" /></td>
+    </tr>
+  `;
+}
+
+function bindPeerEditors() {
+  document.querySelectorAll(".peer-group-form").forEach((form) => {
+    form.addEventListener("submit", savePeerGroup);
+  });
+}
+
+async function savePeerGroup(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const status = form.querySelector("[data-peer-editor-status]");
+  status.textContent = "Saving...";
+  const items = [...form.querySelectorAll("[data-peer-edit-row]")]
+    .map((row) => ({
+      symbol: row.querySelector("[data-peer-symbol]").value.trim(),
+      role: row.querySelector("[data-peer-role]").value,
+      market: row.querySelector("[data-peer-market]").value.trim(),
+      note: row.querySelector("[data-peer-note]").value.trim(),
+    }))
+    .filter((row) => row.symbol);
+  try {
+    const payload = {
+      groupKey: form.dataset.groupKey,
+      name: form.elements.name.value,
+      status: form.elements.status.value,
+      description: form.elements.description.value,
+      curatorNote: form.elements.curatorNote.value,
+      items,
+    };
+    await api("/api/peer-groups", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    status.textContent = "Saved.";
+    await loadBenchmark(false);
+    await loadWatchlist();
+  } catch (error) {
+    status.textContent = `Could not save peer group: ${error.message}`;
+  }
 }
 
 function renderOwnHistory(history) {

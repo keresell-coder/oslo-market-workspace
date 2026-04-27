@@ -31,7 +31,7 @@ Local folder:
 - **Start**: first page, with short intent text, metric/source summary, current limitations, and a not-investment-advice disclaimer.
 - **Watchlist**: main synthesis table. Current columns: company, last price, screener, fundamentals highlight, peer context, consensus target range, consensus rating, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields, watchlist or full ticker-database universe, and manual consensus source editor.
-- **Benchmarks**: descriptive peer/own-history context. Current peer groups are seeded but unreviewed.
+- **Benchmarks**: descriptive peer/own-history context with editable peer groups, curation status, role labels, and peer notes. Initial watchlist peer groups have been researched and marked reviewed, not trusted.
 - **Oslo Screener**: embeds/parses the published dashboard only. Do not edit the existing Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
@@ -41,6 +41,8 @@ Local folder:
 - Show source, timestamp/freshness, confidence, and missing data clearly.
 - Yahoo/yfinance target and recommendation data is one provider row by default, not verified consensus.
 - “Reported analyst refs” are provider-reported analyst counts; they may overlap across providers and are not deduplicated.
+- Peer group statuses are local curation markers only: draft, reviewed, or trusted. They do not create a valuation verdict.
+- Reviewed peer groups still depend on source quality, sector KPIs, and missing-data context.
 - Future consensus work should combine multiple providers carefully and preserve overlap/deduplication caveats.
 - NewsWeb automation is not implemented; current use is ticker search links and manual event entries.
 
@@ -56,6 +58,16 @@ curl -s "http://127.0.0.1:8765/api/fundamentals?symbols=MOWI.OL" | python3 -m js
 ```
 
 Use the in-app browser for visual checks when UI changes.
+
+## Current Peer Curation State
+
+- Peer groups can be edited in the Benchmarks tab.
+- Group-level fields: name, description, status, and curation note.
+- Peer-level fields: symbol, role, market, and note.
+- Supported role labels: focus company, Oslo peer, Nordic peer, European peer, international peer, and sector index/proxy.
+- Initial groups for NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK are marked `reviewed`.
+- Tankers and offshore energy were split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
+- See `docs/peer-group-curation.md` for the researched peer rationale and source notes.
 
 ## Continue In A New Chat
 

@@ -84,7 +84,8 @@ h2 {
 button,
 .button-link,
 select,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -234,13 +235,18 @@ main {
 }
 
 input,
-select {
+select,
+textarea {
   min-height: 36px;
   border: 1px solid var(--border);
   background: var(--panel);
   color: var(--text);
   border-radius: 7px;
   padding: 7px 10px;
+}
+
+textarea {
+  resize: vertical;
 }
 
 .actions {
@@ -485,6 +491,12 @@ tr:last-child td {
   color: #bfd3ff;
 }
 
+.signal-draft {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: rgba(251, 191, 36, 0.12);
+  color: #fde68a;
+}
+
 .watchlist-hit {
   background: rgba(251, 191, 36, 0.05);
 }
@@ -558,10 +570,56 @@ tr:last-child td {
   margin-top: 12px;
 }
 
-.peer-details summary {
+.peer-details summary,
+.peer-editor summary {
   cursor: pointer;
   color: var(--muted);
   font-size: 0.86rem;
+}
+
+.peer-editor {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  margin: 12px 0;
+  background: rgba(32, 43, 61, 0.45);
+}
+
+.peer-group-fields {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.peer-group-fields label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.peer-group-fields input,
+.peer-group-fields select,
+.peer-group-fields textarea {
+  width: 100%;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.peer-edit-table {
+  margin-top: 10px;
+}
+
+.peer-edit-table table {
+  min-width: 980px;
+}
+
+.peer-edit-table input,
+.peer-edit-table select {
+  width: 100%;
+}
+
+.peer-editor-actions {
+  margin-top: 10px;
+  align-items: center;
 }
 
 .source-grid {

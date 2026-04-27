@@ -28,24 +28,26 @@ Completed MVP pieces:
 - Consensus/source table and manual source editor.
 - Significant-events table and manual event API.
 - Descriptive benchmark tab with seeded peer groups and early own-history snapshots.
+- Editable peer-group curation in the Benchmarks tab: group status, curation notes, peer role labels, and peer notes.
+- Reviewed initial peer groups for NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; tanker and offshore-service groups were split into tighter business-model groups.
 - Source quality tab.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
 
 Important current limitations:
 
-- Peer groups are seeded but unreviewed.
-- Peer context in Watchlist is clearly marked as unreviewed.
+- Peer groups are editable and the initial focus groups are reviewed, but not trusted.
+- Peer context in Watchlist is marked as missing, draft, reviewed, or trusted.
 - Sector/index benchmarks are not configured.
 - Own-history benchmarking needs more snapshots.
 - Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
 - Automated NewsWeb/event collection is not implemented.
 - Sector-specific metrics such as NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values need better data or manual inputs.
 
-## Next Sprint: Peer Group Curation
+## Completed Sprint: Peer Group Curation
 
 Goal: make benchmark context credible enough to use as research context without creating a valuation verdict.
 
-Tasks:
+Completed:
 
 - Add editable peer groups in the app.
 - Add peer group status: draft, reviewed, trusted.
@@ -55,14 +57,17 @@ Tasks:
 - Review initial groups for:
   - NOD: semiconductors
   - MOWI: seafood
-  - FRO/HAFNI: tankers
-  - DOFG/ODL: offshore energy services
+  - FRO: crude tankers
+  - HAFNI: product tankers
+  - DOFG: subsea and offshore services
+  - ODL: offshore drilling rigs
   - KOG: defence/aerospace
   - LINK: communications software
 
 Deliverable:
 
-- Benchmark tab and Watchlist peer column distinguish unreviewed peer context from reviewed/trusted peer context.
+- Benchmark tab and Watchlist peer column distinguish missing, draft, reviewed, and trusted peer context.
+- Peer rationale and source notes are documented in `docs/peer-group-curation.md`.
 
 ## Later Sprints
 

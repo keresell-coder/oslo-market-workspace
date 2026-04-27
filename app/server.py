@@ -116,79 +116,148 @@ BENCHMARK_METRICS = [
     },
 ]
 
+PEER_GROUP_STATUSES = {"draft", "reviewed", "trusted"}
+PEER_ROLE_LABELS = {
+    "focus company",
+    "Oslo peer",
+    "Nordic peer",
+    "European peer",
+    "international peer",
+    "sector index/proxy",
+}
+
 INITIAL_PEER_GROUPS = {
     "semiconductors-global": {
-        "name": "Semiconductors - global",
-        "description": "Initial manual peer group for Nordic Semiconductor. Review before relying on conclusions.",
-        "source": "manual seed",
+        "name": "Low-power wireless semiconductors - Nordic Semiconductor",
+        "description": "Reviewed peer set for Nordic Semiconductor. Focus is low-power wireless connectivity, IoT SoCs/modules, embedded processing, and adjacent mixed-signal semiconductors.",
+        "status": "reviewed",
+        "curator_note": "Nordic has no close Oslo-listed semiconductor peer. European and international peers are included by product overlap, but several are much broader and larger semiconductor groups.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("NOD.OL", "focus", "Oslo"),
-            ("STM", "peer", "International"),
-            ("IFX.DE", "peer", "International"),
-            ("NXPI", "peer", "International"),
-            ("ON", "peer", "International"),
-            ("SWKS", "peer", "International"),
+            {"symbol": "NOD.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: fabless low-power wireless connectivity chips and platforms for IoT."},
+            {"symbol": "UBXN.SW", "role": "European peer", "market": "Switzerland", "note": "Wireless, positioning, and IoT modules. Closer end-market overlap than broad semiconductor names, but module/system mix differs."},
+            {"symbol": "SLAB", "role": "international peer", "market": "US", "note": "Wireless MCUs and IoT connectivity are close product comparables; US listing and broader embedded portfolio."},
+            {"symbol": "STM", "role": "European peer", "market": "Europe/US", "note": "Large European semiconductor group with microcontrollers, wireless, sensors, and automotive/industrial exposure; broader than Nordic."},
+            {"symbol": "IFX.DE", "role": "European peer", "market": "Germany", "note": "European semiconductor peer with IoT, power, automotive, and security exposure; much broader product mix."},
+            {"symbol": "NXPI", "role": "European peer", "market": "Netherlands/US", "note": "Embedded processing, connectivity, and automotive/industrial exposure; scale and segment mix differ."},
+            {"symbol": "ON", "role": "international peer", "market": "US", "note": "Mixed-signal/power semiconductor peer with industrial and automotive exposure; less direct wireless overlap."},
         ],
     },
     "seafood-norway": {
-        "name": "Seafood - Norway",
-        "description": "Initial Oslo seafood peers for Mowi. Sector KPIs like EBIT/kg and biomass are not yet collected.",
-        "source": "manual seed",
+        "name": "Atlantic salmon farming - Mowi",
+        "description": "Reviewed peer set for Mowi. Focus is listed Atlantic salmon farming and vertically integrated seafood exposure, prioritising Oslo and Nordic listings.",
+        "status": "reviewed",
+        "curator_note": "Best context still needs sector KPIs such as harvest volume, EBIT/kg, licence geography, biological costs, feed exposure, and contract/share of spot sales.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("MOWI.OL", "focus", "Oslo"),
-            ("SALM.OL", "peer", "Oslo"),
-            ("LSG.OL", "peer", "Oslo"),
-            ("AUSS.OL", "peer", "Oslo"),
-            ("GSF.OL", "peer", "Oslo"),
-            ("BAKKA.OL", "peer", "Oslo"),
+            {"symbol": "MOWI.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: global integrated Atlantic salmon producer with feed, farming, processing, and sales."},
+            {"symbol": "SALM.OL", "role": "Oslo peer", "market": "Oslo", "note": "Large Norwegian salmon farmer; close listed salmon farming peer."},
+            {"symbol": "LSG.OL", "role": "Oslo peer", "market": "Oslo", "note": "Norwegian seafood group with salmon farming and whitefish/wild-catch exposure; useful but not pure salmon."},
+            {"symbol": "GSF.OL", "role": "Oslo peer", "market": "Oslo", "note": "Norwegian salmon farmer with regional biological and cost differences versus Mowi."},
+            {"symbol": "BAKKA.OL", "role": "Nordic peer", "market": "Faroe/Oslo", "note": "Faroese and Scottish integrated salmon farmer; strong Nordic salmon peer, listed in Oslo."},
+            {"symbol": "AUSS.OL", "role": "Oslo peer", "market": "Oslo", "note": "Seafood holding company with Leroy ownership and pelagic exposure; useful sector proxy but indirect."},
+            {"symbol": "MAS.OL", "role": "Oslo peer", "market": "Oslo", "note": "Smaller Norwegian salmon farmer; useful for Oslo salmon context but scale differs materially."},
+            {"symbol": "SALME.OL", "role": "Oslo peer", "market": "Oslo", "note": "Land-based salmon exposure. Include as adjacent context only; business model and risk profile differ."},
         ],
     },
     "tankers-global": {
-        "name": "Tankers - global",
-        "description": "Initial peer group for Frontline and Hafnia. NAV/fleet value is not yet collected.",
-        "source": "manual seed",
+        "name": "Crude tankers - Frontline",
+        "description": "Reviewed peer set for Frontline. Focus is listed crude tanker owners/operators with VLCC, Suezmax, and adjacent Aframax/LR2 exposure.",
+        "status": "reviewed",
+        "curator_note": "NAV, fleet age, vessel class mix, charter coverage, scrubber exposure, and spot-rate exposure matter more than generic multiples for tanker context.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("FRO.OL", "focus", "Oslo"),
-            ("HAFNI.OL", "focus", "Oslo"),
-            ("STNG", "peer", "International"),
-            ("INSW", "peer", "International"),
-            ("EURN.BR", "peer", "International"),
-            ("TORM.CO", "peer", "International"),
+            {"symbol": "FRO.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: crude tanker owner/operator with VLCC, Suezmax, and LR2/Aframax exposure."},
+            {"symbol": "OET.OL", "role": "Oslo peer", "market": "Oslo", "note": "Modern VLCC/Suezmax crude tanker peer listed in Oslo and New York."},
+            {"symbol": "DHT", "role": "international peer", "market": "US", "note": "VLCC-focused crude tanker peer; useful for large crude tanker exposure."},
+            {"symbol": "TNK", "role": "international peer", "market": "US", "note": "Mid-size crude tanker peer with Suezmax/Aframax exposure."},
+            {"symbol": "INSW", "role": "international peer", "market": "US", "note": "Mixed crude and product tanker peer; useful but segment mix overlaps with both Frontline and Hafnia."},
+            {"symbol": "NAT", "role": "international peer", "market": "US", "note": "Suezmax-focused crude tanker peer; narrower class exposure than Frontline."},
+        ],
+    },
+    "product-tankers-hafnia": {
+        "name": "Product tankers - Hafnia",
+        "description": "Reviewed peer set for Hafnia. Focus is listed product and chemical tanker owners/operators.",
+        "status": "reviewed",
+        "curator_note": "Product tanker comparisons should use fleet class mix, clean/dirty product exposure, chemical capability, spot/pool exposure, and fleet age before drawing conclusions.",
+        "source": "manual research 2026-04-27",
+        "items": [
+            {"symbol": "HAFNI.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: product and chemical tanker owner/operator with LR2, LR1, MR, Handy, and chemical exposure."},
+            {"symbol": "TORM.CO", "role": "Nordic peer", "market": "Denmark", "note": "Danish product tanker owner/operator; closest Nordic listed product tanker peer."},
+            {"symbol": "STNG", "role": "international peer", "market": "US", "note": "Large listed product tanker peer with LR/MR exposure."},
+            {"symbol": "ASC", "role": "international peer", "market": "US", "note": "Product and chemical tanker peer; smaller scale than Hafnia."},
+            {"symbol": "DIS.MI", "role": "European peer", "market": "Italy", "note": "European product tanker peer through d'Amico International Shipping; useful regional listed comparator."},
+            {"symbol": "INSW", "role": "international peer", "market": "US", "note": "Mixed crude/product tanker peer; include for cross-segment listed tanker context."},
         ],
     },
     "offshore-energy-services": {
-        "name": "Offshore energy services",
-        "description": "Initial peer group for offshore service/drilling exposure. Backlog, fleet, and day-rate data are not yet collected.",
-        "source": "manual seed",
+        "name": "Subsea and offshore services - DOF",
+        "description": "Reviewed peer set for DOF Group. Focus is subsea services, offshore support vessels, IMR/light construction, and adjacent offshore engineering/services.",
+        "status": "reviewed",
+        "curator_note": "DOF should not be benchmarked directly against drilling-rig owners. Backlog, vessel mix, utilisation, day rates, leverage, and project risk are required for useful sector context.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("DOFG.OL", "focus", "Oslo"),
-            ("ODL.OL", "focus", "Oslo"),
-            ("SUBC.OL", "peer", "Oslo"),
-            ("AKSO.OL", "peer", "Oslo"),
-            ("BORR.OL", "peer", "Oslo"),
-            ("SDRL.OL", "peer", "Oslo"),
+            {"symbol": "DOFG.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: integrated subsea services, offshore operations, marine services, OSVs, and subsea assets."},
+            {"symbol": "SUBC.OL", "role": "Oslo peer", "market": "Oslo", "note": "Subsea engineering, construction, and offshore project services. Larger and more EPCI/project-oriented than DOF."},
+            {"symbol": "SOFF.OL", "role": "Oslo peer", "market": "Oslo", "note": "Offshore support vessel owner/operator; close OSV fleet context but different service integration."},
+            {"symbol": "AKSO.OL", "role": "Oslo peer", "market": "Oslo", "note": "Offshore engineering/products/services peer. Useful adjacent context, not a direct vessel/subsea fleet peer."},
+            {"symbol": "TDW", "role": "international peer", "market": "US", "note": "Large OSV peer; useful international offshore vessel context."},
+            {"symbol": "FTI", "role": "international peer", "market": "US/Europe", "note": "TechnipFMC provides subsea systems and services; adjacent global subsea peer with different equipment/EPCI mix."},
+            {"symbol": "OII", "role": "international peer", "market": "US", "note": "ROV, subsea services, and offshore engineered services; useful subsea services comparator."},
+            {"symbol": "HLX", "role": "international peer", "market": "US", "note": "Offshore energy services and well intervention; adjacent subsea/offshore service exposure."},
+        ],
+    },
+    "offshore-drilling-rigs": {
+        "name": "Offshore drilling rigs - Odfjell Drilling",
+        "description": "Reviewed peer set for Odfjell Drilling. Focus is offshore drilling contractors, with notes separating harsh-environment floaters from jack-up and broader deepwater peers.",
+        "status": "reviewed",
+        "curator_note": "Rig type, harsh-environment capability, contract backlog, day rates, utilisation, leverage, and fleet ownership/management model are critical. Jack-up peers are included as Oslo context but are not direct harsh-environment floater peers.",
+        "source": "manual research 2026-04-27",
+        "items": [
+            {"symbol": "ODL.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: harsh-environment semi-submersible drilling units and drilling services."},
+            {"symbol": "NOL.OL", "role": "Oslo peer", "market": "Oslo", "note": "Harsh-environment semi-submersible exposure; closer rig-type context where data is available."},
+            {"symbol": "SDRL.OL", "role": "Oslo peer", "market": "Oslo", "note": "Deepwater drilling contractor with floater exposure; broader global fleet."},
+            {"symbol": "BORR.OL", "role": "Oslo peer", "market": "Oslo", "note": "Jack-up drilling contractor. Useful Oslo drilling context but shallow-water jack-ups differ from Odfjell's harsh-environment floaters."},
+            {"symbol": "SHLF.OL", "role": "Oslo peer", "market": "Oslo", "note": "Jack-up drilling contractor. Include for Oslo-listed drilling context, not direct floater comparability."},
+            {"symbol": "RIG", "role": "international peer", "market": "US", "note": "Large offshore drilling contractor with ultra-deepwater and harsh-environment exposure."},
+            {"symbol": "VAL", "role": "international peer", "market": "US", "note": "Global offshore driller with floaters and jack-ups; broader fleet than Odfjell."},
+            {"symbol": "NE", "role": "international peer", "market": "US", "note": "Global offshore drilling contractor; useful international rig-cycle peer."},
         ],
     },
     "defence-aerospace-europe": {
-        "name": "Defence and aerospace - Europe",
-        "description": "Initial European peer group for Kongsberg Gruppen. Segment mix differs materially by company.",
-        "source": "manual seed",
+        "name": "Defence, aerospace and maritime technology - Kongsberg",
+        "description": "Reviewed peer set for Kongsberg Gruppen. Focus is European defence/aerospace primes, defence electronics, sensors, missiles, maritime technology, and relevant Nordic defence specialists.",
+        "status": "reviewed",
+        "curator_note": "Kongsberg is a mixed defence, aerospace, discovery, and maritime technology group. The proposed maritime demerger means historical comparisons should be treated carefully.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("KOG.OL", "focus", "Oslo"),
-            ("SAAB-B.ST", "peer", "International"),
-            ("LDO.MI", "peer", "International"),
-            ("HO.PA", "peer", "International"),
-            ("BA.L", "peer", "International"),
+            {"symbol": "KOG.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: defence, aerospace, discovery, space, sensors, missiles, and maritime technology exposure."},
+            {"symbol": "KIT.OL", "role": "Oslo peer", "market": "Oslo", "note": "Electronics manufacturing/services supplier with defence/aerospace exposure. Oslo industrial proxy, not a defence prime."},
+            {"symbol": "SAAB-B.ST", "role": "Nordic peer", "market": "Sweden", "note": "Closest Nordic defence/aerospace prime by business profile."},
+            {"symbol": "MILDEF.ST", "role": "Nordic peer", "market": "Sweden", "note": "Defence IT and rugged hardware specialist; smaller and narrower than Kongsberg."},
+            {"symbol": "IVSO.ST", "role": "Nordic peer", "market": "Sweden", "note": "Tactical communication/hearing protection specialist; niche defence electronics peer."},
+            {"symbol": "RHM.DE", "role": "European peer", "market": "Germany", "note": "European defence systems peer, especially land systems and ammunition; product mix differs."},
+            {"symbol": "HAG.DE", "role": "European peer", "market": "Germany", "note": "Defence sensor/electronics specialist; useful for Kongsberg's sensor and surveillance exposure."},
+            {"symbol": "HO.PA", "role": "European peer", "market": "France", "note": "Defence, aerospace, cyber, digital identity, and secure communications peer; broader than Kongsberg."},
+            {"symbol": "LDO.MI", "role": "European peer", "market": "Italy", "note": "Aerospace, defence, helicopters, electronics, cyber, and space peer; broader segment mix."},
+            {"symbol": "BA.L", "role": "European peer", "market": "UK", "note": "Large defence/aerospace prime; useful global defence benchmark but much larger scale."},
+            {"symbol": "AIR.PA", "role": "European peer", "market": "Europe", "note": "Airbus Defence and Space exposure is relevant, but Airbus is dominated by commercial aerospace."},
         ],
     },
     "communications-software": {
-        "name": "Communications software",
-        "description": "Initial peer group for Link Mobility. Growth, gross margin, and leverage should be added before conclusions.",
-        "source": "manual seed",
+        "name": "CPaaS and customer messaging - LINK Mobility",
+        "description": "Reviewed peer set for LINK Mobility. Focus is listed CPaaS, mobile messaging, and adjacent customer engagement software.",
+        "status": "reviewed",
+        "curator_note": "LINK has no close Oslo-listed peer. Gross margin, organic growth, message volumes, regional mix, customer concentration, leverage, and operator pass-through costs are needed for useful context.",
+        "source": "manual research 2026-04-27",
         "items": [
-            ("LINK.OL", "focus", "Oslo"),
-            ("SINCH.ST", "peer", "International"),
-            ("CMCOM.AS", "peer", "International"),
+            {"symbol": "LINK.OL", "role": "focus company", "market": "Oslo", "note": "Focus company: CPaaS, mobile messaging, and digital customer engagement, with strong European SMS footprint."},
+            {"symbol": "SINCH.ST", "role": "Nordic peer", "market": "Sweden", "note": "Closest listed Nordic CPaaS/cloud communications peer; larger and broader than LINK."},
+            {"symbol": "CMCOM.AS", "role": "European peer", "market": "Netherlands", "note": "European CPaaS and conversational commerce/customer engagement peer."},
+            {"symbol": "TWLO", "role": "international peer", "market": "US", "note": "Global cloud communications/API platform peer; much larger and more software/API-heavy."},
+            {"symbol": "BRZE", "role": "international peer", "market": "US", "note": "Customer engagement platform with messaging channels; adjacent software peer, not telecom aggregator."},
+            {"symbol": "KVYO", "role": "international peer", "market": "US", "note": "Marketing automation and messaging/email platform; adjacent customer engagement peer."},
+            {"symbol": "ROUTE.NS", "role": "international peer", "market": "India", "note": "CPaaS/mobile messaging peer with emerging-market exposure; listing and ownership context differ."},
         ],
     },
 }
@@ -202,6 +271,46 @@ def normalize_symbol(symbol: str) -> str:
     value = symbol.strip().upper()
     if value and "." not in value:
         value = f"{value}.OL"
+    return value
+
+
+def normalize_peer_role(role: str, market: str = "") -> str:
+    value = (role or "").strip()
+    if value in PEER_ROLE_LABELS:
+        return value
+    legacy = value.lower()
+    market_value = (market or "").strip().lower()
+    if legacy == "focus":
+        return "focus company"
+    if legacy == "peer" and market_value == "oslo":
+        return "Oslo peer"
+    if legacy == "peer" and market_value in {"international", "global"}:
+        return "international peer"
+    if legacy == "peer" and market_value == "nordic":
+        return "Nordic peer"
+    if legacy == "peer" and market_value in {"europe", "european"}:
+        return "European peer"
+    if legacy in {"index", "proxy", "sector"}:
+        return "sector index/proxy"
+    return "international peer" if value else "Oslo peer"
+
+
+def normalize_peer_status(status: str) -> str:
+    value = (status or "draft").strip().lower()
+    return value if value in PEER_GROUP_STATUSES else "draft"
+
+
+def normalize_group_key(value: str) -> str:
+    key = re.sub(r"[^a-z0-9]+", "-", (value or "").strip().lower()).strip("-")
+    return key[:80] or f"peer-group-{int(time.time())}"
+
+
+def normalize_peer_symbol(symbol: str, role: str, market: str) -> str:
+    value = symbol.strip().upper()
+    role_value = normalize_peer_role(role, market)
+    market_value = (market or "").strip().lower()
+    if value and "." not in value and (role_value in {"focus company", "Oslo peer"} or market_value == "oslo"):
+        return normalize_symbol(value)
     return value
 
 
@@ -260,8 +369,11 @@ def init_db() -> None:
                 group_key text primary key,
                 name text not null,
                 description text default '',
+                status text default 'draft',
+                curator_note text default '',
                 source text default 'manual',
-                created_at text not null
+                created_at text not null,
+                updated_at text
             );
 
             create table if not exists peer_group_items (
@@ -269,8 +381,10 @@ def init_db() -> None:
                 symbol text not null,
                 role text default 'peer',
                 market text default '',
+                note text default '',
                 source text default 'manual',
                 created_at text not null,
+                updated_at text,
                 primary key (group_key, symbol),
                 foreign key (group_key) references peer_groups(group_key) on delete cascade
             );
@@ -307,6 +421,7 @@ def init_db() -> None:
             );
             """
         )
+        ensure_peer_group_schema(con)
         now = utc_now()
         con.execute(
             "insert or ignore into watchlists(name, created_at) values (?, ?)",
@@ -333,15 +448,47 @@ def init_db() -> None:
 
 def seed_peer_groups(con: sqlite3.Connection, now: str) -> None:
     for group_key, group in INITIAL_PEER_GROUPS.items():
-        con.execute(
-            """
-            insert or ignore into peer_groups(group_key, name, description, source, created_at)
-            values (?, ?, ?, ?, ?)
-            """,
-            (group_key, group["name"], group["description"], group["source"], now),
-        )
-        for symbol, role, market in group["items"]:
-            normalized = normalize_symbol(symbol) if market == "Oslo" and "." not in symbol else symbol.upper()
+        existing = con.execute("select source from peer_groups where group_key = ?", (group_key,)).fetchone()
+        can_update = existing is None or existing["source"] != "manual"
+        if can_update:
+            con.execute(
+                """
+                insert into peer_groups(group_key, name, description, status, curator_note, source, created_at, updated_at)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(group_key) do update set
+                    name = excluded.name,
+                    description = excluded.description,
+                    status = excluded.status,
+                    curator_note = excluded.curator_note,
+                    source = excluded.source,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    group_key,
+                    group["name"],
+                    group["description"],
+                    group.get("status", "draft"),
+                    group.get("curator_note", "Seeded for curation; keep draft until reviewed company-by-company."),
+                    group["source"],
+                    now,
+                    now,
+                ),
+            )
+            con.execute("delete from peer_group_items where group_key = ?", (group_key,))
+        else:
+            continue
+
+        for item in group["items"]:
+            if isinstance(item, dict):
+                symbol = item["symbol"]
+                role = item.get("role", "international peer")
+                market = item.get("market", "")
+                note = item.get("note", "")
+            else:
+                symbol, role, market = item
+                note = "Seeded focus company." if normalize_peer_role(role, market) == "focus company" else "Seeded peer; review fit before relying on the group."
+            normalized = normalize_peer_symbol(symbol, role, market)
+            normalized_role = normalize_peer_role(role, market)
             con.execute(
                 """
                 insert or ignore into tickers(symbol, name, source, created_at)
@@ -351,11 +498,62 @@ def seed_peer_groups(con: sqlite3.Connection, now: str) -> None:
             )
             con.execute(
                 """
-                insert or ignore into peer_group_items(group_key, symbol, role, market, source, created_at)
-                values (?, ?, ?, ?, ?, ?)
+                insert into peer_group_items(group_key, symbol, role, market, note, source, created_at, updated_at)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (group_key, normalized, role, market, group["source"], now),
+                (group_key, normalized, normalized_role, market, note, group["source"], now, now),
             )
+
+
+def table_columns(con: sqlite3.Connection, table: str) -> set[str]:
+    return {row["name"] for row in con.execute(f"pragma table_info({table})").fetchall()}
+
+
+def ensure_column(con: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    if column not in table_columns(con, table):
+        con.execute(f"alter table {table} add column {column} {definition}")
+
+
+def ensure_peer_group_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "peer_groups", "status", "text default 'draft'")
+    ensure_column(con, "peer_groups", "curator_note", "text default ''")
+    ensure_column(con, "peer_groups", "updated_at", "text")
+    ensure_column(con, "peer_group_items", "note", "text default ''")
+    ensure_column(con, "peer_group_items", "updated_at", "text")
+    now = utc_now()
+    con.execute("update peer_groups set status = 'draft' where status is null or status = ''")
+    con.execute("update peer_groups set updated_at = coalesce(updated_at, created_at, ?) where updated_at is null", (now,))
+    con.execute(
+        """
+        update peer_groups
+        set curator_note = 'Seeded for curation; keep draft until reviewed company-by-company.'
+        where source = 'manual seed' and (curator_note is null or curator_note = '')
+        """
+    )
+    con.execute(
+        """
+        update peer_group_items
+        set role = case
+            when role = 'focus' then 'focus company'
+            when role = 'peer' and lower(market) = 'oslo' then 'Oslo peer'
+            when role = 'peer' and lower(market) = 'nordic' then 'Nordic peer'
+            when role = 'peer' then 'international peer'
+            else role
+        end
+        where role in ('focus', 'peer')
+        """
+    )
+    con.execute("update peer_group_items set updated_at = coalesce(updated_at, created_at, ?) where updated_at is null", (now,))
+    con.execute(
+        """
+        update peer_group_items
+        set note = case
+            when role in ('focus company', 'focus') then 'Focus company for this peer group.'
+            else 'Seeded peer candidate; document business fit, geography, and data gaps before promoting the group.'
+        end
+        where source = 'manual seed' and (note is null or note = '')
+        """
+    )
 
 
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict]:
@@ -988,6 +1186,7 @@ def peer_context_summary(symbol: str, focus: dict) -> dict:
         }
 
     group = groups[0]
+    group_status = normalize_peer_status(group.get("status", "draft"))
     items = peer_group_items(group["group_key"])
     peer_symbols = [item["symbol"] for item in items if item["symbol"] != symbol]
     peers = [payload for payload in (cached_payload_if_present(item) for item in peer_symbols) if payload]
@@ -1009,18 +1208,20 @@ def peer_context_summary(symbol: str, focus: dict) -> dict:
             "detail": f"{metric['focusValue']:.1f}{metric['unit']} / median {metric['peerMedian']:.1f}{metric['unit']}",
             "vsPeerMedianPct": metric["vsPeerMedianPct"],
             "peerCount": metric["peerCount"],
-            "status": "unreviewed",
+            "status": group_status,
             "groupName": group["name"],
-            "note": "Unreviewed peer group. Use as a prompt for research, not a valuation call.",
+            "note": peer_status_note(group_status),
+            "updatedAt": group.get("updated_at"),
         }
 
     return {
-        "label": "Unreviewed peer group",
+        "label": f"{group_status.title()} peer group",
         "detail": f"{len(peer_symbols)} peers configured; load Benchmarks for context.",
         "peerCount": len(peer_symbols),
-        "status": "unreviewed",
+        "status": group_status,
         "groupName": group["name"],
-        "note": "Peer set has not been reviewed company-by-company.",
+        "note": peer_status_note(group_status),
+        "updatedAt": group.get("updated_at"),
     }
 
 
@@ -1069,7 +1270,8 @@ def peer_groups_for_symbol(symbol: str) -> list[dict]:
     with connect() as con:
         rows = con.execute(
             """
-            select pg.group_key, pg.name, pg.description, pg.source
+            select pg.group_key, pg.name, pg.description, pg.status, pg.curator_note,
+                   pg.source, pg.created_at, pg.updated_at
             from peer_groups pg
             join peer_group_items pgi on pgi.group_key = pg.group_key
             where pgi.symbol = ?
@@ -1084,16 +1286,43 @@ def peer_group_items(group_key: str) -> list[dict]:
     with connect() as con:
         rows = con.execute(
             """
-            select pgi.group_key, pgi.symbol, pgi.role, pgi.market, pgi.source,
+            select pgi.group_key, pgi.symbol, pgi.role, pgi.market, pgi.note,
+                   pgi.source, pgi.created_at, pgi.updated_at,
                    t.name, t.sector, t.industry
             from peer_group_items pgi
             left join tickers t on t.symbol = pgi.symbol
             where pgi.group_key = ?
-            order by case when pgi.role = 'focus' then 0 else 1 end, pgi.symbol
+            order by case when pgi.role in ('focus company', 'focus') then 0 else 1 end, pgi.symbol
             """,
             (group_key,),
         ).fetchall()
     return rows_to_dicts(rows)
+
+
+def peer_status_note(status: str) -> str:
+    if status == "trusted":
+        return "Trusted peer group, still descriptive and dependent on source coverage."
+    if status == "reviewed":
+        return "Reviewed peer group; metrics remain screening context, not a valuation verdict."
+    return "Draft peer group. Review peers company-by-company before relying on this context."
+
+
+def peer_confidence(group: dict) -> tuple[str, str]:
+    status = normalize_peer_status(group.get("status", "draft"))
+    if status == "trusted":
+        return (
+            "trusted peer group",
+            "Peer fit is marked trusted locally, but yfinance coverage and sector-specific gaps still limit conclusions.",
+        )
+    if status == "reviewed":
+        return (
+            "reviewed peer group",
+            "Peer fit has been reviewed locally; metrics remain descriptive and depend on source quality.",
+        )
+    return (
+        "draft peer group",
+        "Peer group is a draft seed or manual edit. Use as a research prompt until reviewed company-by-company.",
+    )
 
 
 def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
@@ -1213,6 +1442,8 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
                 row = cached_fundamental(item["symbol"], refresh=refresh, assume_oslo=False)
                 row["peerRole"] = item["role"]
                 row["peerMarket"] = item["market"]
+                row["peerNote"] = item.get("note", "")
+                row["peerSource"] = item.get("source", "")
                 rows.append(row)
             except Exception as exc:
                 errors.append({"symbol": item["symbol"], "error": str(exc)})
@@ -1221,18 +1452,21 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
         if focus is None:
             try:
                 focus = cached_fundamental(symbol, refresh=refresh, assume_oslo=False)
-                focus["peerRole"] = "focus"
+                focus["peerRole"] = "focus company"
                 focus["peerMarket"] = "Oslo"
+                focus["peerNote"] = "Focus company was not present in the selected group."
                 rows.append(focus)
             except Exception as exc:
                 errors.append({"symbol": symbol, "error": str(exc)})
                 focus = {"symbol": symbol}
 
         peers = [row for row in rows if row.get("symbol") != symbol]
+        confidence, confidence_reason = peer_confidence(group)
         results.append(
             {
                 **group,
                 "items": rows,
+                "configuredItems": items,
                 "errors": errors,
                 "metricSummaries": [metric_summary(focus, peers, metric) for metric in BENCHMARK_METRICS],
                 "coverage": {
@@ -1240,8 +1474,8 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
                     "loadedRows": len(rows),
                     "errors": len(errors),
                 },
-                "confidence": "review required",
-                "confidenceReason": "Peer groups are manual seeds and yfinance coverage is incomplete; use as context, not a valuation call.",
+                "confidence": confidence,
+                "confidenceReason": confidence_reason,
             }
         )
 
@@ -1296,6 +1530,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_ticker_post()
         if parsed.path == "/api/watchlist":
             return self.handle_watchlist_post()
+        if parsed.path == "/api/peer-groups":
+            return self.handle_peer_group_post()
         if parsed.path == "/api/consensus":
             return self.handle_consensus_post()
         if parsed.path == "/api/events":
@@ -1419,12 +1655,92 @@ class AppHandler(SimpleHTTPRequestHandler):
     def handle_peer_groups(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         symbol = qs.get("symbol", [""])[0].strip()
+        include_items = qs.get("includeItems", ["0"])[0] == "1"
         with connect() as con:
             if symbol:
                 groups = peer_groups_for_symbol(normalize_symbol(symbol))
             else:
                 groups = rows_to_dicts(con.execute("select * from peer_groups order by name").fetchall())
+        if include_items:
+            for group in groups:
+                group["items"] = peer_group_items(group["group_key"])
         send_json(self, {"groups": groups})
+
+    def handle_peer_group_post(self) -> None:
+        body = get_json_body(self)
+        name = (body.get("name") or "").strip()
+        group_key = normalize_group_key(body.get("groupKey") or name)
+        if not name:
+            return send_json(self, {"error": "name is required"}, HTTPStatus.BAD_REQUEST)
+
+        status = normalize_peer_status(body.get("status", "draft"))
+        description = (body.get("description") or "").strip()
+        curator_note = (body.get("curatorNote") or body.get("curator_note") or "").strip()
+        now = utc_now()
+        items = []
+        seen_symbols = set()
+        for raw_item in body.get("items", []):
+            raw_symbol = (raw_item.get("symbol") or "").strip()
+            if not raw_symbol:
+                continue
+            role = normalize_peer_role(raw_item.get("role", ""), raw_item.get("market", ""))
+            market = (raw_item.get("market") or "").strip()
+            symbol = normalize_peer_symbol(raw_symbol, role, market)
+            if not symbol or symbol in seen_symbols:
+                continue
+            seen_symbols.add(symbol)
+            items.append(
+                {
+                    "symbol": symbol,
+                    "role": role,
+                    "market": market,
+                    "note": (raw_item.get("note") or "").strip(),
+                }
+            )
+        if not items:
+            return send_json(self, {"error": "at least one peer-group item is required"}, HTTPStatus.BAD_REQUEST)
+
+        with connect() as con:
+            con.execute(
+                """
+                insert into peer_groups(group_key, name, description, status, curator_note, source, created_at, updated_at)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(group_key) do update set
+                    name = excluded.name,
+                    description = excluded.description,
+                    status = excluded.status,
+                    curator_note = excluded.curator_note,
+                    source = 'manual',
+                    updated_at = excluded.updated_at
+                """,
+                (group_key, name, description, status, curator_note, "manual", now, now),
+            )
+            con.execute("delete from peer_group_items where group_key = ?", (group_key,))
+            for item in items:
+                con.execute(
+                    """
+                    insert or ignore into tickers(symbol, name, source, created_at)
+                    values (?, ?, ?, ?)
+                    """,
+                    (item["symbol"], item["symbol"].replace(".OL", ""), "manual/peer-group", now),
+                )
+                con.execute(
+                    """
+                    insert into peer_group_items(group_key, symbol, role, market, note, source, created_at, updated_at)
+                    values (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        group_key,
+                        item["symbol"],
+                        item["role"],
+                        item["market"],
+                        item["note"],
+                        "manual",
+                        now,
+                        now,
+                    ),
+                )
+        send_json(self, {"ok": True, "groupKey": group_key, "status": status, "itemCount": len(items)})
 
     def handle_benchmarks(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
@@ -1572,8 +1888,8 @@ def source_notes() -> dict:
             "limitations": "Delayed, rate-limited, not guaranteed complete. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
         },
         "benchmarks": {
-            "use": "Manual peer groups plus cached yfinance metrics for descriptive relative context.",
-            "limitations": "No cheap/expensive verdict is produced. Peer groups are initial seeds and require review; own-history context starts accumulating from local refresh snapshots.",
+            "use": "Editable manual peer groups plus cached yfinance metrics for descriptive relative context.",
+            "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only; own-history context starts accumulating from local refresh snapshots.",
         },
         "newsweb": {
             "use": "Ticker-specific search links in the MVP.",
