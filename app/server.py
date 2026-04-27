@@ -125,6 +125,8 @@ PEER_ROLE_LABELS = {
     "international peer",
     "sector index/proxy",
 }
+NORDIC_SUFFIXES = (".OL", ".ST", ".CO", ".HE", ".IC")
+EUROPEAN_SUFFIXES = (".AS", ".BR", ".DE", ".L", ".MI", ".PA", ".SW")
 
 INITIAL_PEER_GROUPS = {
     "semiconductors-global": {
@@ -312,6 +314,48 @@ def normalize_peer_symbol(symbol: str, role: str, market: str) -> str:
     if value and "." not in value and (role_value in {"focus company", "Oslo peer"} or market_value == "oslo"):
         return normalize_symbol(value)
     return value
+
+
+def peer_role_for_symbol(symbol: str, focus_symbol: str | None = None) -> str:
+    value = symbol.strip().upper()
+    if focus_symbol and value == focus_symbol.strip().upper():
+        return "focus company"
+    if value.endswith(".OL"):
+        return "Oslo peer"
+    if value.endswith(NORDIC_SUFFIXES):
+        return "Nordic peer"
+    if value.endswith(EUROPEAN_SUFFIXES):
+        return "European peer"
+    return "international peer"
+
+
+def peer_market_for_symbol(symbol: str) -> str:
+    value = symbol.strip().upper()
+    if value.endswith(".OL"):
+        return "Oslo"
+    if value.endswith(".ST"):
+        return "Sweden"
+    if value.endswith(".CO"):
+        return "Denmark"
+    if value.endswith(".HE"):
+        return "Finland"
+    if value.endswith(".IC"):
+        return "Iceland"
+    if value.endswith(".AS"):
+        return "Netherlands"
+    if value.endswith(".BR"):
+        return "Belgium"
+    if value.endswith(".DE"):
+        return "Germany"
+    if value.endswith(".L"):
+        return "UK"
+    if value.endswith(".MI"):
+        return "Italy"
+    if value.endswith(".PA"):
+        return "France"
+    if value.endswith(".SW"):
+        return "Switzerland"
+    return "International"
 
 
 def connect() -> sqlite3.Connection:
@@ -1325,6 +1369,143 @@ def peer_confidence(group: dict) -> tuple[str, str]:
     )
 
 
+def draft_peer_candidates(focus_symbol: str, focus_payload: dict, limit: int = 8) -> list[dict]:
+    focus_symbol = focus_symbol.strip().upper()
+    focus_industry = (focus_payload.get("industry") or "").strip().lower()
+    focus_sector = (focus_payload.get("sector") or "").strip().lower()
+    with connect() as con:
+        rows = rows_to_dicts(
+            con.execute(
+                """
+                select distinct t.symbol, t.name, t.sector, t.industry
+                from tickers t
+                where t.symbol <> ?
+                order by
+                  case
+                    when t.symbol like '%.OL' then 0
+                    when t.symbol like '%.ST' or t.symbol like '%.CO' or t.symbol like '%.HE' or t.symbol like '%.IC' then 1
+                    when t.symbol like '%.DE' or t.symbol like '%.PA' or t.symbol like '%.MI' or t.symbol like '%.L' or t.symbol like '%.AS' or t.symbol like '%.SW' or t.symbol like '%.BR' then 2
+                    else 3
+                  end,
+                  t.symbol
+                """,
+                (focus_symbol,),
+            ).fetchall()
+        )
+
+    candidates = []
+    seen = set()
+    for row in rows:
+        industry = (row.get("industry") or "").strip().lower()
+        sector = (row.get("sector") or "").strip().lower()
+        match_type = ""
+        if focus_industry and industry and focus_industry == industry:
+            match_type = "same Yahoo/yfinance industry"
+        elif focus_sector and sector and focus_sector == sector:
+            match_type = "same Yahoo/yfinance sector"
+        if not match_type or row["symbol"] in seen:
+            continue
+        seen.add(row["symbol"])
+        candidates.append(
+            {
+                "symbol": row["symbol"],
+                "role": peer_role_for_symbol(row["symbol"]),
+                "market": peer_market_for_symbol(row["symbol"]),
+                "note": f"Auto-suggested from local ticker database: {match_type}. Review business fit, scale, geography, and sector-specific KPIs before promoting.",
+            }
+        )
+        if len(candidates) >= limit:
+            break
+    return candidates
+
+
+def create_or_reuse_draft_peer_group(symbol: str, refresh: bool = False) -> dict:
+    symbol = normalize_symbol(symbol)
+    existing_groups = peer_groups_for_symbol(symbol)
+    if existing_groups:
+        group = existing_groups[0]
+        return {
+            "ok": True,
+            "action": "reused",
+            "symbol": symbol,
+            "groupKey": group["group_key"],
+            "group": {**group, "items": peer_group_items(group["group_key"])},
+            "message": "Symbol already belongs to a peer group; reusing existing context.",
+        }
+
+    focus = cached_fundamental(symbol, refresh=refresh, assume_oslo=False)
+    group_key = normalize_group_key(f"{symbol}-draft-peers")
+    industry_or_sector = focus.get("industry") or focus.get("sector") or "company"
+    name = f"{industry_or_sector} - {symbol} draft peers"
+    description = (
+        f"Draft peer group for {symbol}. Candidates are generated from local ticker metadata and yfinance "
+        "sector/industry matches where available."
+    )
+    curator_note = (
+        "Backend-assisted draft only. Review peers in order of Oslo, Nordic, European, then international fit. "
+        "Do not promote until business model, segment mix, scale, source quality, and missing sector KPIs are checked."
+    )
+    focus_item = {
+        "symbol": symbol,
+        "role": "focus company",
+        "market": peer_market_for_symbol(symbol),
+        "note": "Focus company. Draft group created because no existing peer group contained this symbol.",
+    }
+    items = [focus_item, *draft_peer_candidates(symbol, focus)]
+    now = utc_now()
+    with connect() as con:
+        con.execute(
+            """
+            insert into peer_groups(group_key, name, description, status, curator_note, source, created_at, updated_at)
+            values (?, ?, ?, ?, ?, ?, ?, ?)
+            on conflict(group_key) do update set
+                name = excluded.name,
+                description = excluded.description,
+                status = excluded.status,
+                curator_note = excluded.curator_note,
+                source = excluded.source,
+                updated_at = excluded.updated_at
+            """,
+            (group_key, name, description, "draft", curator_note, "backend draft/yfinance metadata", now, now),
+        )
+        con.execute("delete from peer_group_items where group_key = ?", (group_key,))
+        for item in items:
+            con.execute(
+                """
+                insert or ignore into tickers(symbol, name, source, created_at)
+                values (?, ?, ?, ?)
+                """,
+                (item["symbol"], item["symbol"].replace(".OL", ""), "backend draft peer group", now),
+            )
+            con.execute(
+                """
+                insert into peer_group_items(group_key, symbol, role, market, note, source, created_at, updated_at)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    group_key,
+                    item["symbol"],
+                    item["role"],
+                    item["market"],
+                    item["note"],
+                    "backend draft/yfinance metadata",
+                    now,
+                    now,
+                ),
+            )
+
+    group = peer_groups_for_symbol(symbol)[0]
+    return {
+        "ok": True,
+        "action": "created",
+        "symbol": symbol,
+        "groupKey": group_key,
+        "candidateCount": max(0, len(items) - 1),
+        "group": {**group, "items": peer_group_items(group_key)},
+        "message": "Created a draft peer group from screening-grade local/yfinance metadata.",
+    }
+
+
 def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
     key = metric["key"]
     focus_value = numeric_metric(focus, key, metric.get("positiveOnly", False))
@@ -1532,6 +1713,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_watchlist_post()
         if parsed.path == "/api/peer-groups":
             return self.handle_peer_group_post()
+        if parsed.path == "/api/peer-groups/draft":
+            return self.handle_peer_group_draft_post()
         if parsed.path == "/api/consensus":
             return self.handle_consensus_post()
         if parsed.path == "/api/events":
@@ -1742,6 +1925,17 @@ class AppHandler(SimpleHTTPRequestHandler):
                 )
         send_json(self, {"ok": True, "groupKey": group_key, "status": status, "itemCount": len(items)})
 
+    def handle_peer_group_draft_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        if not symbol:
+            return send_json(self, {"error": "symbol is required"}, HTTPStatus.BAD_REQUEST)
+        refresh = bool(body.get("refresh"))
+        try:
+            send_json(self, create_or_reuse_draft_peer_group(symbol, refresh=refresh))
+        except Exception as exc:
+            return send_json(self, {"error": str(exc)}, HTTPStatus.BAD_GATEWAY)
+
     def handle_benchmarks(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         symbol = qs.get("symbol", [""])[0].strip()
@@ -1888,8 +2082,8 @@ def source_notes() -> dict:
             "limitations": "Delayed, rate-limited, not guaranteed complete. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
         },
         "benchmarks": {
-            "use": "Editable manual peer groups plus cached yfinance metrics for descriptive relative context.",
-            "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only; own-history context starts accumulating from local refresh snapshots.",
+            "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. New symbols can create backend-assisted draft groups from local/yfinance sector metadata.",
+            "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only. Backend-assisted groups are draft only and require business-model review; own-history context starts accumulating from local refresh snapshots.",
         },
         "newsweb": {
             "use": "Ticker-specific search links in the MVP.",

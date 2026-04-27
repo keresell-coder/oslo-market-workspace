@@ -495,10 +495,12 @@ async function loadBenchmarkOptions() {
     }
   }
   const select = document.getElementById("benchmark-symbol");
-  if (!select.options.length) {
-    select.innerHTML = watchlistItems
-      .map((row) => `<option value="${escapeHtml(row.symbol)}">${escapeHtml(row.symbol)} - ${escapeHtml(row.name || "")}</option>`)
-      .join("");
+  const currentValue = select.value;
+  select.innerHTML = watchlistItems
+    .map((row) => `<option value="${escapeHtml(row.symbol)}">${escapeHtml(row.symbol)} - ${escapeHtml(row.name || "")}</option>`)
+    .join("");
+  if (currentValue && watchlistItems.some((row) => row.symbol === currentValue)) {
+    select.value = currentValue;
   }
   if (!select.options.length) {
     document.getElementById("benchmark-content").innerHTML = `
@@ -520,6 +522,7 @@ async function loadBenchmark(refresh = false) {
     const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
     target.innerHTML = renderBenchmark(data);
     bindPeerEditors();
+    bindDraftPeerGroupActions();
   } catch (error) {
     target.innerHTML = `<div class="error-box">Benchmark could not load for ${escapeHtml(symbol)}: ${escapeHtml(error.message)}</div>`;
   }
@@ -528,9 +531,14 @@ async function loadBenchmark(refresh = false) {
 function renderBenchmark(data) {
   if (!data.groups?.length) {
     return `
-      <div class="method-card">
+      <div class="method-card missing-peer-card">
         <strong>No peer group configured for ${escapeHtml(data.symbol)}</strong>
         <span>${escapeHtml(data.message || "Add a peer group before drawing relative valuation context.")}</span>
+        <span>Use a draft group for new watchlist companies. If the symbol already belongs to an existing group, the app will reuse that group instead.</span>
+        <div class="actions">
+          <button data-create-draft-peer-group="${escapeHtml(data.symbol)}">Create draft peer group</button>
+          <span class="muted" data-draft-peer-status></span>
+        </div>
       </div>
       ${renderSectorContext(data.sectorContext)}
       ${renderOwnHistory(data.ownHistory)}
@@ -702,6 +710,37 @@ function bindPeerEditors() {
   document.querySelectorAll(".peer-group-form").forEach((form) => {
     form.addEventListener("submit", savePeerGroup);
   });
+}
+
+function bindDraftPeerGroupActions() {
+  document.querySelectorAll("[data-create-draft-peer-group]").forEach((button) => {
+    button.addEventListener("click", createDraftPeerGroup);
+  });
+}
+
+async function createDraftPeerGroup(event) {
+  const button = event.currentTarget;
+  const status = document.querySelector("[data-draft-peer-status]");
+  const symbol = button.dataset.createDraftPeerGroup;
+  button.disabled = true;
+  if (status) status.textContent = "Creating draft group...";
+  try {
+    const result = await api("/api/peer-groups/draft", {
+      method: "POST",
+      body: JSON.stringify({ symbol }),
+    });
+    if (status) {
+      status.textContent =
+        result.action === "reused"
+          ? "Existing peer group reused."
+          : `Draft group created with ${result.candidateCount || 0} candidate peer${result.candidateCount === 1 ? "" : "s"}.`;
+    }
+    await loadBenchmark(false);
+    await loadWatchlist();
+  } catch (error) {
+    button.disabled = false;
+    if (status) status.textContent = `Could not create draft group: ${error.message}`;
+  }
 }
 
 async function savePeerGroup(event) {
