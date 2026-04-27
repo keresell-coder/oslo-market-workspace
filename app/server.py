@@ -7,6 +7,8 @@ import sqlite3
 import sys
 import time
 import urllib.parse
+import csv
+import io
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -34,8 +36,14 @@ CACHE_TTL_SECONDS = 60 * 60 * 6
 CONSENSUS_FRESH_SECONDS = 60 * 60 * 24 * 3
 CONSENSUS_OLD_SECONDS = 60 * 60 * 24 * 14
 SCREENER_URL = "https://keresell-coder.github.io/oslo-screener-dashboard/"
+TECHNICAL_INDICATORS_URLS = [
+    "https://keresell-coder.github.io/oslo-screener/latest.csv",
+    "https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv",
+]
 SCREENER_CACHE_TTL_SECONDS = 60 * 15
 SCREENER_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
+TECHNICAL_CACHE_TTL_SECONDS = 60 * 15
+TECHNICAL_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
 PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
 
@@ -1077,6 +1085,144 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
     return result
 
 
+def parse_screener_metadata(line: str) -> dict:
+    metadata = {}
+    for key, value in re.findall(r"([A-Za-z_]+)=([^,\s]+)", line):
+        metadata[key] = value
+    return metadata
+
+
+def technical_signal_tone(signal: str | None) -> str:
+    value = str(signal or "").lower()
+    if "buy" in value:
+        return "bullish"
+    if "sell" in value:
+        return "bearish"
+    return "neutral"
+
+
+def parse_technical_csv(text: str, source_url: str) -> dict:
+    comments = [line.strip() for line in text.splitlines() if line.strip().startswith("#")]
+    metadata = {}
+    for line in comments:
+        metadata.update(parse_screener_metadata(line))
+    csv_text = "\n".join(line for line in text.splitlines() if line.strip() and not line.strip().startswith("#"))
+    rows = []
+    for row in csv.DictReader(io.StringIO(csv_text)):
+        symbol = normalize_dashboard_ticker(row.get("ticker", ""))
+        if not symbol:
+            continue
+        signal = (row.get("signal") or "NEUTRAL").strip() or "NEUTRAL"
+        rows.append(
+            {
+                "symbol": symbol,
+                "ticker": symbol.replace(".OL", ""),
+                "date": row.get("date") or None,
+                "close": parse_float(row.get("close")),
+                "rsi14": parse_float(row.get("rsi14")),
+                "rsiDirection": parse_float(row.get("rsi_dir")),
+                "macdHistogram": parse_float(row.get("macd_hist")),
+                "sma50": parse_float(row.get("sma50")),
+                "pctAboveSma50": parse_float(row.get("pct_above_sma50")),
+                "adx14": parse_float(row.get("adx14")),
+                "mfi14": parse_float(row.get("mfi14")),
+                "rsi6": parse_float(row.get("rsi6")),
+                "signal": signal,
+                "signalTone": technical_signal_tone(signal),
+                "primaryCount": parse_float(row.get("primary_count")),
+                "stopLossPct": parse_float(row.get("stop_loss_pct")),
+                "positionPct": parse_float(row.get("position_pct")),
+                "risk": (row.get("risk") or "").strip() or None,
+                "sourceUrl": source_url,
+            }
+        )
+    dates = sorted({row["date"] for row in rows if row.get("date")})
+    return {
+        "sourceUrl": source_url,
+        "sourceUrls": TECHNICAL_INDICATORS_URLS,
+        "sourceGeneratedAt": metadata.get("generated_at"),
+        "sourceDataFetchStarted": metadata.get("data_fetch_started"),
+        "sourceDataFetchCompleted": metadata.get("data_fetch_completed"),
+        "sourceDate": dates[-1] if dates else None,
+        "fetchedAt": utc_now(),
+        "rows": rows,
+        "count": len(rows),
+        "columns": list(rows[0].keys()) if rows else [],
+        "sourceReliability": "Parsed from oslo-screener latest.csv. Open/free technical data is screening context only and does not create buy/sell advice.",
+    }
+
+
+def fetch_technical_indicators(refresh: bool = False) -> dict:
+    now_epoch = int(time.time())
+    cached = TECHNICAL_CACHE.get("payload")
+    if cached and not refresh and now_epoch - int(TECHNICAL_CACHE["fetched_at_epoch"]) < TECHNICAL_CACHE_TTL_SECONDS:
+        payload = dict(cached)
+        payload["cacheStatus"] = "cached"
+        return payload
+
+    if requests is None:
+        raise RuntimeError("requests is required for technical indicator CSV extraction")
+
+    errors = []
+    headers = {"User-Agent": "oslo-market-workspace/1.0"}
+    for url in TECHNICAL_INDICATORS_URLS:
+        try:
+            response = requests.get(url, timeout=20, headers=headers)
+            response.raise_for_status()
+            payload = parse_technical_csv(response.text, url)
+            payload["sourceErrors"] = errors
+            TECHNICAL_CACHE["payload"] = payload
+            TECHNICAL_CACHE["fetched_at_epoch"] = now_epoch
+            result = dict(payload)
+            result["cacheStatus"] = "fresh"
+            return result
+        except Exception as exc:
+            errors.append({"url": url, "error": str(exc)})
+    raise RuntimeError("; ".join(f"{item['url']}: {item['error']}" for item in errors))
+
+
+def technical_indicators(
+    universe: str = "watchlist",
+    watchlist: str = "Core Watchlist",
+    refresh: bool = False,
+) -> dict:
+    technical = fetch_technical_indicators(refresh=refresh)
+    rows = list(technical.get("rows", []))
+    watched = set(watchlist_symbols(watchlist))
+    if universe != "all":
+        rows = [row for row in rows if row["symbol"] in watched]
+    try:
+        screener_map, screener_error = safe_screener_alert_map(watchlist)
+    except Exception as exc:
+        screener_map, screener_error = {}, str(exc)
+    enriched = []
+    for row in rows:
+        dashboard_signal = screener_map.get(row["symbol"])
+        enriched.append(
+            {
+                **row,
+                "watchlistMember": row["symbol"] in watched,
+                "dashboardSignal": dashboard_signal,
+                "inDashboardScreener": bool(dashboard_signal),
+            }
+        )
+    return {
+        **{key: value for key, value in technical.items() if key != "rows"},
+        "universe": universe,
+        "watchlist": watchlist,
+        "rows": enriched,
+        "screenerError": screener_error,
+    }
+
+
+def safe_technical_indicator_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+    try:
+        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=False)
+        return {item["symbol"]: item for item in payload.get("rows", [])}, None
+    except Exception as exc:
+        return {}, str(exc)
+
+
 def parse_float(value: str | None) -> float | None:
     if value in (None, ""):
         return None
@@ -1138,6 +1284,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         )
 
     screener_map, screener_error = safe_screener_alert_map(name)
+    technical_map, technical_error = safe_technical_indicator_map(name)
     rows = []
     errors = []
     for item in items:
@@ -1161,6 +1308,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "industry": item.get("industry") or fundamental.get("industry"),
                 "priceSummary": price_summary,
                 "screenerSignal": screener_map.get(symbol),
+                "technicalSignal": technical_map.get(symbol),
                 "fundamentalHighlight": fundamental_highlight(fundamental),
                 "ownHistorySignal": fundamental.get("ownHistorySignal"),
                 "peerContext": peer_context_summary(symbol, fundamental),
@@ -1193,10 +1341,12 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "rows": rows,
         "errors": errors,
         "screenerError": screener_error,
+        "technicalError": technical_error,
         "sourceNotes": {
             "consensus": "Target and recommendation fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
             "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
+            "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
         },
     }
 
@@ -2004,6 +2154,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
             return self.handle_screener_alerts(parsed)
+        if parsed.path == "/api/technical-indicators":
+            return self.handle_technical_indicators(parsed)
         if parsed.path == "/api/sources":
             return send_json(self, source_notes())
         return super().do_GET()
@@ -2373,13 +2525,28 @@ class AppHandler(SimpleHTTPRequestHandler):
         except Exception as exc:
             send_json(self, {"error": str(exc)}, HTTPStatus.BAD_GATEWAY)
 
+    def handle_technical_indicators(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        universe = qs.get("universe", ["watchlist"])[0]
+        name = qs.get("watchlist", ["Core Watchlist"])[0]
+        try:
+            send_json(self, technical_indicators(universe=universe, watchlist=name, refresh=refresh))
+        except Exception as exc:
+            send_json(self, {"error": str(exc)}, HTTPStatus.BAD_GATEWAY)
+
 
 def source_notes() -> dict:
     return {
         "existingDashboard": {
             "url": "https://keresell-coder.github.io/oslo-screener-dashboard/",
             "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist RSI14 context parses ticker, signal, and RSI 14 card values from the published page.",
-            "limitations": "Only cards present in the published dashboard are available to this app. A published latest.csv or equivalent full dataset is still needed for RSI14 coverage across all 111 screened stocks.",
+            "limitations": "Only cards present in the published dashboard are available to the RSI14 Screener tab and dashboard-alert column. Broader technical coverage comes from latest.csv.",
+        },
+        "technicalIndicators": {
+            "url": TECHNICAL_INDICATORS_URLS[0],
+            "verification": "The app reads the published oslo-screener latest.csv first and falls back to the GitHub raw file if needed. The embedded dashboard tab remains separate.",
+            "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice.",
         },
         "yfinance": {
             "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",

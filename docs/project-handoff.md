@@ -19,7 +19,7 @@ https://github.com/keresell-coder/oslo-market-workspace
 Local git status:
 
 ```text
-main tracks origin/main
+current sprint branch: codex/rsi14-screener-coverage
 ```
 
 Local app:
@@ -42,6 +42,18 @@ https://keresell-coder.github.io/oslo-screener-dashboard/
 
 The existing Oslo Screener repo/project should not be edited unless explicitly requested. This project only embeds/parses the published dashboard.
 
+Published Oslo Screener technical CSV:
+
+```text
+https://keresell-coder.github.io/oslo-screener/latest.csv
+```
+
+Fallback raw CSV:
+
+```text
+https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
+```
+
 ## What Works
 
 - Editable watchlist backed by SQLite.
@@ -51,6 +63,7 @@ The existing Oslo Screener repo/project should not be edited unless explicitly r
   - ticker/name
   - sector
   - Oslo Screener signal
+  - technical indicator signal from `latest.csv`
   - Fundamentals target
   - target upside
   - source-count recommendation summary
@@ -66,6 +79,11 @@ The existing Oslo Screener repo/project should not be edited unless explicitly r
 - Benchmark context:
   - `/api/benchmarks`
   - descriptive only, no valuation verdict
+- Technical indicators:
+  - `/api/technical-indicators`
+  - separate Technical indicators tab
+  - Watchlist Technical column
+  - rows overlapping with the RSI14 dashboard are highlighted
 - Significant event infrastructure:
   - `significant_events` table
   - `/api/events`
@@ -77,8 +95,9 @@ The existing Oslo Screener repo/project should not be edited unless explicitly r
 - Yahoo/yfinance target price and recommendation data is single-source by default and not verified.
 - The app must not imply analyst-count weighted BUY/HOLD/SELL consensus unless reviewed source data supports it.
 - NewsWeb automation is not implemented. Current NewsWeb use is ticker search links only.
-- Peer groups are seeded but not reviewed.
+- Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Sector index benchmarking is not configured.
+- Technical BUY/SELL labels are external screener CSV signal names, not app advice.
 
 ## Current Running Server Notes
 
@@ -111,34 +130,37 @@ python3 app/server.py
 
 ## Completed This Sprint
 
-- Watchlist consensus cell now uses the same Fundamentals target and target upside fields shown in the Fundamentals table.
-- The cell shows source-count BUY/HOLD/SELL summary, confidence, source count, freshness, analyst references, and target source.
-- Clicking the Watchlist target opens the Fundamentals tab and focuses the matching ticker row.
-- The wording avoids implying verified analyst-count weighted advice.
+- Added the Technical indicators tab using the Oslo Screener `latest.csv`.
+- Added `/api/technical-indicators` with watchlist/full-universe filtering, source timestamps, coverage count, and source limitations.
+- Added the Watchlist Technical column, separate from the existing RSI14 dashboard-alert column.
+- Kept the embedded RSI14 screener dashboard tab unchanged.
+- Dashboard-overlap rows are highlighted, and source BUY/BUY-watch labels use green while SELL/SELL-watch labels use red.
+- Added a Technical Indicator Guide with common threshold bands and green/white/red dots on interpretive indicator values.
+- The wording keeps technical signals as screening context only, not investment advice.
 
 ## Next Sprint Brief
 
-Next priority: peer group curation.
+Next priority: watchlist expansion and peer group workflow cleanup.
 
 Goal:
 
-- Make benchmark context credible enough to use as research context.
+- Keep watchlist and peer-group workflows efficient while preserving draft/reviewed/trusted source discipline.
 
 Tasks:
 
-- Add editable peer groups in the app.
-- Add peer group status: draft, reviewed, trusted.
-- Add role labels: focus company, Oslo peer, Nordic peer, international peer, sector index/proxy.
-- Review initial peer groups for NOD, MOWI, FRO/HAFNI, DOFG/ODL, KOG, and LINK.
-- Add notes explaining why each peer belongs or does not belong.
-- Keep unreviewed groups clearly marked as draft.
+- Keep watchlist editing simple: add/remove symbols, edit notes, and show peer context state.
+- Add a peer-group research checklist in the UI.
+- Keep backend-assisted peer groups marked draft until reviewed.
+- Do not auto-assign a company to an unrelated existing peer group based only on sector labels.
 
 ## Verification Checklist For Next Chat
 
 1. Start server.
 2. Open Watchlist tab.
 3. Confirm rows render and the Watchlist consensus cells show target, upside, source quality, source count, freshness, and source-count recommendation.
-4. Click a Watchlist consensus target and confirm Fundamentals opens at the matching row.
-5. Open Benchmarks tab.
-6. Confirm current peer groups still render.
-7. Confirm no cheap/expensive/neutral labels exist.
+4. Confirm the Watchlist Technical column renders from `latest.csv`.
+5. Open Technical indicators tab and confirm source date, coverage count, and dashboard alert tags render.
+6. Open RSI14 screener tab and confirm the embedded dashboard is unchanged.
+7. Click a Watchlist consensus target and confirm Fundamentals opens at the matching row.
+8. Open Benchmarks tab and confirm current peer groups still render.
+9. Confirm no cheap/expensive/neutral labels exist.

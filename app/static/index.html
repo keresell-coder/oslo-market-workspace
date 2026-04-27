@@ -24,6 +24,7 @@
       <button class="tab active" data-tab="start">Start</button>
       <button class="tab" data-tab="watchlist">Watchlist</button>
       <button class="tab" data-tab="fundamentals">Fundamentals</button>
+      <button class="tab" data-tab="technical">Technical indicators</button>
       <button class="tab" data-tab="benchmarks">Benchmarks</button>
       <button class="tab" data-tab="dashboard">RSI14 screener</button>
       <button class="tab" data-tab="sources">Sources</button>
@@ -83,6 +84,27 @@
         </div>
         <div id="screener-alerts" class="alert-panel"></div>
         <div id="watchlist-table" class="table-wrap"></div>
+      </section>
+
+      <section id="technical" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Technical Indicators</h2>
+            <p class="muted">Parsed from oslo-screener latest.csv. These are technical screening fields only, not investment advice.</p>
+            <p class="muted">The RSI14 Screener dashboard remains a separate tab; rows that also appear there are highlighted here.</p>
+          </div>
+          <div class="actions">
+            <select id="technical-universe">
+              <option value="watchlist">Watchlist</option>
+              <option value="all">Full screener CSV</option>
+            </select>
+            <button id="refresh-technical">Refresh indicators</button>
+          </div>
+        </div>
+        <div id="technical-summary" class="alert-panel"></div>
+        <div id="technical-errors"></div>
+        <div id="technical-guide"></div>
+        <div id="technical-table" class="table-wrap"></div>
       </section>
 
       <section id="fundamentals" class="panel">

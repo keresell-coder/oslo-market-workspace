@@ -5,6 +5,72 @@ let watchlistItems = [];
 const peerStatuses = ["draft", "reviewed", "trusted"];
 const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer", "international peer", "sector index/proxy"];
 let loadingDepth = 0;
+const technicalIndicatorGuide = [
+  {
+    key: "rsi14",
+    name: "RSI14",
+    shows: "14-day momentum oscillator; low values can indicate oversold conditions, high values can indicate overbought conditions.",
+    supportive: "30 or lower",
+    neutral: "30 to 70",
+    notSupportive: "70 or higher",
+  },
+  {
+    key: "rsi6",
+    name: "RSI6",
+    shows: "Shorter-term RSI; reacts faster than RSI14 and is noisier.",
+    supportive: "30 or lower",
+    neutral: "30 to 70",
+    notSupportive: "70 or higher",
+  },
+  {
+    key: "rsiDirection",
+    name: "RSI direction",
+    shows: "Recent change in RSI; positive means momentum is improving, negative means it is weakening.",
+    supportive: "Above 0",
+    neutral: "0",
+    notSupportive: "Below 0",
+  },
+  {
+    key: "mfi14",
+    name: "MFI14",
+    shows: "Money Flow Index combines price and volume; low values can indicate oversold money flow, high values can indicate overbought money flow.",
+    supportive: "20 or lower",
+    neutral: "20 to 80",
+    notSupportive: "80 or higher",
+  },
+  {
+    key: "macdHistogram",
+    name: "MACD histogram",
+    shows: "Difference between MACD and its signal line; positive values show improving momentum versus the signal line.",
+    supportive: "Above 0",
+    neutral: "At 0",
+    notSupportive: "Below 0",
+  },
+  {
+    key: "sma50",
+    name: "SMA50",
+    shows: "50-day simple moving average; interpreted here using the current price distance from SMA50.",
+    supportive: "Price more than 2% above SMA50",
+    neutral: "Within +/-2% of SMA50",
+    notSupportive: "Price more than 2% below SMA50",
+  },
+  {
+    key: "pctAboveSma50",
+    name: "Vs SMA50",
+    shows: "Percentage distance between current price and the 50-day moving average.",
+    supportive: "Above +2%",
+    neutral: "-2% to +2%",
+    notSupportive: "Below -2%",
+  },
+  {
+    key: "adx14",
+    name: "ADX14",
+    shows: "Trend-strength indicator; it does not say whether the trend is up or down.",
+    supportive: "25 or higher",
+    neutral: "20 to 25",
+    notSupportive: "Below 20",
+  },
+];
 
 function value(v, suffix = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
@@ -112,6 +178,7 @@ function activateTab(tabName, options = {}) {
   document.querySelectorAll(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === tabName));
   if (!shouldLoad) return;
   if (tabName === "fundamentals") loadFundamentals(false);
+  if (tabName === "technical") loadTechnicalIndicators(false);
   if (tabName === "benchmarks") loadBenchmarkOptions();
   if (tabName === "sources") loadSources();
 }
@@ -147,6 +214,7 @@ async function loadWatchlist() {
           </td>
           <td>${renderPriceCell(row.priceSummary || row)}</td>
           <td>${renderRsiScreenerCell(alert)}</td>
+          <td>${renderTechnicalWatchlistCell(row)}</td>
           <td>${renderFundamentalHighlight(row)}</td>
           <td>${renderOwnHistoryWatchlistCell(row)}</td>
           <td>${renderPeerContext(row)}</td>
@@ -166,6 +234,7 @@ async function loadWatchlist() {
           <th>Company</th>
           <th class="number">Last price</th>
           <th>RSI14 screener</th>
+          <th>Technical</th>
           <th>Multiples</th>
           <th>Own history</th>
           <th>Peer context</th>
@@ -175,7 +244,7 @@ async function loadWatchlist() {
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="10">No watchlist items yet.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="11">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
   document.querySelectorAll("[data-remove]").forEach((button) => {
@@ -194,6 +263,11 @@ async function loadWatchlist() {
   document.querySelectorAll("[data-open-benchmarks]").forEach((button) => {
     button.addEventListener("click", async () => {
       await openBenchmarkForSymbol(button.dataset.openBenchmarks);
+    });
+  });
+  document.querySelectorAll("[data-open-technical]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await openTechnicalForSymbol(button.dataset.openTechnical);
     });
   });
 }
@@ -342,24 +416,33 @@ function renderHistoricalContext(row) {
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
   const priceRange =
-    priceWindow.low && priceWindow.high
+    priceWindow.low !== null && priceWindow.low !== undefined && priceWindow.high !== null && priceWindow.high !== undefined
       ? `${value(priceWindow.low)}-${value(priceWindow.high)} ${priceWindow.currency || row.currency || ""}`
       : "52w range n/a";
-  const sourceDate = priceWindow.lastObservationAt || priceWindow.fetchedAt || snapshot.lastSnapshotAt;
-  const sourceLine = priceWindow.source
-    ? `${priceWindow.source}; ${shortDate(sourceDate)}`
-    : `local snapshots; ${shortDate(sourceDate)}`;
-  const obsLine = priceWindow.observationCount
-    ? `${priceWindow.observationCount} daily closes; ${priceWindow.confidence || "screening-grade"}`
-    : "daily price history missing";
+  const rangePosition =
+    priceWindow.rangePositionPct === null || priceWindow.rangePositionPct === undefined
+      ? "n/a"
+      : `${pct.format(priceWindow.rangePositionPct)}%`;
+  const priceObs = priceWindow.observationCount
+    ? `${priceWindow.observationCount} closes`
+    : "price obs n/a";
+  const snapshotCount = snapshot.snapshotCount ?? 0;
   return `
     <div class="signal-cell history-cell">
       <span class="signal-badge ${historySignalClass(signal)}">${escapeHtml(signal.label || "Own history")}</span>
-      <strong>${escapeHtml(signal.detail || "Needs more dated observations")}</strong>
-      <span class="muted">52w: ${escapeHtml(priceRange)}</span>
-      <span class="muted">${escapeHtml(sourceLine)}</span>
-      <span class="muted">${escapeHtml(obsLine)}</span>
-      <span class="muted">${escapeHtml(snapshot.status || "snapshot history n/a")} / ${escapeHtml(snapshot.snapshotCount ?? 0)} snapshot${snapshot.snapshotCount === 1 ? "" : "s"}</span>
+      <div class="history-summary-grid">
+        <span>
+          <em>52w position</em>
+          <strong>${escapeHtml(rangePosition)}</strong>
+          <small>${escapeHtml(priceRange)}</small>
+        </span>
+        <span>
+          <em>Snapshots</em>
+          <strong>${escapeHtml(snapshotCount)} obs</strong>
+          <small>${escapeHtml(snapshot.status || "history n/a")}</small>
+        </span>
+      </div>
+      <span class="muted">${escapeHtml(priceObs)}; ${escapeHtml(priceWindow.confidence || snapshot.metrics?.[0]?.confidence || "screening-grade")}</span>
       ${renderHistoricalContextDetails(context)}
     </div>
   `;
@@ -370,9 +453,10 @@ function renderHistoricalContextDetails(context) {
   const snapshot = context.snapshotHistory || {};
   return `
     <details class="history-details">
-      <summary>Details</summary>
+      <summary>Price and multiple detail</summary>
       ${renderPriceHistoryDetails(priceWindow)}
       ${renderSnapshotHistoryDetails(snapshot)}
+      <p class="muted">${escapeHtml(context.watchlistSignal?.detail || "Needs more dated observations before stronger own-history context is shown.")}</p>
       <p class="muted">${escapeHtml(context.policy || "Descriptive context only.")}</p>
     </details>
   `;
@@ -401,7 +485,7 @@ function renderPriceHistoryDetails(priceWindow) {
         <meter min="0" max="100" value="${Number(priceWindow.rangePositionPct ?? 0)}"></meter>
         <span>${metricValue(priceWindow.high, "")}</span>
       </div>
-      <p class="muted">${escapeHtml(priceWindow.observationCount ?? 0)} daily closes; ${escapeHtml(priceWindow.confidence || "missing")}.</p>
+      <p class="muted">${escapeHtml(priceWindow.observationCount ?? 0)} daily closes; ${escapeHtml(priceWindow.confidence || "missing")}; ${escapeHtml(priceWindow.source || "source n/a")}; last ${escapeHtml(shortDate(priceWindow.lastObservationAt || priceWindow.fetchedAt))}.</p>
       <div class="mini-table-wrap">
         <table class="mini-table">
           <thead><tr><th>Quarter</th><th class="number">Close</th><th class="number">Median</th><th class="number">Low</th><th class="number">High</th><th class="number">Obs.</th></tr></thead>
@@ -477,6 +561,20 @@ async function openFundamentalsForSymbol(symbol) {
   target.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+async function openTechnicalForSymbol(symbol) {
+  activateTab("technical", { load: false });
+  const universe = document.getElementById("technical-universe");
+  if (universe) universe.value = "watchlist";
+  await loadTechnicalIndicators(false);
+  const target = Array.from(document.querySelectorAll("[data-technical-symbol]")).find(
+    (row) => row.dataset.technicalSymbol === symbol,
+  );
+  if (!target) return;
+  document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
+  target.classList.add("row-focus");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 async function openBenchmarkForSymbol(symbol) {
   activateTab("benchmarks", { load: false });
   await loadBenchmarkOptions();
@@ -531,6 +629,82 @@ function renderRsiScreenerCell(alert) {
       <span class="signal-section">${escapeHtml(alert.section || "Published screener output")}</span>
     </div>
   `;
+}
+
+function renderTechnicalWatchlistCell(row) {
+  const item = row.technicalSignal;
+  if (!item) {
+    return `
+      <div class="signal-cell">
+        <span class="muted">Not in latest.csv</span>
+        <span class="muted">Technical source missing for this row</span>
+      </div>
+    `;
+  }
+  const dashboard = item.inDashboardScreener ? `<span class="tag dashboard-tag">Dashboard alert</span>` : "";
+  return `
+    <button class="summary-button compact-summary" data-open-technical="${escapeHtml(row.symbol)}">
+      <span class="signal-badge ${signalClass(item.signal)}">${escapeHtml(item.signal || "NEUTRAL")}</span>
+      <strong>RSI14 ${renderTechnicalValue("rsi14", item.rsi14)} / RSI6 ${renderTechnicalValue("rsi6", item.rsi6)}</strong>
+      <span class="muted">MACD hist ${renderTechnicalValue("macdHistogram", item.macdHistogram)}; ${renderTechnicalValue("pctAboveSma50", item.pctAboveSma50, { suffix: "%", signed: true })} vs SMA50</span>
+      <span class="muted">${escapeHtml(item.date || "date n/a")} / ${escapeHtml(item.risk || "risk n/a")}</span>
+      ${dashboard}
+    </button>
+  `;
+}
+
+function technicalIndicatorStatus(key, value, row = {}) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "missing";
+  if (key === "rsi14" || key === "rsi6") {
+    if (value <= 30) return "supportive";
+    if (value >= 70) return "not-supportive";
+    return "neutral";
+  }
+  if (key === "mfi14") {
+    if (value <= 20) return "supportive";
+    if (value >= 80) return "not-supportive";
+    return "neutral";
+  }
+  if (key === "rsiDirection" || key === "macdHistogram") {
+    if (value > 0) return "supportive";
+    if (value < 0) return "not-supportive";
+    return "neutral";
+  }
+  if (key === "sma50" || key === "pctAboveSma50") {
+    const pctFromSma = key === "pctAboveSma50" ? value : row.pctAboveSma50;
+    if (pctFromSma === null || pctFromSma === undefined || Number.isNaN(pctFromSma)) return "missing";
+    if (pctFromSma > 2) return "supportive";
+    if (pctFromSma < -2) return "not-supportive";
+    return "neutral";
+  }
+  if (key === "adx14") {
+    if (value >= 25) return "supportive";
+    if (value < 20) return "not-supportive";
+    return "neutral";
+  }
+  return "neutral";
+}
+
+function technicalStatusLabel(status) {
+  if (status === "supportive") return "Supportive";
+  if (status === "not-supportive") return "Not supportive";
+  if (status === "missing") return "Missing";
+  return "Neutral";
+}
+
+function renderStatusDot(status) {
+  return `<span class="indicator-dot indicator-${escapeHtml(status)}" title="${escapeHtml(technicalStatusLabel(status))}" aria-label="${escapeHtml(technicalStatusLabel(status))}"></span>`;
+}
+
+function formatTechnicalValue(value, options = {}) {
+  if (value === null || value === undefined || Number.isNaN(value)) return "n/a";
+  const formatted = options.signed ? `${value > 0 ? "+" : ""}${fmt.format(value)}` : fmt.format(value);
+  return `${formatted}${options.suffix || ""}`;
+}
+
+function renderTechnicalValue(key, value, options = {}, row = {}) {
+  const status = technicalIndicatorStatus(key, value, row);
+  return `<span class="indicator-value">${escapeHtml(formatTechnicalValue(value, options))}${renderStatusDot(status)}</span>`;
 }
 
 function signalClass(signal) {
@@ -596,6 +770,161 @@ function renderScreenerAlerts(alerts) {
   `;
 }
 
+async function loadTechnicalIndicators(refresh = false) {
+  const universe = document.getElementById("technical-universe").value;
+  document.getElementById("technical-table").innerHTML = renderLoadingPanel(
+    refresh ? "Refreshing technical indicators" : "Loading technical indicators",
+  );
+  const data = await api(`/api/technical-indicators?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
+  document.getElementById("technical-errors").innerHTML = data.screenerError
+    ? `<div class="error-box">Dashboard highlight unavailable: ${escapeHtml(data.screenerError)}</div>`
+    : "";
+  renderTechnicalSummary(data);
+  renderTechnicalGuide();
+  const rows = data.rows
+    .map(
+      (row) => `
+        <tr data-technical-symbol="${escapeHtml(row.symbol)}" class="${row.inDashboardScreener ? "watchlist-hit" : ""}">
+          <td>
+            <strong>${escapeHtml(row.symbol)}</strong><br>
+            <span class="muted">${escapeHtml(row.date || "date n/a")}</span>
+            ${row.inDashboardScreener ? `<br><span class="tag dashboard-tag">Dashboard alert</span>` : ""}
+          </td>
+          <td><span class="signal-badge ${signalClass(row.signal)}">${escapeHtml(row.signal || "NEUTRAL")}</span></td>
+          <td class="number">${value(row.close)}</td>
+          <td>${renderTechnicalMetricGroup([
+            ["RSI14", "rsi14", row.rsi14],
+            ["RSI6", "rsi6", row.rsi6],
+            ["RSI dir", "rsiDirection", row.rsiDirection, { signed: true }],
+            ["MFI14", "mfi14", row.mfi14],
+          ], row)}</td>
+          <td>${renderTechnicalMetricGroup([
+            ["MACD hist", "macdHistogram", row.macdHistogram],
+            ["SMA50", "sma50", row.sma50],
+            ["Vs SMA50", "pctAboveSma50", row.pctAboveSma50, { suffix: "%", signed: true }],
+            ["ADX14", "adx14", row.adx14],
+          ], row)}</td>
+          <td>${renderMetricGroup([
+            ["Primary count", value(row.primaryCount)],
+            ["Risk", row.risk || "n/a"],
+            ["Stop loss", value(row.stopLossPct, "%")],
+            ["Position", value(row.positionPct, "%")],
+          ])}</td>
+        </tr>
+      `,
+    )
+    .join("");
+  document.getElementById("technical-table").innerHTML = `
+    <table class="technical-table">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Signal</th>
+          <th class="number">Close</th>
+          <th>Momentum</th>
+          <th>Trend</th>
+          <th>Risk / sizing</th>
+        </tr>
+      </thead>
+      <tbody>${rows || `<tr><td colspan="6">No technical indicator rows loaded.</td></tr>`}</tbody>
+    </table>
+  `;
+}
+
+function renderTechnicalMetricGroup(items, row) {
+  return `
+    <div class="metric-group">
+      ${items
+        .map(
+          ([label, key, rawValue, options = {}]) => `
+            <span class="metric-line">
+              <span>${escapeHtml(label)}</span>
+              <b class="${rawValue === null || rawValue === undefined || Number.isNaN(rawValue) ? "metric-missing" : ""}">${renderTechnicalValue(key, rawValue, options, row)}</b>
+            </span>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderTechnicalGuide() {
+  const target = document.getElementById("technical-guide");
+  if (!target) return;
+  target.innerHTML = `
+    <section class="technical-guide">
+      <div class="benchmark-group-head">
+        <div>
+          <h3>Technical Indicator Guide</h3>
+          <p class="muted">Common screening thresholds. Status wording is supportive, neutral, or not supportive; these are not trading instructions.</p>
+        </div>
+        <div class="indicator-legend">
+          <span>${renderStatusDot("supportive")} Supportive</span>
+          <span>${renderStatusDot("neutral")} Neutral</span>
+          <span>${renderStatusDot("not-supportive")} Not supportive</span>
+        </div>
+      </div>
+      <div class="table-wrap technical-guide-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Indicator</th>
+              <th>What it shows</th>
+              <th>Supportive</th>
+              <th>Neutral</th>
+              <th>Not supportive</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${technicalIndicatorGuide
+              .map(
+                (item) => `
+                  <tr>
+                    <td><strong>${escapeHtml(item.name)}</strong></td>
+                    <td>${escapeHtml(item.shows)}</td>
+                    <td>${escapeHtml(item.supportive)}</td>
+                    <td>${escapeHtml(item.neutral)}</td>
+                    <td>${escapeHtml(item.notSupportive)}</td>
+                  </tr>
+                `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
+function renderTechnicalSummary(data) {
+  const target = document.getElementById("technical-summary");
+  if (!target) return;
+  const dashboardCount = data.rows.filter((row) => row.inDashboardScreener).length;
+  target.innerHTML = `
+    <div class="alert-card calm">
+      <div>
+        <strong>${escapeHtml(data.count ?? 0)} rows in latest.csv; showing ${escapeHtml(data.rows.length)} ${escapeHtml(data.universe || "watchlist")} row${data.rows.length === 1 ? "" : "s"}</strong>
+        <span>Source date ${escapeHtml(data.sourceDate || "n/a")}; generated ${escapeHtml(shortDate(data.sourceGeneratedAt))}; fetched ${escapeHtml(shortDate(data.fetchedAt))}; ${escapeHtml(data.cacheStatus || "unknown")}.</span>
+        <span>${escapeHtml(data.sourceReliability || "Technical screening context only.")}</span>
+      </div>
+      <div class="alert-list">
+        <span class="alert-chip signal-buy"><strong>BUY</strong><span>${countTechnicalSignals(data.rows, "buy")}</span></span>
+        <span class="alert-chip signal-sell"><strong>SELL</strong><span>${countTechnicalSignals(data.rows, "sell")}</span></span>
+        <span class="alert-chip signal-neutral"><strong>Dashboard</strong><span>${dashboardCount}</span></span>
+      </div>
+    </div>
+  `;
+}
+
+function countTechnicalSignals(rows, signal) {
+  return rows.filter((row) => String(row.signal || "").toLowerCase().includes(signal)).length;
+}
+
+function signedValue(v) {
+  if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
+  return `${v > 0 ? "+" : ""}${fmt.format(v)}`;
+}
+
 async function loadFundamentals(refresh = false) {
   const universe = document.getElementById("fundamental-universe").value;
   document.getElementById("fundamentals-table").innerHTML = renderLoadingPanel(
@@ -609,58 +938,133 @@ async function loadFundamentals(refresh = false) {
     .map(
       (row) => `
       <tr data-fundamental-symbol="${escapeHtml(row.symbol)}">
-        <td>
-          <strong>${escapeHtml(row.symbol)}</strong><br>
-          <span class="muted">${escapeHtml(row.name || "")}</span>
-        </td>
-        <td>${escapeHtml(row.sector || "")}</td>
-        <td class="number">${value(row.price)}</td>
+        <td>${renderFundamentalCompany(row)}</td>
+        <td>${renderFundamentalPriceSize(row)}</td>
+        <td>${renderMetricGroup([
+          ["TTM P/E", value(row.trailingPE, "x")],
+          ["Fwd P/E", value(row.forwardPE, "x")],
+          ["P/B", value(row.priceToBook, "x")],
+          ["P/NAV", value(row.pnAv, "x")],
+          ["EV/EBITDA", value(row.enterpriseToEbitda, "x")],
+          ["EV/EBIT", value(row.evToEbit, "x")],
+        ])}</td>
+        <td>${renderMetricGroup([
+          ["EPS TTM", value(row.epsTrailingTwelveMonths)],
+          ["Div yield", value(row.dividendYield, "%")],
+        ])}</td>
         <td>${renderHistoricalContext(row)}</td>
-        <td class="number">${value(row.trailingPE)}</td>
-        <td class="number">${value(row.forwardPE)}</td>
-        <td class="number">${value(row.priceToBook)}</td>
-        <td class="number">${value(row.pnAv)}</td>
-        <td class="number">${value(row.enterpriseToEbitda)}</td>
-        <td class="number">${value(row.evToEbit)}</td>
-        <td class="number">${value(row.epsTrailingTwelveMonths)}</td>
-        <td class="number">${value(row.dividendYield, "%")}</td>
-        <td class="number">${compact(row.marketCap)}</td>
-        <td class="number">${value(row.targetMeanPrice)}</td>
-        <td class="number">${value(row.targetUpsidePct, "%")}</td>
-        <td>
-          <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span><br>
-          <span class="muted">${escapeHtml(row.targetStatus || "single-provider")} / ${escapeHtml(row.targetSourceCount ?? 0)} provider row(s)</span>
-          <br><span class="muted">${renderConsensusStatus(row.consensus)}</span>
-        </td>
-        <td>
-          <span class="tag">${escapeHtml(row.cacheStatus)}</span><br>
-          <span class="muted">${escapeHtml(row.fetchedAt || "")}</span>
-          <br><span class="muted">Target: ${escapeHtml(row.targetPriceSource || "Yahoo/yfinance")}</span>
-        </td>
-        <td>
-          <a class="link" href="${escapeHtml(row.newswebUrl)}" target="_blank" rel="noreferrer">NewsWeb</a><br>
-          <a class="link" href="${escapeHtml(row.tradingViewSearchUrl)}" target="_blank" rel="noreferrer">TradingView</a>
-        </td>
+        <td>${renderFundamentalConsensus(row)}</td>
+        <td>${renderFundamentalSource(row)}</td>
+        <td>${renderFundamentalLinks(row)}</td>
       </tr>
     `,
     )
     .join("");
   document.getElementById("fundamentals-table").innerHTML = `
-    <table>
+    <table class="fundamentals-table">
+      <colgroup>
+        <col class="fund-col-company">
+        <col class="fund-col-price">
+        <col class="fund-col-multiples">
+        <col class="fund-col-earnings">
+        <col class="fund-col-history">
+        <col class="fund-col-consensus">
+        <col class="fund-col-source">
+        <col class="fund-col-links">
+      </colgroup>
       <thead>
         <tr>
-          <th>Company</th><th>Sector</th><th class="number">Price</th>
+          <th>Company</th>
+          <th>Price & size</th>
+          <th>Valuation multiples</th>
+          <th>Earnings & yield</th>
           <th>Own history</th>
-          <th class="number">TTM P/E</th><th class="number">Fwd P/E</th>
-          <th class="number">P/B</th><th class="number">P/NAV</th>
-          <th class="number">EV/EBITDA</th><th class="number">EV/EBIT</th>
-          <th class="number">EPS TTM</th><th class="number">Div Yield</th>
-          <th class="number">Mkt Cap</th><th class="number">Yahoo Target</th>
-          <th class="number">Target Upside</th><th>Consensus quality</th><th>Source</th><th>Links</th>
+          <th>Consensus refs</th>
+          <th>Source</th>
+          <th>Links</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="18">No fundamentals loaded.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="8">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
+  `;
+}
+
+function renderFundamentalCompany(row) {
+  return `
+    <div class="fund-cell">
+      <strong>${escapeHtml(row.symbol)}</strong>
+      <span class="muted">${escapeHtml(row.name || "Name missing")}</span>
+      <span class="muted">${escapeHtml(row.sector || "Sector missing")}</span>
+    </div>
+  `;
+}
+
+function renderFundamentalPriceSize(row) {
+  const currency = row.currency ? ` ${row.currency}` : "";
+  return `
+    <div class="fund-cell">
+      <strong>${value(row.price)}${escapeHtml(currency)}</strong>
+      <span class="metric-line"><span>Market cap</span><b>${compact(row.marketCap)}</b></span>
+      <span class="muted">Last cached price from free source.</span>
+    </div>
+  `;
+}
+
+function renderMetricGroup(items) {
+  return `
+    <div class="metric-group">
+      ${items
+        .map(
+          ([label, formatted]) => `
+            <span class="metric-line">
+              <span>${escapeHtml(label)}</span>
+              <b class="${formatted === "n/a" ? "metric-missing" : ""}">${escapeHtml(formatted)}</b>
+            </span>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function renderFundamentalConsensus(row) {
+  const consensus = row.consensus || {};
+  const recommendation = consensus.recommendationSummary?.label || row.recommendationKey || "n/a";
+  const freshness = consensus.sources?.length ? consensusFreshness(consensus.sources) : "freshness n/a";
+  return `
+    <div class="fund-cell">
+      <span class="metric-line"><span>Target</span><b>${value(row.targetMeanPrice)}</b></span>
+      <span class="metric-line"><span>Vs price</span><b>${signedPctValue(row.targetUpsidePct)}</b></span>
+      <span class="metric-line"><span>Reported refs</span><b>${value(consensus.reportedAnalystRefs ?? row.numberOfAnalystOpinions)}</b></span>
+      <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span>
+      <span class="muted">${escapeHtml(row.targetStatus || "single-provider")}; ${escapeHtml(row.targetSourceCount ?? 0)} provider row(s)</span>
+      <span class="muted">Source rec: ${escapeHtml(recommendation)}; ${escapeHtml(freshness)}</span>
+    </div>
+  `;
+}
+
+function renderFundamentalSource(row) {
+  return `
+    <div class="fund-cell">
+      <span class="tag">${escapeHtml(row.cacheStatus || "cache n/a")}</span>
+      <span class="muted">${escapeHtml(shortDate(row.fetchedAt))}</span>
+      <span class="muted">${escapeHtml(row.source || "Source missing")}</span>
+      <details class="compact-details">
+        <summary>Limits</summary>
+        <p class="muted">Fetched: ${escapeHtml(row.fetchedAt || "timestamp n/a")}</p>
+        <p class="muted">${escapeHtml(row.sourceReliability || "Open/free data; verify against primary sources.")}</p>
+        <p class="muted">Target source: ${escapeHtml(row.targetPriceSource || "Yahoo/yfinance")}</p>
+      </details>
+    </div>
+  `;
+}
+
+function renderFundamentalLinks(row) {
+  return `
+    <div class="link-stack">
+      <a class="link" href="${escapeHtml(row.newswebUrl)}" target="_blank" rel="noreferrer">NewsWeb</a>
+      <a class="link" href="${escapeHtml(row.tradingViewSearchUrl)}" target="_blank" rel="noreferrer">TradingView</a>
+    </div>
   `;
 }
 
@@ -1088,6 +1492,15 @@ async function boot() {
   });
   document.getElementById("fundamental-universe").addEventListener("change", async () => {
     await withLoading("Loading fundamentals", null, () => loadFundamentals(false));
+  });
+  document.getElementById("refresh-technical").addEventListener("click", async (event) => {
+    await withLoading("Refreshing technical indicators", event.currentTarget, async () => {
+      await loadTechnicalIndicators(true);
+      await loadWatchlist();
+    });
+  });
+  document.getElementById("technical-universe").addEventListener("change", async () => {
+    await withLoading("Loading technical indicators", null, () => loadTechnicalIndicators(false));
   });
   document.getElementById("reload-sources").addEventListener("click", async (event) => {
     await withLoading("Reloading sources", event.currentTarget, loadSources);

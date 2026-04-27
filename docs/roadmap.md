@@ -22,9 +22,10 @@ Completed MVP pieces:
 - Local Python/SQLite app with static frontend.
 - Start page with concise disclaimer, intent, metric/source summary, and limitations.
 - Editable watchlist backed by SQLite.
-- Watchlist synthesis table with company, last price, RSI14 screener, multiples, own-history, peer context, consensus target range, consensus rating, updates, and actions.
-- Published RSI14/Oslo Screener dashboard embedded and parsed for watchlist signal matches plus visible RSI 14 values where cards are present.
-- Fundamentals table backed by cached Yahoo/yfinance data.
+- Watchlist synthesis table with company, last price, RSI14 screener dashboard alert, technical indicators, multiples, own-history, peer context, consensus target range, consensus rating, updates, and actions.
+- Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches plus visible RSI 14 values where cards are present.
+- Published Oslo Screener `latest.csv` parsed for broader technical indicator coverage across the screener universe.
+- Fundamentals table backed by cached Yahoo/yfinance data with grouped scan columns for price/size, valuation multiples, earnings/yield, own history, consensus refs, source, and links.
 - Fundamentals historical context column with Yahoo/yfinance 52-week daily close range, local fundamentals snapshot history, source/freshness/confidence labels, and minimum-observation Watchlist signal gating.
 - Consensus/source table and manual source editor.
 - Significant-events table and manual event API.
@@ -42,10 +43,10 @@ Important current limitations:
 - Peer context in Watchlist is marked as missing, draft, reviewed, or trusted.
 - New watchlist companies outside the reviewed groups can create draft peer groups, but backend-assisted candidates are screening-grade and require manual research before promotion.
 - Sector/index benchmarks are not configured.
-- Own-history context now appears primarily in Fundamentals, but true quarterly fundamental history, charts, and sector-specific metric history still need more data and design work.
+- Own-history context now appears primarily in Fundamentals, and the tab uses grouped scan columns; true quarterly fundamental history, charts, sector-specific metric history, and richer sector/index benchmarks still need more data and design work.
 - Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
 - Automated NewsWeb/event collection is not implemented.
-- RSI14 coverage is limited to cards present in the published dashboard; a published `latest.csv` or equivalent full dataset is still needed for all 111 screened stocks.
+- RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage is available through `latest.csv`.
 - Sector-specific metrics such as NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values need better data or manual inputs.
 
 ## Completed Sprint: Peer Group Curation
@@ -101,14 +102,66 @@ Closed sprint boundaries:
 - Sector-specific historical KPIs such as EBIT/kg, NAV/fleet values, backlog, ROE/CET1, LTV/WAULT, and CPaaS margin/growth/leverage remain later manual/source-data work.
 - Sector and peer context remain separate from own-history signals until source quality and missing-data rules are stronger.
 
+## Completed Sprint: Fundamentals Tab Streamlining
+
+Goal: make the Fundamentals tab clean enough for repeated review by clarifying the purpose of each default column and moving dense context into grouped or expandable views.
+
+Completed:
+
+- Reviewed the default Fundamentals table purpose and reduced it from 18 top-level columns to 8 grouped columns: company, price/size, valuation multiples, earnings/yield, own history, consensus refs, source, and links.
+- Bundled standalone valuation metrics into one compact multiple group while keeping missing P/NAV and EV/EBIT values explicit.
+- Bundled EPS and dividend yield into a compact earnings/yield group.
+- Moved market cap into price/size and target/source quality into consensus/source groups.
+- Redesigned **Own history** so the default cell shows a compact signal, 52-week range position, snapshot count/status, observation count, and confidence.
+- Kept price-window, quarterly-window, largest-gap, and snapshot-history tables available in expandable row details.
+- Added stable table-layout and column-width rules for more consistent row density.
+- Preserved descriptive, source-aware wording. No cheap/expensive/fair labels or buy/sell guidance were added.
+
+Verified:
+
+- Backend syntax with `python3 -m py_compile app/server.py`.
+- Frontend syntax with `node --check app/static/app.js`.
+- Required local API checks for Watchlist overview and MOWI fundamentals.
+- In-app browser check of the Fundamentals tab default table and expanded own-history detail.
+- Local browser screenshots at desktop and narrower widths.
+
+Closed sprint boundaries:
+
+- The streamlining sprint did not add new metrics or new data sources.
+- Desktop/narrow behavior still relies on the table's horizontal scrolling model; a later design pass can add a separate small-screen card layout if repeated mobile use becomes important.
+- True quarterly fundamental statements, charts, and sector-specific KPIs remain later work.
+
+## Completed Sprint: RSI14 Screener Coverage
+
+Goal: fill technical indicators from the Oslo Screener CSV output while preserving the embedded RSI14 dashboard as its own separate tool.
+
+Completed:
+
+- Located the current `latest.csv` in `keresell-coder/oslo-screener`, published at `https://keresell-coder.github.io/oslo-screener/latest.csv` with raw GitHub fallback.
+- Added backend parsing for 111 screener rows with source generated time, data date, fetch timestamp, coverage count, and limitations.
+- Added `/api/technical-indicators` with watchlist/full-universe filtering.
+- Added a separate **Technical indicators** tab with RSI14, RSI6, RSI direction, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position fields.
+- Added a Watchlist **Technical** column populated from `latest.csv`.
+- Kept the existing **RSI14 screener** dashboard tab unchanged.
+- Marked rows that also appear in the dashboard screener output with a dashboard alert tag.
+- Used green highlighting for source BUY/BUY-watch signals and red for SELL/SELL-watch signals. Labels remain source signal names, not investment advice.
+- Added a Technical Indicator Guide covering common threshold bands and used green/white/red dots on indicator values for supportive/neutral/not-supportive status.
+
+Verified:
+
+- Backend syntax with `python3 -m py_compile app/server.py`.
+- Frontend syntax with `node --check app/static/app.js`.
+- `/api/technical-indicators?universe=watchlist` and `universe=all`.
+- `/api/watchlist-overview` includes `technicalSignal`.
+- In-app browser checks of Watchlist, Technical indicators, and unchanged RSI14 screener dashboard tabs.
+
+Closed sprint boundaries:
+
+- No changes were made to the `keresell-coder/oslo-screener` repo or the embedded dashboard.
+- Technical signals are displayed as external screening labels only.
+- Deployment remains a later sprint.
+
 ## Later Sprints
-
-### RSI14 Screener Coverage
-
-- Publish or locate the screener `latest.csv` / full output dataset.
-- Parse RSI14 for every watchlist symbol that is part of the 111-stock screener universe, not only symbols shown as current dashboard cards.
-- Keep RSI14 as technical screening context only; no buy/sell recommendation should be inferred from RSI alone.
-- Show source date, source coverage count, and missing-status labels for symbols outside the published dataset.
 
 ### Watchlist Expansion And Peer Group Creation
 
@@ -127,6 +180,16 @@ Closed sprint boundaries:
 - Improve own-history charts/tables in Fundamentals: trend view, true quarterly windows, and clearer missing-data states.
 - Add minimum-data requirements before any derived valuation score.
 - Add sector-specific metric placeholders and manual inputs where needed.
+
+### Fundamentals Metric Guide And Data Validation
+
+- Add a Fundamentals metric guide/fact box similar to the Technical Indicator Guide.
+- For each Fundamentals metric, explain what it shows, where it is commonly useful, common interpretation caveats, source quality, and missing-data limitations.
+- Validate current yfinance-derived fields before adding more interpretation or visual status markers.
+- Review sector-specific metrics and data sources, especially P/NAV for shipping companies such as HAFNI and FRO where NAV is a common valuation context.
+- Decide whether P/NAV, NAV/fleet values, and other sector KPIs should be manual inputs, source-linked fields, or computed fields.
+- Reassess which Fundamentals metrics belong in the default table versus expandable detail.
+- Preserve the rule that standalone multiples cannot produce cheap/expensive/fair labels or buy/sell guidance.
 
 ### Consensus Quality
 

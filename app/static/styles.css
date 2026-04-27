@@ -308,7 +308,48 @@ table {
 }
 
 .watchlist-synthesis {
-  min-width: 1280px;
+  min-width: 1460px;
+}
+
+.technical-table {
+  min-width: 1020px;
+}
+
+.fundamentals-table {
+  min-width: 1240px;
+  table-layout: fixed;
+}
+
+.fund-col-company {
+  width: 13%;
+}
+
+.fund-col-price {
+  width: 11%;
+}
+
+.fund-col-multiples {
+  width: 14%;
+}
+
+.fund-col-earnings {
+  width: 11%;
+}
+
+.fund-col-history {
+  width: 21%;
+}
+
+.fund-col-consensus {
+  width: 14%;
+}
+
+.fund-col-source {
+  width: 9%;
+}
+
+.fund-col-links {
+  width: 7%;
 }
 
 th,
@@ -343,6 +384,97 @@ tr:last-child td {
   font-variant-numeric: tabular-nums;
 }
 
+.fund-cell,
+.metric-group,
+.link-stack {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.fund-cell strong,
+.metric-line b {
+  line-height: 1.25;
+}
+
+.metric-group {
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 20px;
+  color: var(--muted);
+}
+
+.metric-line b {
+  color: var(--text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.indicator-value {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.indicator-dot {
+  display: inline-block;
+  width: 0.58rem;
+  height: 0.58rem;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  vertical-align: 0.02em;
+}
+
+.indicator-supportive {
+  border-color: rgba(91, 191, 155, 0.9);
+  background: #5bbf9b;
+}
+
+.indicator-neutral {
+  border-color: rgba(237, 242, 247, 0.85);
+  background: #edf2f7;
+}
+
+.indicator-not-supportive {
+  border-color: rgba(248, 113, 113, 0.9);
+  background: #f87171;
+}
+
+.indicator-missing {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.metric-missing {
+  color: var(--muted) !important;
+  font-weight: 500;
+}
+
+.link-stack {
+  align-content: start;
+}
+
+.link-stack .link {
+  overflow-wrap: anywhere;
+}
+
+.compact-details {
+  margin-top: 2px;
+}
+
+.compact-details summary {
+  cursor: pointer;
+  color: var(--accent-2);
+  font-size: 0.78rem;
+}
+
 .tag {
   display: inline-block;
   border: 1px solid var(--border);
@@ -350,6 +482,43 @@ tr:last-child td {
   padding: 3px 8px;
   color: var(--muted);
   background: var(--panel-2);
+}
+
+.technical-guide {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 0 0 14px;
+  background: var(--panel);
+}
+
+.technical-guide h3 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.indicator-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.indicator-legend span {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.technical-guide-table {
+  margin-top: 10px;
+}
+
+.technical-guide-table table {
+  min-width: 920px;
 }
 
 .consensus-cell {
@@ -499,7 +668,39 @@ tr:last-child td {
 }
 
 .history-cell {
-  min-width: 220px;
+  min-width: 0;
+}
+
+.history-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.history-summary-grid > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(32, 43, 61, 0.55);
+}
+
+.history-summary-grid em,
+.history-summary-grid small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-style: normal;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-summary-grid strong {
+  font-size: 0.9rem;
+  line-height: 1.15;
 }
 
 .history-details {
@@ -592,6 +793,11 @@ tr:last-child td {
   border-color: rgba(251, 191, 36, 0.65);
   background: rgba(251, 191, 36, 0.12);
   color: #fde68a;
+}
+
+.dashboard-tag {
+  border-color: rgba(122, 167, 255, 0.6);
+  color: #bfd3ff;
 }
 
 .watchlist-hit {

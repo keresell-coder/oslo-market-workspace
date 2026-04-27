@@ -6,6 +6,9 @@
 - Local folder: `/Users/ke/Documents/Oslo Stock web-app`
 - Repository: https://github.com/keresell-coder/oslo-market-workspace
 - Published RSI14/Oslo Screener Dashboard: https://keresell-coder.github.io/oslo-screener-dashboard/
+- Oslo Screener source repo: https://github.com/keresell-coder/oslo-screener
+- Published Oslo Screener technical CSV: https://keresell-coder.github.io/oslo-screener/latest.csv
+- Raw GitHub fallback technical CSV: https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Local app default: http://127.0.0.1:8765
 - Local app alternate/debug: http://127.0.0.1:8768
 
@@ -42,6 +45,7 @@
 - `GET /api/peer-groups`
 - `GET /api/screener-alerts`
 - `GET /api/screener-signals`
+- `GET /api/technical-indicators`
 - `GET /api/events`
 - `POST /api/events`
 - `GET /api/sources`
@@ -50,6 +54,7 @@
 
 - Yahoo Finance via `yfinance`
 - Published RSI14/Oslo Screener Dashboard HTML
+- Published Oslo Screener `latest.csv` technical indicator output
 - NewsWeb ticker search links
 - TradingView search links
 
@@ -58,6 +63,4 @@
 - TradingView analyst/target-price pages
 - MarketScreener consensus pages
 - NewsWeb/Euronext announcement feeds
-- Oslo Screener `latest.csv` full output dataset. `https://keresell-coder.github.io/oslo-screener-dashboard/latest.csv` returned 404 during the RSI14 UI pass, so full 111-stock RSI14 coverage is not wired yet.
-
 These should only be automated if a reliable, permitted, and stable source path is confirmed. Until then, use manual/reviewed source entries.
