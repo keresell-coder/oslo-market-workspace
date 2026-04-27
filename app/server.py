@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import sqlite3
 import sys
@@ -35,6 +36,8 @@ CONSENSUS_OLD_SECONDS = 60 * 60 * 24 * 14
 SCREENER_URL = "https://keresell-coder.github.io/oslo-screener-dashboard/"
 SCREENER_CACHE_TTL_SECONDS = 60 * 15
 SCREENER_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
+PRICE_HISTORY_MIN_OBSERVATIONS = 120
+SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
 
 INITIAL_WATCHLIST = [
     "NOD.OL",
@@ -115,6 +118,8 @@ BENCHMARK_METRICS = [
         "positiveOnly": False,
     },
 ]
+
+OWN_HISTORY_METRIC_KEYS = {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda", "dividendYield"}
 
 PEER_GROUP_STATUSES = {"draft", "reviewed", "trusted"}
 PEER_ROLE_LABELS = {
@@ -673,19 +678,82 @@ def fetch_yfinance(symbol: str) -> dict:
         "source": "Yahoo Finance via yfinance",
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
+        "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
         "newswebUrl": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
     return payload
 
 
+def finite_float(value) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    numeric = float(value)
+    return numeric if math.isfinite(numeric) else None
+
+
+def history_index_date(index_value) -> str | None:
+    if index_value is None:
+        return None
+    if hasattr(index_value, "date"):
+        return index_value.date().isoformat()
+    return str(index_value)[:10]
+
+
+def fetch_yfinance_price_history(ticker, current_price: float | None, currency: str, fetched_at: str) -> dict:
+    base = {
+        "source": "Yahoo Finance via yfinance",
+        "window": "1y daily close",
+        "fetchedAt": fetched_at,
+        "currency": currency,
+        "confidence": "missing",
+        "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
+    }
+    try:
+        history = ticker.history(period="1y", interval="1d", auto_adjust=False)
+    except Exception as exc:
+        return {**base, "status": "unavailable", "error": str(exc)}
+
+    if history is None or getattr(history, "empty", True) or "Close" not in history:
+        return {**base, "status": "missing", "observationCount": 0}
+
+    close = history["Close"].dropna()
+    values = [value for value in (finite_float(item) for item in close.tolist()) if value is not None and value > 0]
+    if not values:
+        return {**base, "status": "missing", "observationCount": 0}
+
+    current = finite_float(current_price) or values[-1]
+    low = min(values)
+    high = max(values)
+    range_position = None
+    if high > low and current is not None:
+        range_position = max(0.0, min(100.0, (current - low) / (high - low) * 100))
+
+    observation_count = len(values)
+    return {
+        **base,
+        "status": "available" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "thin history",
+        "confidence": "screening-grade" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "low",
+        "observationCount": observation_count,
+        "current": current,
+        "median": median(values),
+        "low": low,
+        "high": high,
+        "rangePositionPct": range_position,
+        "percentileInWindow": percentile_position(current, values),
+        "firstObservationAt": history_index_date(close.index[0]) if len(close.index) else None,
+        "lastObservationAt": history_index_date(close.index[-1]) if len(close.index) else None,
+        "pctFromLow": pct_diff(current, low),
+        "pctFromHigh": pct_diff(current, high),
+    }
+
+
 def pick_number(info: dict, *keys: str) -> float | None:
     for key in keys:
         value = info.get(key)
-        if isinstance(value, bool):
-            continue
-        if isinstance(value, (int, float)):
-            return float(value)
+        numeric = finite_float(value)
+        if numeric is not None:
+            return numeric
     return None
 
 
@@ -892,6 +960,8 @@ def enrich_fundamental_payload(payload: dict) -> dict:
     payload["targetSourceCount"] = consensus["sourceCount"]
     payload["targetConfidence"] = consensus["confidence"]
     payload["targetStatus"] = consensus["status"]
+    payload["historicalContext"] = historical_pricing_context(payload["symbol"], payload)
+    payload["ownHistorySignal"] = payload["historicalContext"].get("watchlistSignal")
     return payload
 
 
@@ -1034,6 +1104,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "priceSummary": price_summary,
                 "screenerSignal": screener_map.get(symbol),
                 "fundamentalHighlight": fundamental_highlight(fundamental),
+                "ownHistorySignal": fundamental.get("ownHistorySignal"),
                 "peerContext": peer_context_summary(symbol, fundamental),
                 "consensusTargetSummary": target_summary,
                 "consensusRatingSummary": rating_summary,
@@ -1531,7 +1602,11 @@ def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
     }
 
 
-def own_history_summary(symbol: str) -> dict:
+def own_history_observation(row) -> dict:
+    return {"payload": json.loads(row["payload"]), "fetched_at": row["fetched_at"]}
+
+
+def own_history_summary(symbol: str, current_payload: dict | None = None) -> dict:
     with connect() as con:
         rows = con.execute(
             """
@@ -1548,7 +1623,13 @@ def own_history_summary(symbol: str) -> dict:
                 (symbol,),
             ).fetchall()
             rows = cached
-    payloads = [json.loads(row["payload"]) for row in rows]
+    observations = [own_history_observation(row) for row in rows]
+    if current_payload:
+        current_fetched_at = current_payload.get("fetchedAt")
+        if current_fetched_at and current_fetched_at not in {item["fetched_at"] for item in observations}:
+            observations.append({"payload": current_payload, "fetched_at": current_fetched_at})
+    observations.sort(key=lambda item: item["fetched_at"] or "")
+    payloads = [item["payload"] for item in observations]
     summaries = []
     for metric in BENCHMARK_METRICS:
         values = [
@@ -1574,12 +1655,159 @@ def own_history_summary(symbol: str) -> dict:
         )
     return {
         "symbol": symbol,
-        "snapshotCount": len(rows),
-        "firstSnapshotAt": rows[0]["fetched_at"] if rows else None,
-        "lastSnapshotAt": rows[-1]["fetched_at"] if rows else None,
+        "snapshotCount": len(observations),
+        "firstSnapshotAt": observations[0]["fetched_at"] if observations else None,
+        "lastSnapshotAt": observations[-1]["fetched_at"] if observations else None,
         "metrics": summaries,
-        "status": "insufficient history" if len(rows) < 5 else "usable history",
-        "requirement": "Own-history valuation context should use several observations across time; the MVP starts collecting snapshots now.",
+        "status": "insufficient history" if len(observations) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS else "usable history",
+        "requirement": (
+            "Own-history valuation context needs several dated observations. "
+            "Local snapshots start accumulating when fundamentals are refreshed."
+        ),
+    }
+
+
+def metric_gap_label(metric: dict) -> str | None:
+    gap = metric.get("vsHistoryMedianPct")
+    if gap is None:
+        return None
+    direction = "above" if gap >= 0 else "below"
+    return f"{metric['label']} {direction} own-history median"
+
+
+def own_snapshot_signal(history: dict) -> dict | None:
+    metrics = []
+    for metric in history.get("metrics", []):
+        if metric.get("key") not in OWN_HISTORY_METRIC_KEYS:
+            continue
+        if metric.get("observations", 0) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS:
+            continue
+        gap = metric.get("vsHistoryMedianPct")
+        if gap is None or abs(gap) < 25:
+            continue
+        metrics.append(metric)
+    if not metrics:
+        return None
+
+    metric = sorted(metrics, key=lambda item: abs(item.get("vsHistoryMedianPct") or 0), reverse=True)[0]
+    return {
+        "status": "available",
+        "label": metric_gap_label(metric),
+        "detail": (
+            f"{metric['current']:.1f}{metric['unit']} vs median "
+            f"{metric['historyMedian']:.1f}{metric['unit']} across {metric['observations']} local snapshots."
+        ),
+        "metricKey": metric["key"],
+        "magnitude": abs(metric.get("vsHistoryMedianPct") or 0),
+        "source": "local fundamentals snapshots",
+        "confidence": "screening-grade",
+        "limitations": "Local snapshots are only as good as prior refresh coverage and Yahoo/yfinance source quality.",
+    }
+
+
+def price_window_signal(price_window: dict | None) -> dict | None:
+    if not price_window:
+        return None
+    observations = price_window.get("observationCount") or 0
+    if observations < PRICE_HISTORY_MIN_OBSERVATIONS:
+        return None
+    position = price_window.get("rangePositionPct")
+    percentile = price_window.get("percentileInWindow")
+    if position is None or percentile is None:
+        return None
+
+    label = None
+    magnitude = 0.0
+    if position >= 90 or percentile >= 90:
+        label = "Near 52-week high"
+        magnitude = max(position, percentile) - 50
+    elif position <= 10 or percentile <= 10:
+        label = "Near 52-week low"
+        magnitude = 50 - min(position, percentile)
+    elif percentile >= 85:
+        label = "High 52-week price percentile"
+        magnitude = percentile - 50
+    elif percentile <= 15:
+        label = "Low 52-week price percentile"
+        magnitude = 50 - percentile
+
+    if not label:
+        return None
+
+    return {
+        "status": "available",
+        "label": label,
+        "detail": (
+            f"{percentile:.0f}th percentile of {observations} daily closes; "
+            f"range position {position:.0f}%."
+        ),
+        "metricKey": "price",
+        "magnitude": magnitude,
+        "source": price_window.get("source"),
+        "confidence": price_window.get("confidence"),
+        "limitations": price_window.get("limitations"),
+    }
+
+
+def historical_pricing_context(symbol: str, payload: dict) -> dict:
+    price_window = payload.get("priceHistory")
+    snapshot_history = own_history_summary(symbol, current_payload=payload)
+    metric_rows = []
+    for metric in snapshot_history.get("metrics", []):
+        history_median = metric.get("historyMedian")
+        current = metric.get("current")
+        metric_rows.append(
+            {
+                **metric,
+                "vsHistoryMedianPct": pct_diff(current, history_median),
+                "source": "local fundamentals snapshots",
+                "confidence": (
+                    "screening-grade"
+                    if metric.get("observations", 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS
+                    else "insufficient observations"
+                ),
+            }
+        )
+    snapshot_history["metrics"] = metric_rows
+
+    signals = [signal for signal in [price_window_signal(price_window), own_snapshot_signal(snapshot_history)] if signal]
+    signals.sort(key=lambda item: item.get("magnitude") or 0, reverse=True)
+    has_price_context = (price_window or {}).get("observationCount", 0) >= PRICE_HISTORY_MIN_OBSERVATIONS
+    has_snapshot_context = snapshot_history.get("snapshotCount", 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS
+    has_context = has_price_context or has_snapshot_context
+    if signals:
+        watchlist_signal = signals[0]
+    elif has_context:
+        watchlist_signal = {
+            "status": "no watchlist signal",
+            "label": "No large own-history gap",
+            "detail": "Enough history for context, but no price or multiple gap crossed the Watchlist signal threshold.",
+            "source": "Yahoo/yfinance and local fundamentals snapshots",
+            "confidence": "screening-grade" if has_price_context else "local snapshots",
+        }
+    else:
+        watchlist_signal = {
+            "status": "insufficient history",
+            "label": "Own-history signal unavailable",
+            "detail": "Requires enough daily prices or local fundamentals snapshots before surfacing in Watchlist.",
+            "source": "Yahoo/yfinance and local fundamentals snapshots",
+            "confidence": "insufficient observations",
+        }
+
+    return {
+        "symbol": symbol,
+        "status": "available" if has_context else "insufficient history",
+        "priceWindow": price_window,
+        "snapshotHistory": snapshot_history,
+        "watchlistSignal": watchlist_signal,
+        "requirements": {
+            "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
+            "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+        },
+        "policy": (
+            "Historical context is descriptive only. It compares current values with own price history and local "
+            "fundamentals snapshots without producing cheap, expensive, buy, sell, or hold conclusions."
+        ),
     }
 
 
@@ -2078,8 +2306,12 @@ def source_notes() -> dict:
             "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist alerts parse ticker/signal cards from the published page.",
         },
         "yfinance": {
-            "use": "Open/free Yahoo Finance data for price, multiples, analyst target fields where available.",
-            "limitations": "Delayed, rate-limited, not guaranteed complete. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
+            "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",
+            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
+        },
+        "historicalContext": {
+            "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes and local dated fundamentals snapshots.",
+            "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and is not a sector, peer, or valuation verdict.",
         },
         "benchmarks": {
             "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. New symbols can create backend-assisted draft groups from local/yfinance sector metadata.",

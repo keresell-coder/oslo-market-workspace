@@ -25,6 +25,7 @@ Completed MVP pieces:
 - Watchlist synthesis table with company, last price, screener, fundamentals highlight, peer context, consensus target range, consensus rating, updates, and actions.
 - Published Oslo Screener dashboard embedded and parsed for watchlist signal matches.
 - Fundamentals table backed by cached Yahoo/yfinance data.
+- Fundamentals historical context column with Yahoo/yfinance 52-week daily close range, local fundamentals snapshot history, source/freshness/confidence labels, and minimum-observation Watchlist signal gating.
 - Consensus/source table and manual source editor.
 - Significant-events table and manual event API.
 - Descriptive benchmark tab with seeded peer groups and early own-history snapshots.
@@ -40,7 +41,7 @@ Important current limitations:
 - Peer context in Watchlist is marked as missing, draft, reviewed, or trusted.
 - New watchlist companies outside the reviewed groups can create draft peer groups, but backend-assisted candidates are screening-grade and require manual research before promotion.
 - Sector/index benchmarks are not configured.
-- Own-history benchmarking needs more snapshots and may belong primarily in Fundamentals as company-specific historical pricing context.
+- Own-history context now appears primarily in Fundamentals, but true quarterly fundamental history, charts, and sector-specific metric history still need more data and design work.
 - Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
 - Automated NewsWeb/event collection is not implemented.
 - Sector-specific metrics such as NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values need better data or manual inputs.
@@ -71,6 +72,32 @@ Deliverable:
 - Benchmark tab and Watchlist peer column distinguish missing, draft, reviewed, and trusted peer context.
 - Peer rationale and source notes are documented in `docs/peer-group-curation.md`.
 
+## Completed Sprint: Fundamentals Historical Pricing Context
+
+Goal: move own-history context into Fundamentals and keep any Watchlist signal descriptive, source-aware, and observation-gated.
+
+Completed:
+
+- Add a Fundamentals own-history column.
+- Add Yahoo/yfinance 1-year daily close context with current value, median, low/high range, percentile/range position, observation count, source, confidence, freshness, and limitations.
+- Add local fundamentals snapshot context for common multiples, including current value, historical median, min/max, percentile, observation count, and versus-history median gap.
+- Surface one Watchlist own-history signal only when minimum observation thresholds are met.
+- Keep language descriptive, for example near 52-week high/low or above/below own-history median, without cheap/expensive/fair or buy/sell/hold conclusions.
+
+Verified:
+
+- Backend syntax with `python3 -m py_compile app/server.py`.
+- Frontend syntax with `node --check app/static/app.js`.
+- Required local API checks for Watchlist overview and MOWI fundamentals.
+- In-app browser check of the Fundamentals tab.
+
+Remaining:
+
+- Build true quarterly fundamental history rather than relying only on local refresh snapshots.
+- Add charts or compact trend views once enough history exists.
+- Add sector-specific historical metrics such as EBIT/kg, NAV/fleet values, backlog, ROE/CET1, LTV/WAULT, and CPaaS margin/growth/leverage.
+- Keep sector and peer context separate from own-history signals until source quality and missing-data rules are stronger.
+
 ## Later Sprints
 
 ### Watchlist Expansion And Peer Group Creation
@@ -84,21 +111,10 @@ Deliverable:
 - Add a peer-group research checklist in the UI: business fit, geography, listing, segment mix, scale, source quality, missing sector KPIs, and why each peer belongs.
 - Consider a later assisted workflow that proposes peer candidates, but keep them marked draft until reviewed.
 
-### Fundamentals Historical Pricing Context
-
-- Evaluate moving own-history benchmarking from Benchmarks into Fundamentals, or duplicating a compact version there while keeping peer/sector context in Benchmarks.
-- Add current versus own-history context for common multiples and sector-specific metrics where data is available.
-- Start with recent history windows such as last 4 quarters and 52-week high/low, with observation count and data-source caveats.
-- Show current value, historical median, min/max, percentile, and largest gaps to own history.
-- Highlight only descriptive gaps, for example "above 4-quarter median" or "near 52-week high"; do not label the company cheap, expensive, or fairly valued.
-- For Watchlist, surface the single most significant own-history signal only when data quality and observations are sufficient.
-- Sector-specific examples to support later: seafood EBIT/kg and harvest volume, tankers NAV/fleet values and spot exposure, offshore backlog/day rates/utilisation, banks ROE/CET1/P/B, real estate LTV/WAULT/NAV, CPaaS gross margin/organic growth/leverage.
-- Require freshness, source, and missing-data labels before showing historical context.
-
 ### Sector And Own-History Benchmarking
 
 - Add sector benchmark model: Oslo sector peer group, international peer group, optional sector index/proxy.
-- Improve own-history charts/tables if not moved fully into Fundamentals: current value, historical median, min/max, percentile, observation count.
+- Improve own-history charts/tables in Fundamentals: trend view, true quarterly windows, and clearer missing-data states.
 - Add minimum-data requirements before any derived valuation score.
 - Add sector-specific metric placeholders and manual inputs where needed.
 

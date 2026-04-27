@@ -175,11 +175,18 @@ function peerStatusClass(status) {
 
 function renderFundamentalHighlight(row) {
   const item = row.fundamentalHighlight || {};
+  const history = row.ownHistorySignal || {};
+  let historyLine = "Own-history signal needs more observations";
+  if (history.status === "available") {
+    historyLine = `${history.label}: ${history.detail}`;
+  } else if (history.status === "no watchlist signal") {
+    historyLine = history.detail || history.label;
+  }
   return `
     <button class="summary-button" data-open-fundamentals="${escapeHtml(row.symbol)}">
       <span class="signal-badge ${toneClass(item.tone)}">${escapeHtml(item.label || "Fundamentals")}</span>
       <strong>${escapeHtml(item.detail || "Open Fundamentals")}</strong>
-      <span class="muted">Source-labeled screening data</span>
+      <span class="muted">${escapeHtml(historyLine)}</span>
     </button>
   `;
 }
@@ -259,6 +266,39 @@ function consensusFreshness(sources) {
   if (statuses.every((status) => status === "stale")) return "stale";
   if (statuses.includes("fresh")) return "mixed freshness";
   return "freshness unknown";
+}
+
+function historySignalClass(signal) {
+  if (!signal || signal.status !== "available") return "signal-draft";
+  return "signal-neutral";
+}
+
+function renderHistoricalContext(row) {
+  const context = row.historicalContext || {};
+  const signal = context.watchlistSignal || {};
+  const priceWindow = context.priceWindow || {};
+  const snapshot = context.snapshotHistory || {};
+  const priceRange =
+    priceWindow.low && priceWindow.high
+      ? `${value(priceWindow.low)}-${value(priceWindow.high)} ${priceWindow.currency || row.currency || ""}`
+      : "52w range n/a";
+  const sourceDate = priceWindow.lastObservationAt || priceWindow.fetchedAt || snapshot.lastSnapshotAt;
+  const sourceLine = priceWindow.source
+    ? `${priceWindow.source}; ${shortDate(sourceDate)}`
+    : `local snapshots; ${shortDate(sourceDate)}`;
+  const obsLine = priceWindow.observationCount
+    ? `${priceWindow.observationCount} daily closes; ${priceWindow.confidence || "screening-grade"}`
+    : "daily price history missing";
+  return `
+    <div class="signal-cell history-cell">
+      <span class="signal-badge ${historySignalClass(signal)}">${escapeHtml(signal.label || "Own history")}</span>
+      <strong>${escapeHtml(signal.detail || "Needs more dated observations")}</strong>
+      <span class="muted">52w: ${escapeHtml(priceRange)}</span>
+      <span class="muted">${escapeHtml(sourceLine)}</span>
+      <span class="muted">${escapeHtml(obsLine)}</span>
+      <span class="muted">${escapeHtml(snapshot.status || "snapshot history n/a")} / ${escapeHtml(snapshot.snapshotCount ?? 0)} snapshot${snapshot.snapshotCount === 1 ? "" : "s"}</span>
+    </div>
+  `;
 }
 
 async function openFundamentalsForSymbol(symbol) {
@@ -399,6 +439,7 @@ async function loadFundamentals(refresh = false) {
         </td>
         <td>${escapeHtml(row.sector || "")}</td>
         <td class="number">${value(row.price)}</td>
+        <td>${renderHistoricalContext(row)}</td>
         <td class="number">${value(row.trailingPE)}</td>
         <td class="number">${value(row.forwardPE)}</td>
         <td class="number">${value(row.priceToBook)}</td>
@@ -433,6 +474,7 @@ async function loadFundamentals(refresh = false) {
       <thead>
         <tr>
           <th>Company</th><th>Sector</th><th class="number">Price</th>
+          <th>Own history</th>
           <th class="number">TTM P/E</th><th class="number">Fwd P/E</th>
           <th class="number">P/B</th><th class="number">P/NAV</th>
           <th class="number">EV/EBITDA</th><th class="number">EV/EBIT</th>
@@ -441,7 +483,7 @@ async function loadFundamentals(refresh = false) {
           <th class="number">Target Upside</th><th>Consensus quality</th><th>Source</th><th>Links</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="17">No fundamentals loaded.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="18">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
   `;
 }

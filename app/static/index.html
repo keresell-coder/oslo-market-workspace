@@ -90,7 +90,7 @@
           <div>
             <h2>Fundamental Valuation Screener</h2>
             <p class="muted">Cached open/free data. Empty fields mean the source did not provide a reliable value.</p>
-            <p class="muted">No valuation flagging is shown. Use the benchmark tab for peer, sector, and own-history context.</p>
+            <p class="muted">No valuation flagging is shown. Own-history context is descriptive and still depends on source quality and observation count.</p>
           </div>
           <div class="actions">
             <select id="fundamental-universe">
@@ -104,6 +104,10 @@
         <div class="method-card">
           <strong>Target-price policy</strong>
           <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
+        </div>
+        <div class="method-card">
+          <strong>Historical context policy</strong>
+          <span>52-week price ranges come from Yahoo/yfinance daily closes when refreshed. Multiple history uses local dated snapshots and stays hidden from the Watchlist until there are enough observations.</span>
         </div>
         <details class="editor-panel">
           <summary>Consensus source editor</summary>
