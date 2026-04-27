@@ -1,138 +1,71 @@
 # Oslo Stock web-app
 
-Local MVP for a personal Oslo Bors research workspace. It combines an editable watchlist, the existing Oslo Screener dashboard, screening alerts, fundamentals data, and early descriptive peer benchmarks.
+Local-first Oslo Bors research workspace for a personal watchlist, later shareable with friends/investment-club style users. The goal is to keep the most relevant screening data and synthesis in one app: screener signals, source-labeled fundamentals, peer context, consensus data, and significant updates.
 
-The app is intentionally conservative: it shows source data and benchmark context, but does not label stocks cheap, expensive, or neutral.
+The app is intentionally conservative. It must not produce buy/sell investment advice, and it must not label stocks cheap, expensive, or neutral from standalone multiples. Valuation context must be relative to peers, sector, own history, source quality, and missing data.
 
-Local project folder:
-
-```text
-/Users/ke/Documents/Oslo Stock web-app
-```
-
-## Run Locally
+## Run
 
 ```bash
 python3 app/server.py
 ```
 
-Then open:
+Open:
 
 ```text
 http://127.0.0.1:8765
 ```
 
-If an old local process is stuck on `8765`, run the server on another port from Python or restart the terminal/session. During development this has also been verified on `http://127.0.0.1:8768`.
+If the port is busy, stop the stale Python process or use a temporary local port. During development `8768` has often been used.
 
-On iPhone/Android, open the app in the browser and use "Add to Home Screen" once the app is reachable from the phone. `localhost` only works on the machine running the app; phone access needs same-network hosting or a later deployed version.
+Repository: `keresell-coder/oslo-market-workspace`
 
-## What Works In The MVP
-
-- **Watchlist**
-  - SQLite-backed editable watchlist.
-  - Initial test watchlist is seeded from the first user list.
-  - Add/remove symbols from the app.
-  - Watchlist rendering is independent from screener-alert fetching, so a failed alert refresh should not blank the watchlist.
-  - Front page shows ticker/name, sector, screener signal, Fundamentals target, target upside, source-count recommendation summary, source quality, freshness, and significant-update status.
-  - The Watchlist consensus cell opens the matching Fundamentals row so target and source details can be inspected in context.
-
-- **Oslo Screener tab**
-  - Embeds the existing published Oslo Screener Dashboard:
-    `https://keresell-coder.github.io/oslo-screener-dashboard/`
-  - This project does not edit the existing screener repository.
-
-- **Watchlist/screener alerts**
-  - Parses ticker/signal cards from the published Oslo Screener dashboard.
-  - Shows an alert when a watchlist symbol appears in the current screener output.
-  - Links each watchlist row back to Yahoo, NewsWeb, and the Oslo Screener.
-
-- **Fundamentals tab**
-  - Uses cached `yfinance`/Yahoo Finance data where available.
-  - Shows price, market cap, P/E, P/B, EV/EBITDA, EPS, dividend yield, target price, and target upside where available.
-  - Labels target price as Yahoo/yfinance source data only.
-  - Does not treat Yahoo recommendation fields as verified BUY/HOLD/SELL weighting.
-  - Shows consensus quality as low/single-source unless additional reviewed sources are added.
-  - Includes a consensus source editor for adding reviewed/manual target-price and recommendation sources.
-
-- **Benchmarks tab**
-  - Adds a descriptive peer benchmark layer.
-  - Uses manually seeded peer groups for selected watchlist stocks.
-  - Shows company value, peer median, peer min/max, and relative position for selected metrics.
-  - Starts collecting own-history snapshots when fundamentals are refreshed.
-  - Shows sector context as "not configured" until a proper sector/index source is added.
-
-- **Source quality tab**
-  - Summarizes what each source is used for and its limitations.
-
-## Current Data Sources
-
-- Existing screener: GitHub Pages published Oslo Screener dashboard.
-- Screener/watchlist alerts: parsed from the published dashboard cards.
-- Fundamentals: Yahoo Finance through `yfinance`.
-- Consensus/target provenance: local `consensus_sources` table, currently populated from Yahoo/yfinance and ready for manual/reviewed source entries.
-- Significant updates: local `significant_events` table, currently manual/tracked entries only.
-- Benchmarks: manual peer-group seeds plus cached `yfinance` metrics.
-- NewsWeb: ticker-specific search links only for now.
-- TradingView: search links only for now.
-
-## Reliability Rules
-
-- Free market data is delayed, incomplete, rate-limited, and can change without notice.
-- The app treats values as screening inputs, not verified investment facts.
-- No cheap/expensive/neutral flagging is allowed from standalone multiples.
-- Any future valuation score must show:
-  - peer group
-  - sector benchmark
-  - own-history range
-  - source timestamp
-  - confidence level
-  - exact criteria
-
-## Known Limitations
-
-- Peer groups are manually seeded and not yet reviewed.
-- Sector index benchmarking is not implemented.
-- Own-history benchmarking needs more refresh snapshots before it is useful.
-- Yahoo/yfinance target prices are not enough for verified analyst consensus.
-- Sprint 1 consensus infrastructure and UI exists, but multi-source collection is not automated yet.
-- Significant update alerts exist, but automated NewsWeb/event collection is not implemented yet.
-- P/NAV, NAV discount/premium, fleet values, reserves, EBIT/kg, backlog, ROE, CET1, LTV, WAULT, and similar sector metrics require reports, curated manual inputs, or better data sources.
-- The current app is local-first. Sharing with friends needs a hosting/deployment step.
-
-## Documentation Practice
-
-After each completed task, update the relevant documents so the project record stays current:
-
-- `README.md` for current user-facing behavior and limitations.
-- `docs/roadmap.md` for completed work and next planned work.
-- `docs/project-handoff.md` for continuation context in a new Codex chat.
-- `docs/links-and-resources.md` when locations, links, endpoints, or source notes change.
-
-## Repository
-
-GitHub:
+Local folder:
 
 ```text
-keresell-coder/oslo-market-workspace
+/Users/ke/Documents/Oslo Stock web-app
 ```
 
-This repository is separate from the existing Oslo Screener project.
+## Current App
 
-## Roadmap
+- **Start**: first page, with short intent text, metric/source summary, current limitations, and a not-investment-advice disclaimer.
+- **Watchlist**: main synthesis table. Current columns: company, last price, screener, fundamentals highlight, peer context, consensus target range, consensus rating, updates, and actions.
+- **Fundamentals**: cached Yahoo/yfinance fields, watchlist or full ticker-database universe, and manual consensus source editor.
+- **Benchmarks**: descriptive peer/own-history context. Current peer groups are seeded but unreviewed.
+- **Oslo Screener**: embeds/parses the published dashboard only. Do not edit the existing Oslo Screener repository unless explicitly requested.
+- **Sources**: source quality and limitations.
 
-See [docs/roadmap.md](docs/roadmap.md).
+## Data And Wording Rules
 
-## Continuing In A New Codex Chat
+- Free data is screening-grade only: delayed, incomplete, rate-limited, and sometimes wrong.
+- Show source, timestamp/freshness, confidence, and missing data clearly.
+- Yahoo/yfinance target and recommendation data is one provider row by default, not verified consensus.
+- “Reported analyst refs” are provider-reported analyst counts; they may overlap across providers and are not deduplicated.
+- Future consensus work should combine multiple providers carefully and preserve overlap/deduplication caveats.
+- NewsWeb automation is not implemented; current use is ticker search links and manual event entries.
 
-Use these files to continue with full context:
+## Verification
 
-- [AGENTS.md](AGENTS.md)
-- [docs/project-handoff.md](docs/project-handoff.md)
-- [docs/links-and-resources.md](docs/links-and-resources.md)
-- [docs/roadmap.md](docs/roadmap.md)
+Before finishing code changes, run:
 
-Recommended first prompt in a new chat:
+```bash
+python3 -m py_compile app/server.py
+node --check app/static/app.js
+curl -s http://127.0.0.1:8765/api/watchlist-overview | python3 -m json.tool
+curl -s "http://127.0.0.1:8765/api/fundamentals?symbols=MOWI.OL" | python3 -m json.tool
+```
+
+Use the in-app browser for visual checks when UI changes.
+
+## Continue In A New Chat
+
+Load only:
+
+- `README.md`
+- `docs/roadmap.md`
+
+Recommended prompt:
 
 ```text
-Please read AGENTS.md, docs/project-handoff.md, docs/links-and-resources.md, and docs/roadmap.md, then continue with the next sprint: peer group curation.
+Please read README.md and docs/roadmap.md, then continue with the next sprint.
 ```

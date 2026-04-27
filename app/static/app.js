@@ -18,6 +18,13 @@ function compact(v) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(v);
 }
 
+function shortDate(value) {
+  if (!value) return "date n/a";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}
+
 function escapeHtml(input) {
   return String(input ?? "")
     .replaceAll("&", "&amp;")
@@ -87,26 +94,37 @@ async function loadWatchlist() {
           <td>
             <strong>${escapeHtml(row.symbol)}</strong><br>
             <span class="muted">${escapeHtml(row.name || "")}</span>
+            <br><span class="muted">${escapeHtml(row.sector || "")}</span>
           </td>
-          <td>${escapeHtml(row.sector || "")}</td>
+          <td>${renderPriceCell(row.priceSummary || row)}</td>
           <td>${renderSignalBadge(alert)}</td>
-          <td>${renderConsensusCell(row)}</td>
+          <td>${renderFundamentalHighlight(row)}</td>
+          <td>${renderPeerContext(row)}</td>
+          <td>${renderConsensusTargetCell(row)}</td>
+          <td>${renderConsensusRatingCell(row)}</td>
           <td>${renderEventCell(row.eventAlert)}</td>
-          <td class="row-actions">
-            <a class="link" href="${escapeHtml(row.links?.yahoo || "#")}" target="_blank" rel="noreferrer">Yahoo</a>
-            <a class="link" href="${escapeHtml(row.links?.newsweb || "#")}" target="_blank" rel="noreferrer">NewsWeb</a>
-            <a class="link" href="${escapeHtml(row.links?.screener || "#")}" target="_blank" rel="noreferrer">Screener</a>
-            <button class="secondary" data-remove="${escapeHtml(row.symbol)}">Remove</button>
-          </td>
+          <td>${renderActionsCell(row)}</td>
         </tr>
       `;
       },
     )
     .join("");
   document.getElementById("watchlist-table").innerHTML = `
-    <table>
-      <thead><tr><th>Ticker / Name</th><th>Sector</th><th>Screener</th><th>Consensus</th><th>Updates</th><th>Links</th></tr></thead>
-      <tbody>${rows || `<tr><td colspan="6">No watchlist items yet.</td></tr>`}</tbody>
+    <table class="watchlist-synthesis">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th class="number">Last price</th>
+          <th>Screener</th>
+          <th>Fundamentals</th>
+          <th>Peer context</th>
+          <th>Target range</th>
+          <th>Rating</th>
+          <th>Updates</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>${rows || `<tr><td colspan="9">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
   document.querySelectorAll("[data-remove]").forEach((button) => {
@@ -122,29 +140,98 @@ async function loadWatchlist() {
       await openFundamentalsForSymbol(button.dataset.openFundamentals);
     });
   });
+  document.querySelectorAll("[data-open-benchmarks]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await openBenchmarkForSymbol(button.dataset.openBenchmarks);
+    });
+  });
 }
 
-function renderConsensusCell(row) {
-  const rec = row.consensusRecommendation || {};
-  const label = rec.label || "n/a";
-  const freshness = consensusFreshness(row.consensusSources || []);
-  const sourceCount = row.consensusSourceCount ?? 0;
-  const targetMethod = row.consensusTargetMethod || "Open the Fundamentals tab to inspect target source details.";
+function renderPriceCell(priceSummary) {
+  return `
+    <div class="number-stack">
+      <strong>${value(priceSummary.price)}</strong>
+      <span class="muted">${escapeHtml(priceSummary.currency || "NOK")}</span>
+      <span class="muted">${escapeHtml(shortDate(priceSummary.fetchedAt))}</span>
+    </div>
+  `;
+}
+
+function toneClass(tone) {
+  if (tone === "warning") return "signal-sell";
+  if (tone === "info") return "signal-neutral";
+  if (tone === "missing") return "";
+  return "signal-buy";
+}
+
+function renderFundamentalHighlight(row) {
+  const item = row.fundamentalHighlight || {};
+  return `
+    <button class="summary-button" data-open-fundamentals="${escapeHtml(row.symbol)}">
+      <span class="signal-badge ${toneClass(item.tone)}">${escapeHtml(item.label || "Fundamentals")}</span>
+      <strong>${escapeHtml(item.detail || "Open Fundamentals")}</strong>
+      <span class="muted">Source-labeled screening data</span>
+    </button>
+  `;
+}
+
+function renderPeerContext(row) {
+  const peer = row.peerContext || {};
+  const vsMedian = peer.vsPeerMedianPct === null || peer.vsPeerMedianPct === undefined ? "" : ` (${signedPctValue(peer.vsPeerMedianPct)} vs median)`;
+  return `
+    <button class="summary-button" data-open-benchmarks="${escapeHtml(row.symbol)}">
+      <span class="signal-badge signal-neutral">${escapeHtml(peer.status || "peer context")}</span>
+      <strong>${escapeHtml(peer.label || "Peer context")}${escapeHtml(vsMedian)}</strong>
+      <span class="muted">${escapeHtml(peer.detail || "Open Benchmarks")}</span>
+    </button>
+  `;
+}
+
+function renderConsensusTargetCell(row) {
+  const target = row.consensusTargetSummary || {};
+  const method = target.method || "Open the Fundamentals tab to inspect target source details.";
   return `
     <div class="consensus-cell">
-      <button class="consensus-target" data-open-fundamentals="${escapeHtml(row.symbol)}" title="${escapeHtml(targetMethod)}">
-        <span>Fundamentals target</span>
-        <strong>${value(row.consensusTarget)}</strong>
-        <em class="${targetUpsideClass(row.targetUpsidePct)}">${signedPctValue(row.targetUpsidePct)} upside</em>
+      <button class="consensus-target" data-open-fundamentals="${escapeHtml(row.symbol)}" title="${escapeHtml(method)}">
+        <span>Consensus target</span>
+        <strong>${value(target.target)}</strong>
+        <em class="${targetUpsideClass(target.targetUpsidePct)}">${signedPctValue(target.targetUpsidePct)}</em>
       </button>
       <div class="consensus-meta">
-        <span class="signal-badge ${recommendationClass(label)}">Source-count ${escapeHtml(label)}</span>
-        <span class="tag">${escapeHtml(row.consensusConfidence || "missing")}</span>
-        <span class="tag">${escapeHtml(sourceCount)} source${sourceCount === 1 ? "" : "s"}</span>
-        <span class="tag">${escapeHtml(freshness)}</span>
+        <span class="tag">Low ${value(target.targetLow)}</span>
+        <span class="tag">High ${value(target.targetHigh)}</span>
       </div>
-      <span class="muted">${row.consensusAnalystCount ? `${fmt.format(row.consensusAnalystCount)} known analyst refs` : "analyst count n/a"}; not verified weighted advice</span>
-      <span class="muted">Target source: ${escapeHtml(row.consensusTargetSource || "n/a")}</span>
+      <span class="muted">${escapeHtml(target.providerRows ?? 0)} provider row${target.providerRows === 1 ? "" : "s"}; overlaps not deduped</span>
+    </div>
+  `;
+}
+
+function renderConsensusRatingCell(row) {
+  const rating = row.consensusRatingSummary || {};
+  const label = rating.label || "n/a";
+  const counts = rating.counts || {};
+  const countLine = `B/H/S rows ${counts.BUY || 0}/${counts.HOLD || 0}/${counts.SELL || 0}`;
+  const analystText = rating.reportedAnalystRefs
+    ? `${fmt.format(rating.reportedAnalystRefs)} reported analyst refs`
+    : "analyst refs n/a";
+  return `
+    <div class="signal-cell">
+      <span class="signal-badge ${recommendationClass(label)}">${escapeHtml(label)}</span>
+      <strong>${escapeHtml(analystText)}</strong>
+      <span class="muted">${escapeHtml(countLine)}</span>
+      <span class="muted">${escapeHtml(rating.confidence || "low confidence")} / ${escapeHtml(rating.providerRows ?? 0)} provider row${rating.providerRows === 1 ? "" : "s"}</span>
+      <span class="muted">Not verified weighted advice</span>
+    </div>
+  `;
+}
+
+function renderActionsCell(row) {
+  return `
+    <div class="row-actions">
+      <a class="link" href="${escapeHtml(row.links?.yahoo || "#")}" target="_blank" rel="noreferrer">Yahoo</a>
+      <a class="link" href="${escapeHtml(row.links?.newsweb || "#")}" target="_blank" rel="noreferrer">NewsWeb</a>
+      <a class="link" href="${escapeHtml(row.links?.screener || "#")}" target="_blank" rel="noreferrer">Screener</a>
+      <button class="secondary" data-remove="${escapeHtml(row.symbol)}">Remove</button>
     </div>
   `;
 }
@@ -177,6 +264,15 @@ async function openFundamentalsForSymbol(symbol) {
   document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
   target.classList.add("row-focus");
   target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function openBenchmarkForSymbol(symbol) {
+  activateTab("benchmarks", { load: false });
+  await loadBenchmarkOptions();
+  const select = document.getElementById("benchmark-symbol");
+  if (select) select.value = symbol;
+  await loadBenchmark(false);
+  document.getElementById("benchmark-content")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function recommendationClass(label) {
@@ -307,7 +403,7 @@ async function loadFundamentals(refresh = false) {
         <td class="number">${value(row.targetUpsidePct, "%")}</td>
         <td>
           <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span><br>
-          <span class="muted">${escapeHtml(row.targetStatus || "single-source")} / ${escapeHtml(row.targetSourceCount ?? 0)} source(s)</span>
+          <span class="muted">${escapeHtml(row.targetStatus || "single-provider")} / ${escapeHtml(row.targetSourceCount ?? 0)} provider row(s)</span>
           <br><span class="muted">${renderConsensusStatus(row.consensus)}</span>
         </td>
         <td>
@@ -589,6 +685,9 @@ async function loadSources() {
 
 async function boot() {
   setupTabs();
+  document.querySelectorAll("[data-start-watchlist]").forEach((button) => {
+    button.addEventListener("click", () => activateTab("watchlist"));
+  });
   document.getElementById("add-watchlist-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const symbol = document.getElementById("watchlist-symbol").value;

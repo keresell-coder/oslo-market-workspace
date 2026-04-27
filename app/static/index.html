@@ -21,7 +21,8 @@
     </header>
 
     <nav class="tabs" aria-label="Workspace tabs">
-      <button class="tab active" data-tab="watchlist">Watchlist</button>
+      <button class="tab active" data-tab="start">Start</button>
+      <button class="tab" data-tab="watchlist">Watchlist</button>
       <button class="tab" data-tab="fundamentals">Fundamentals</button>
       <button class="tab" data-tab="benchmarks">Benchmarks</button>
       <button class="tab" data-tab="dashboard">Oslo Screener</button>
@@ -29,7 +30,43 @@
     </nav>
 
     <main>
-      <section id="watchlist" class="panel active">
+      <section id="start" class="panel active">
+        <div class="start-page">
+          <section class="disclaimer-band">
+            <strong>Not investment advice.</strong>
+            <span>This app is an educational research workspace for screening and discussion. Data can be delayed, incomplete, stale, incorrectly mapped, or missing. Verify figures against company reports, exchange releases, and professional data sources before making any investment decision.</span>
+          </section>
+
+          <section class="start-intro">
+            <div>
+              <h2>Oslo Stock web-app</h2>
+              <p>A local-first workspace for watching Oslo-listed companies, combining screener signals, source-labeled fundamentals, peer context, consensus data, and tracked events in one place.</p>
+            </div>
+            <button class="button-link" data-start-watchlist>Open Watchlist</button>
+          </section>
+
+          <section class="start-grid">
+            <article class="start-card">
+              <h3>How to read it</h3>
+              <p>The Watchlist is the synthesis view. Each research tab contributes one compact Watchlist column so the most relevant signals are visible row-by-row.</p>
+            </article>
+            <article class="start-card">
+              <h3>Metrics used</h3>
+              <p>Price, market cap, P/E, P/B, EV/EBITDA, dividend yield, target range, screener signal, peer median comparison, and significant update status. Relative valuation requires peer, sector, own-history, and source-quality context.</p>
+            </article>
+            <article class="start-card">
+              <h3>Data sources</h3>
+              <p>Yahoo Finance through yfinance, the published Oslo Screener dashboard, local consensus/source entries, local significant-event entries, and manually seeded peer groups.</p>
+            </article>
+            <article class="start-card">
+              <h3>Current limits</h3>
+              <p>Peer groups are unreviewed, sector benchmarks are not configured, NewsWeb collection is manual, and target/rating methodology is not verified across providers.</p>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section id="watchlist" class="panel">
         <div class="toolbar">
           <form id="add-watchlist-form" class="inline-form">
             <input id="watchlist-symbol" name="symbol" placeholder="Ticker, e.g. DNB or DNB.OL" autocomplete="off" />

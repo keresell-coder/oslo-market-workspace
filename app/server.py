@@ -285,7 +285,7 @@ def init_db() -> None:
                 recommendation text,
                 recommendation_score real,
                 source_url text,
-                confidence text default 'single-source',
+                confidence text default 'single-provider',
                 method_note text default '',
                 collected_at_epoch integer not null,
                 collected_at text not null,
@@ -516,7 +516,7 @@ def record_consensus_source(payload: dict) -> None:
                 payload.get("recommendationKey"),
                 payload.get("recommendationMean"),
                 f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}/analysis/",
-                "single-source",
+                "single-provider",
                 "Yahoo/yfinance target and recommendation fields are not treated as verified consensus weighting.",
                 now_epoch,
                 collected_at,
@@ -542,12 +542,14 @@ def consensus_for_symbol(symbol: str) -> dict:
         "symbol": symbol,
         "sources": rows,
         "sourceCount": len(rows),
+        "providerRows": len(rows),
         "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
         "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
+        "reportedAnalystRefs": sum(analyst_counts) if analyst_counts else None,
         "recommendationSummary": consensus_recommendation_summary(rows),
         "confidence": consensus_confidence(rows),
-        "status": "missing" if not rows else ("multi-source" if len(rows) >= 2 else "single-source"),
-        "note": "Consensus is not verified unless multiple source rows are present and reviewed.",
+        "status": "missing" if not rows else ("multi-provider" if len(rows) >= 2 else "single-provider"),
+        "note": "Consensus is stored by provider row. Reported analyst counts can overlap across providers and are not deduplicated.",
     }
 
 
@@ -590,7 +592,8 @@ def consensus_recommendation_summary(rows: list[dict]) -> dict:
         "label": label,
         "counts": counts,
         "sourceCount": len(rows),
-        "method": "Simple source-count summary. It is not analyst-count weighted unless source data explicitly supports that.",
+        "providerRows": len(rows),
+        "method": "Simple provider-row summary. It is not analyst-count weighted or deduplicated across providers unless source data explicitly supports that.",
     }
 
 
@@ -777,13 +780,21 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
 
         consensus = consensus_for_symbol(symbol)
         events = significant_events_for_symbol(symbol)
+        price_summary = stock_price_summary(fundamental)
+        target_summary = consensus_target_summary(fundamental, consensus)
+        rating_summary = consensus_rating_summary(consensus)
         rows.append(
             {
                 **item,
                 "name": item.get("name") or fundamental.get("name") or symbol,
                 "sector": item.get("sector") or fundamental.get("sector"),
                 "industry": item.get("industry") or fundamental.get("industry"),
+                "priceSummary": price_summary,
                 "screenerSignal": screener_map.get(symbol),
+                "fundamentalHighlight": fundamental_highlight(fundamental),
+                "peerContext": peer_context_summary(symbol, fundamental),
+                "consensusTargetSummary": target_summary,
+                "consensusRatingSummary": rating_summary,
                 "consensusTarget": fundamental.get("targetMeanPrice"),
                 "consensusTargetSource": fundamental.get("targetPriceSource"),
                 "consensusTargetMethod": fundamental.get("targetPriceMethod"),
@@ -812,7 +823,8 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "errors": errors,
         "screenerError": screener_error,
         "sourceNotes": {
-            "consensus": "Target and recommendation fields are source-count summaries. They are not verified analyst-count weighted consensus unless reviewed sources are added.",
+            "consensus": "Target and recommendation fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
+            "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
             "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
         },
     }
@@ -891,6 +903,157 @@ def pct_diff(current: float | None, benchmark: float | None) -> float | None:
     if current is None or benchmark in (None, 0):
         return None
     return (current / benchmark - 1) * 100
+
+
+def cached_payload_if_present(symbol: str) -> dict | None:
+    with connect() as con:
+        row = con.execute(
+            "select payload from fundamentals_cache where symbol = ?",
+            (symbol.strip().upper(),),
+        ).fetchone()
+    return json.loads(row["payload"]) if row else None
+
+
+def stock_price_summary(fundamental: dict) -> dict:
+    return {
+        "price": fundamental.get("price"),
+        "currency": fundamental.get("currency") or "NOK",
+        "fetchedAt": fundamental.get("fetchedAt"),
+        "source": fundamental.get("source") or "Yahoo Finance via yfinance",
+        "cacheStatus": fundamental.get("cacheStatus"),
+    }
+
+
+def fundamental_highlight(fundamental: dict) -> dict:
+    if not fundamental:
+        return {
+            "label": "Fundamentals unavailable",
+            "detail": "No cached source data for this ticker.",
+            "tone": "missing",
+        }
+
+    trailing_pe = fundamental.get("trailingPE")
+    forward_pe = fundamental.get("forwardPE")
+    ev_ebitda = fundamental.get("enterpriseToEbitda")
+    price_to_book = fundamental.get("priceToBook")
+    dividend_yield = fundamental.get("dividendYield")
+
+    if ev_ebitda and ev_ebitda > 40:
+        return {
+            "label": "EV/EBITDA source outlier",
+            "detail": f"{ev_ebitda:.1f}x; verify before using.",
+            "tone": "warning",
+        }
+    if trailing_pe and forward_pe and forward_pe < trailing_pe * 0.8:
+        return {
+            "label": "Forward P/E below TTM",
+            "detail": f"{trailing_pe:.1f}x TTM / {forward_pe:.1f}x forward.",
+            "tone": "info",
+        }
+    if dividend_yield and dividend_yield >= 5:
+        return {
+            "label": "Dividend yield stands out",
+            "detail": f"{dividend_yield:.1f}%; check payout durability.",
+            "tone": "info",
+        }
+    if price_to_book and price_to_book >= 4:
+        return {
+            "label": "High P/B multiple",
+            "detail": f"{price_to_book:.1f}x book; compare with ROE and growth.",
+            "tone": "info",
+        }
+
+    details = []
+    if trailing_pe:
+        details.append(f"P/E {trailing_pe:.1f}x")
+    if forward_pe:
+        details.append(f"fwd {forward_pe:.1f}x")
+    if dividend_yield:
+        details.append(f"yield {dividend_yield:.1f}%")
+    return {
+        "label": "Core multiples",
+        "detail": "; ".join(details) if details else "Key multiples missing from source.",
+        "tone": "neutral" if details else "missing",
+    }
+
+
+def peer_context_summary(symbol: str, focus: dict) -> dict:
+    groups = peer_groups_for_symbol(symbol)
+    if not groups:
+        return {
+            "label": "No peer group",
+            "detail": "No relative valuation context configured.",
+            "status": "missing",
+            "groupName": None,
+        }
+
+    group = groups[0]
+    items = peer_group_items(group["group_key"])
+    peer_symbols = [item["symbol"] for item in items if item["symbol"] != symbol]
+    peers = [payload for payload in (cached_payload_if_present(item) for item in peer_symbols) if payload]
+    metric_candidates = [
+        metric_summary(focus, peers, metric)
+        for metric in BENCHMARK_METRICS
+        if metric["key"] in {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda"}
+    ]
+    notable = [
+        metric
+        for metric in metric_candidates
+        if metric["focusValue"] is not None and metric["peerMedian"] is not None and metric["peerCount"] >= 2
+    ]
+    notable.sort(key=lambda metric: abs(metric["vsPeerMedianPct"] or 0), reverse=True)
+    if notable:
+        metric = notable[0]
+        return {
+            "label": f"{metric['label']} vs peers",
+            "detail": f"{metric['focusValue']:.1f}{metric['unit']} / median {metric['peerMedian']:.1f}{metric['unit']}",
+            "vsPeerMedianPct": metric["vsPeerMedianPct"],
+            "peerCount": metric["peerCount"],
+            "status": "unreviewed",
+            "groupName": group["name"],
+            "note": "Unreviewed peer group. Use as a prompt for research, not a valuation call.",
+        }
+
+    return {
+        "label": "Unreviewed peer group",
+        "detail": f"{len(peer_symbols)} peers configured; load Benchmarks for context.",
+        "peerCount": len(peer_symbols),
+        "status": "unreviewed",
+        "groupName": group["name"],
+        "note": "Peer set has not been reviewed company-by-company.",
+    }
+
+
+def consensus_target_summary(fundamental: dict, consensus: dict) -> dict:
+    sources = consensus.get("sources", [])
+    target_values = [source.get("target_mean") for source in sources if isinstance(source.get("target_mean"), (int, float))]
+    target_lows = [source.get("target_low") for source in sources if isinstance(source.get("target_low"), (int, float))]
+    target_highs = [source.get("target_high") for source in sources if isinstance(source.get("target_high"), (int, float))]
+    target = consensus.get("targetMeanAcrossSources") or fundamental.get("targetMeanPrice")
+    price = fundamental.get("price")
+    upside = pct_diff(target, price)
+    return {
+        "target": target,
+        "targetLow": min(target_lows) if target_lows else fundamental.get("targetLowPrice"),
+        "targetHigh": max(target_highs) if target_highs else fundamental.get("targetHighPrice"),
+        "targetUpsidePct": upside,
+        "providerRows": len(target_values),
+        "source": fundamental.get("targetPriceSource"),
+        "method": fundamental.get("targetPriceMethod"),
+    }
+
+
+def consensus_rating_summary(consensus: dict) -> dict:
+    recommendation = consensus.get("recommendationSummary", {})
+    return {
+        "label": recommendation.get("label") or "n/a",
+        "counts": recommendation.get("counts", {}),
+        "providerRows": consensus.get("sourceCount", 0),
+        "reportedAnalystRefs": consensus.get("analystCountKnown"),
+        "confidence": consensus.get("confidence"),
+        "status": consensus.get("status"),
+        "method": recommendation.get("method"),
+    }
 
 
 def percentile_position(current: float | None, values: list[float]) -> float | None:

@@ -115,6 +115,74 @@ main {
   padding: 18px clamp(14px, 3vw, 28px) 34px;
 }
 
+.start-page {
+  display: grid;
+  gap: 16px;
+}
+
+.disclaimer-band {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.09);
+}
+
+.disclaimer-band strong {
+  color: #fde68a;
+  font-size: 0.95rem;
+}
+
+.disclaimer-band span {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.start-intro {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 10px 0 2px;
+}
+
+.start-intro h2 {
+  font-size: 1.35rem;
+  margin-bottom: 6px;
+}
+
+.start-intro p {
+  color: var(--muted);
+  max-width: 860px;
+  line-height: 1.45;
+}
+
+.start-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.start-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  padding: 14px;
+}
+
+.start-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.96rem;
+}
+
+.start-card p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .panel {
   display: none;
 }
@@ -198,6 +266,10 @@ table {
   min-width: 760px;
 }
 
+.watchlist-synthesis {
+  min-width: 1280px;
+}
+
 th,
 td {
   padding: 9px 10px;
@@ -223,6 +295,13 @@ tr:last-child td {
   font-variant-numeric: tabular-nums;
 }
 
+.number-stack {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
 .tag {
   display: inline-block;
   border: 1px solid var(--border);
@@ -235,14 +314,15 @@ tr:last-child td {
 .consensus-cell {
   display: grid;
   gap: 6px;
-  min-width: 230px;
+  min-width: 180px;
 }
 
+.summary-button,
 .consensus-target {
   display: grid;
   justify-items: start;
   gap: 2px;
-  width: fit-content;
+  width: 100%;
   min-height: 0;
   padding: 0;
   border: 0;
@@ -251,6 +331,17 @@ tr:last-child td {
   text-align: left;
 }
 
+.summary-button {
+  min-width: 190px;
+  align-content: start;
+}
+
+.summary-button strong {
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.summary-button:hover,
 .consensus-target:hover {
   background: transparent;
   color: var(--accent-2);
@@ -521,6 +612,10 @@ tr:last-child td {
 
   .inline-form {
     grid-template-columns: 1fr;
+  }
+
+  .start-intro {
+    flex-direction: column;
   }
 
   .alert-card {
