@@ -66,6 +66,9 @@ h2 {
   padding: 5px 10px;
   font-size: 0.78rem;
   white-space: nowrap;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .tabs {
@@ -101,6 +104,7 @@ button,
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
+  gap: 8px;
   align-items: center;
   justify-content: center;
 }
@@ -110,6 +114,37 @@ button:hover,
 .button-link:hover {
   border-color: rgba(91, 191, 155, 0.7);
   background: rgba(91, 191, 155, 0.12);
+}
+
+button.is-loading,
+.button-link.is-loading {
+  opacity: 0.9;
+  cursor: wait;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: var(--accent-2);
+  border-radius: 999px;
+  animation: spin 0.75s linear infinite;
+  vertical-align: -0.12em;
+}
+
+.loading-panel {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 14px;
+  color: var(--muted);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 main {
@@ -340,6 +375,10 @@ tr:last-child td {
 .summary-button {
   min-width: 190px;
   align-content: start;
+}
+
+.compact-summary {
+  min-width: 170px;
 }
 
 .summary-button strong {

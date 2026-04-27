@@ -1002,6 +1002,15 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
         card_text = " ".join(card.get_text(" ", strip=True).split())
         signal = badge_el.get_text(" ", strip=True) if badge_el else ""
         section = section_el.get_text(" ", strip=True) if section_el else signal
+        indicators = {}
+        for indicator in card.select(".ind"):
+            label_el = indicator.select_one(".ind-label")
+            value_el = indicator.select_one(".ind-value")
+            if not label_el or not value_el:
+                continue
+            label = " ".join(label_el.get_text(" ", strip=True).split())
+            indicators[label] = value_el.get_text(" ", strip=True)
+        rsi14 = parse_float(indicators.get("RSI 14"))
         signals.append(
             {
                 "symbol": symbol,
@@ -1009,6 +1018,8 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
                 "signal": signal,
                 "section": section,
                 "price": price_el.get_text(" ", strip=True) if price_el else None,
+                "rsi14": rsi14,
+                "indicators": indicators,
                 "summary": card_text[:260],
                 "url": SCREENER_URL,
             }
@@ -1019,13 +1030,22 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
         "fetchedAt": utc_now(),
         "signals": signals,
         "count": len(signals),
-        "sourceReliability": "Parsed from the published Oslo Screener Dashboard. This is a link/alert layer only; it does not verify the screener logic.",
+        "sourceReliability": "Parsed from the published RSI14 screener dashboard. This is a link/alert layer only; it does not verify the screener logic.",
     }
     SCREENER_CACHE["payload"] = payload
     SCREENER_CACHE["fetched_at_epoch"] = now_epoch
     result = dict(payload)
     result["cacheStatus"] = "fresh"
     return result
+
+
+def parse_float(value: str | None) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        return float(str(value).replace("%", "").replace(",", ".").strip())
+    except ValueError:
+        return None
 
 
 def watchlist_symbols(name: str = "Core Watchlist") -> list[str]:
@@ -2303,7 +2323,8 @@ def source_notes() -> dict:
     return {
         "existingDashboard": {
             "url": "https://keresell-coder.github.io/oslo-screener-dashboard/",
-            "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist alerts parse ticker/signal cards from the published page.",
+            "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist RSI14 context parses ticker, signal, and RSI 14 card values from the published page.",
+            "limitations": "Only cards present in the published dashboard are available to this app. A published latest.csv or equivalent full dataset is still needed for RSI14 coverage across all 111 screened stocks.",
         },
         "yfinance": {
             "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",

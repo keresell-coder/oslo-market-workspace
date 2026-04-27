@@ -29,10 +29,10 @@ Local folder:
 ## Current App
 
 - **Start**: first page, with short intent text, metric/source summary, current limitations, and a not-investment-advice disclaimer.
-- **Watchlist**: main synthesis table. Current columns: company, last price, screener, fundamentals highlight, peer context, consensus target range, consensus rating, updates, and actions.
+- **Watchlist**: main synthesis table. Current columns: company, last price, RSI14 screener, multiples, own history, peer context, consensus target range, consensus rating, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields, watchlist or full ticker-database universe, manual consensus source editor, and descriptive own-history context from 52-week daily closes plus local fundamentals snapshots.
 - **Benchmarks**: descriptive peer context with editable peer groups, curation status, role labels, and peer notes. Initial watchlist peer groups have been researched and marked reviewed, not trusted. New symbols can create backend-assisted draft peer groups from local/yfinance sector metadata.
-- **Oslo Screener**: embeds/parses the published dashboard only. Do not edit the existing Oslo Screener repository unless explicitly requested.
+- **RSI14 screener**: embeds/parses the published Oslo screener dashboard only. Do not edit the existing Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
 ## Data And Wording Rules
@@ -45,6 +45,7 @@ Local folder:
 - Reviewed peer groups still depend on source quality, sector KPIs, and missing-data context.
 - Fundamentals own-history context is descriptive only. Watchlist own-history signals require minimum observation counts and must not be read as valuation conclusions.
 - 52-week price ranges come from Yahoo/yfinance daily closes when data is refreshed; local multiple history depends on repeated fundamentals refresh snapshots.
+- RSI14 screener values are parsed only from cards present in the published dashboard. Full 111-stock RSI14 coverage needs a published `latest.csv` or equivalent dataset.
 - Future consensus work should combine multiple providers carefully and preserve overlap/deduplication caveats.
 - NewsWeb automation is not implemented; current use is ticker search links and manual event entries.
 
@@ -54,6 +55,7 @@ Local folder:
 - Price history uses Yahoo/yfinance 1-year daily close data, including observation count, low/high range, percentile, source, freshness, confidence, and limitations.
 - Local multiple history uses dated `fundamentals_snapshots`; it starts as insufficient until enough refresh snapshots exist.
 - The Watchlist Fundamentals cell can show one descriptive own-history signal only when the price window or snapshot history passes minimum observation requirements.
+- Refresh actions show a visible spinner in the clicked control and status pill while loading.
 - Current signals are descriptive labels such as “near 52-week high/low” or “P/B above own-history median”; they are not buy/sell/hold guidance and do not label valuation cheap, expensive, or fair.
 - Remaining gaps: true quarterly fundamental history, sector-specific metrics, sector/index benchmarks, charts, and manual sector KPI inputs.
 

@@ -4,6 +4,7 @@ let screenerAlerts = { matches: [], bySymbol: new Map() };
 let watchlistItems = [];
 const peerStatuses = ["draft", "reviewed", "trusted"];
 const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer", "international peer", "sector index/proxy"];
+let loadingDepth = 0;
 
 function value(v, suffix = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
@@ -34,6 +35,51 @@ function escapeHtml(input) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function loadingMarkup(label) {
+  return `<span class="loading-spinner" aria-hidden="true"></span><span>${escapeHtml(label)}</span>`;
+}
+
+function setGlobalLoading(label) {
+  const health = document.getElementById("health");
+  loadingDepth += 1;
+  if (health) {
+    health.classList.add("is-loading");
+    health.innerHTML = loadingMarkup(label);
+  }
+  return () => {
+    loadingDepth = Math.max(0, loadingDepth - 1);
+    if (loadingDepth === 0 && health) {
+      health.classList.remove("is-loading");
+      health.textContent = "Running";
+    }
+  };
+}
+
+async function withLoading(label, control, task) {
+  const done = setGlobalLoading(label);
+  let originalContent = "";
+  if (control) {
+    originalContent = control.innerHTML;
+    control.disabled = true;
+    control.classList.add("is-loading");
+    control.innerHTML = loadingMarkup(label);
+  }
+  try {
+    return await task();
+  } finally {
+    if (control) {
+      control.disabled = false;
+      control.classList.remove("is-loading");
+      control.innerHTML = originalContent;
+    }
+    done();
+  }
+}
+
+function renderLoadingPanel(label) {
+  return `<div class="loading-panel">${loadingMarkup(label)}</div>`;
 }
 
 async function api(path, options = {}) {
@@ -71,6 +117,7 @@ function activateTab(tabName, options = {}) {
 }
 
 async function loadWatchlist() {
+  document.getElementById("watchlist-table").innerHTML = renderLoadingPanel("Loading watchlist");
   const data = await api("/api/watchlist-overview");
   watchlistItems = data.rows;
   if (data.screenerError) {
@@ -83,7 +130,7 @@ async function loadWatchlist() {
       bySymbol,
       matchCount: matches.length,
       screenerCount: matches.length,
-      sourceReliability: "Parsed from the published Oslo Screener Dashboard.",
+      sourceReliability: "Parsed from the published RSI14 screener dashboard.",
       cacheStatus: "overview",
     });
   }
@@ -99,8 +146,9 @@ async function loadWatchlist() {
             <br><span class="muted">${escapeHtml(row.sector || "")}</span>
           </td>
           <td>${renderPriceCell(row.priceSummary || row)}</td>
-          <td>${renderSignalBadge(alert)}</td>
+          <td>${renderRsiScreenerCell(alert)}</td>
           <td>${renderFundamentalHighlight(row)}</td>
+          <td>${renderOwnHistoryWatchlistCell(row)}</td>
           <td>${renderPeerContext(row)}</td>
           <td>${renderConsensusTargetCell(row)}</td>
           <td>${renderConsensusRatingCell(row)}</td>
@@ -117,8 +165,9 @@ async function loadWatchlist() {
         <tr>
           <th>Company</th>
           <th class="number">Last price</th>
-          <th>Screener</th>
-          <th>Fundamentals</th>
+          <th>RSI14 screener</th>
+          <th>Multiples</th>
+          <th>Own history</th>
           <th>Peer context</th>
           <th>Target range</th>
           <th>Rating</th>
@@ -126,7 +175,7 @@ async function loadWatchlist() {
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="9">No watchlist items yet.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="10">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
   document.querySelectorAll("[data-remove]").forEach((button) => {
@@ -175,18 +224,32 @@ function peerStatusClass(status) {
 
 function renderFundamentalHighlight(row) {
   const item = row.fundamentalHighlight || {};
-  const history = row.ownHistorySignal || {};
-  let historyLine = "Own-history signal needs more observations";
-  if (history.status === "available") {
-    historyLine = `${history.label}: ${history.detail}`;
-  } else if (history.status === "no watchlist signal") {
-    historyLine = history.detail || history.label;
-  }
   return `
     <button class="summary-button" data-open-fundamentals="${escapeHtml(row.symbol)}">
       <span class="signal-badge ${toneClass(item.tone)}">${escapeHtml(item.label || "Fundamentals")}</span>
       <strong>${escapeHtml(item.detail || "Open Fundamentals")}</strong>
-      <span class="muted">${escapeHtml(historyLine)}</span>
+      <span class="muted">${escapeHtml(row.priceSummary?.source || "Yahoo/yfinance")} / ${escapeHtml(shortDate(row.priceSummary?.fetchedAt))}</span>
+    </button>
+  `;
+}
+
+function renderOwnHistoryWatchlistCell(row) {
+  const history = row.ownHistorySignal || {};
+  let label = history.label || "Own history";
+  let detail = "Needs more observations";
+  let klass = "signal-draft";
+  if (history.status === "available") {
+    detail = history.detail || "Signal available";
+    klass = "signal-neutral";
+  } else if (history.status === "no watchlist signal") {
+    detail = "No large gap crossed the threshold.";
+    klass = "signal-neutral";
+  }
+  return `
+    <button class="summary-button compact-summary" data-open-fundamentals="${escapeHtml(row.symbol)}">
+      <span class="signal-badge ${klass}">${escapeHtml(label)}</span>
+      <strong>${escapeHtml(detail)}</strong>
+      <span class="muted">${escapeHtml(history.confidence || "source-labeled screening data")}</span>
     </button>
   `;
 }
@@ -246,7 +309,7 @@ function renderActionsCell(row) {
     <div class="row-actions">
       <a class="link" href="${escapeHtml(row.links?.yahoo || "#")}" target="_blank" rel="noreferrer">Yahoo</a>
       <a class="link" href="${escapeHtml(row.links?.newsweb || "#")}" target="_blank" rel="noreferrer">NewsWeb</a>
-      <a class="link" href="${escapeHtml(row.links?.screener || "#")}" target="_blank" rel="noreferrer">Screener</a>
+      <a class="link" href="${escapeHtml(row.links?.screener || "#")}" target="_blank" rel="noreferrer">RSI14</a>
       <button class="secondary" data-remove="${escapeHtml(row.symbol)}">Remove</button>
     </div>
   `;
@@ -351,13 +414,22 @@ function metricValue(v, unit = "") {
   return `${fmt.format(v)}${unit && unit !== "x" ? unit : unit}`;
 }
 
-function renderSignalBadge(alert) {
-  if (!alert) return `<span class="muted">No current signal</span>`;
+function renderRsiScreenerCell(alert) {
+  if (!alert) {
+    return `
+      <div class="signal-cell">
+        <span class="muted">Not in published output</span>
+        <span class="muted">RSI14 source missing for this row</span>
+      </div>
+    `;
+  }
   const klass = signalClass(alert.signal);
+  const rsi = alert.rsi14 === null || alert.rsi14 === undefined ? "RSI n/a" : `RSI ${value(alert.rsi14)}`;
   return `
     <div class="signal-cell">
       <span class="signal-badge ${klass}">${escapeHtml(alert.signal || "Signal")}</span>
-      <span class="signal-section">${escapeHtml(alert.section || "")}</span>
+      <strong>${escapeHtml(rsi)}</strong>
+      <span class="signal-section">${escapeHtml(alert.section || "Published screener output")}</span>
     </div>
   `;
 }
@@ -370,6 +442,8 @@ function signalClass(signal) {
 }
 
 async function loadScreenerAlerts(refresh = false) {
+  const target = document.getElementById("screener-alerts");
+  if (target) target.innerHTML = renderLoadingPanel("Loading RSI14 screener");
   const data = await api(`/api/screener-alerts?watchlist=Core%20Watchlist&refresh=${refresh ? "1" : "0"}`);
   const bySymbol = new Map(data.matches.map((item) => [item.symbol, item]));
   screenerAlerts = { ...data, bySymbol };
@@ -382,8 +456,8 @@ function renderScreenerAlertError(error) {
   if (!target) return;
   screenerAlerts = { matches: [], bySymbol: new Map(), error: error.message };
   target.innerHTML = `
-    <div class="alert-card">
-      <strong>Screener alerts unavailable</strong>
+      <div class="alert-card">
+      <strong>RSI14 screener unavailable</strong>
       <span>${escapeHtml(error.message)}. The watchlist still loads independently.</span>
     </div>
   `;
@@ -395,8 +469,8 @@ function renderScreenerAlerts(alerts) {
   if (!alerts.matches?.length) {
     target.innerHTML = `
       <div class="alert-card calm">
-        <strong>No watchlist stocks are currently in the Oslo Screener output.</strong>
-        <span>Checked ${escapeHtml(alerts.screenerCount ?? 0)} screener symbols. Source: published dashboard, ${escapeHtml(alerts.cacheStatus || "unknown")}.</span>
+        <strong>No watchlist stocks are currently in the published RSI14 screener output.</strong>
+        <span>Checked ${escapeHtml(alerts.screenerCount ?? 0)} published screener cards. Source: published dashboard, ${escapeHtml(alerts.cacheStatus || "unknown")}.</span>
       </div>
     `;
     return;
@@ -404,7 +478,7 @@ function renderScreenerAlerts(alerts) {
   target.innerHTML = `
     <div class="alert-card active-alert">
       <div>
-        <strong>${alerts.matchCount} watchlist ${alerts.matchCount === 1 ? "stock is" : "stocks are"} in the Oslo Screener</strong>
+        <strong>${alerts.matchCount} watchlist ${alerts.matchCount === 1 ? "stock is" : "stocks are"} in the RSI14 screener output</strong>
         <span>Parsed from ${escapeHtml(alerts.screenerCount)} screener cards. ${escapeHtml(alerts.sourceReliability || "")}</span>
       </div>
       <div class="alert-list">
@@ -425,6 +499,9 @@ function renderScreenerAlerts(alerts) {
 
 async function loadFundamentals(refresh = false) {
   const universe = document.getElementById("fundamental-universe").value;
+  document.getElementById("fundamentals-table").innerHTML = renderLoadingPanel(
+    refresh ? "Refreshing fundamentals" : "Loading fundamentals",
+  );
   const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
   document.getElementById("fundamental-errors").innerHTML = data.errors?.length
     ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
@@ -559,7 +636,7 @@ async function loadBenchmark(refresh = false) {
   const symbol = document.getElementById("benchmark-symbol").value;
   if (!symbol) return;
   const target = document.getElementById("benchmark-content");
-  target.innerHTML = `<div class="method-card"><strong>Loading benchmark context...</strong><span>Free sources may be slow or incomplete.</span></div>`;
+  target.innerHTML = renderLoadingPanel(refresh ? "Refreshing benchmark" : "Loading benchmark");
   try {
     const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
     target.innerHTML = renderBenchmark(data);
@@ -879,29 +956,43 @@ async function boot() {
   });
   document.getElementById("add-watchlist-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    const symbol = document.getElementById("watchlist-symbol").value;
-    const note = document.getElementById("watchlist-note").value;
-    await api("/api/watchlist", {
-      method: "POST",
-      body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note }),
+    await withLoading("Adding symbol", event.submitter, async () => {
+      const symbol = document.getElementById("watchlist-symbol").value;
+      const note = document.getElementById("watchlist-note").value;
+      await api("/api/watchlist", {
+        method: "POST",
+        body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note }),
+      });
+      event.target.reset();
+      await loadWatchlist();
     });
-    event.target.reset();
-    await loadWatchlist();
   });
-  document.getElementById("refresh-watchlist").addEventListener("click", loadWatchlist);
+  document.getElementById("refresh-watchlist").addEventListener("click", async (event) => {
+    await withLoading("Refreshing watchlist", event.currentTarget, loadWatchlist);
+  });
   document.getElementById("refresh-screener-alerts").addEventListener("click", async () => {
-    await loadScreenerAlerts(true);
-    await loadWatchlist();
+    await withLoading("Refreshing RSI14", document.getElementById("refresh-screener-alerts"), async () => {
+      await loadScreenerAlerts(true);
+      await loadWatchlist();
+    });
   });
   document.getElementById("benchmark-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    await loadBenchmark(false);
+    await withLoading("Loading benchmark", event.submitter, () => loadBenchmark(false));
   });
   document.getElementById("consensus-form").addEventListener("submit", saveConsensusSource);
-  document.getElementById("refresh-benchmark").addEventListener("click", () => loadBenchmark(true));
-  document.getElementById("refresh-fundamentals").addEventListener("click", () => loadFundamentals(true));
-  document.getElementById("fundamental-universe").addEventListener("change", () => loadFundamentals(false));
-  document.getElementById("reload-sources").addEventListener("click", loadSources);
+  document.getElementById("refresh-benchmark").addEventListener("click", async (event) => {
+    await withLoading("Refreshing benchmark", event.currentTarget, () => loadBenchmark(true));
+  });
+  document.getElementById("refresh-fundamentals").addEventListener("click", async (event) => {
+    await withLoading("Refreshing fundamentals", event.currentTarget, () => loadFundamentals(true));
+  });
+  document.getElementById("fundamental-universe").addEventListener("change", async () => {
+    await withLoading("Loading fundamentals", null, () => loadFundamentals(false));
+  });
+  document.getElementById("reload-sources").addEventListener("click", async (event) => {
+    await withLoading("Reloading sources", event.currentTarget, loadSources);
+  });
 
   try {
     await api("/api/health");

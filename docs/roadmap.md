@@ -22,8 +22,8 @@ Completed MVP pieces:
 - Local Python/SQLite app with static frontend.
 - Start page with concise disclaimer, intent, metric/source summary, and limitations.
 - Editable watchlist backed by SQLite.
-- Watchlist synthesis table with company, last price, screener, fundamentals highlight, peer context, consensus target range, consensus rating, updates, and actions.
-- Published Oslo Screener dashboard embedded and parsed for watchlist signal matches.
+- Watchlist synthesis table with company, last price, RSI14 screener, multiples, own-history, peer context, consensus target range, consensus rating, updates, and actions.
+- Published RSI14/Oslo Screener dashboard embedded and parsed for watchlist signal matches plus visible RSI 14 values where cards are present.
 - Fundamentals table backed by cached Yahoo/yfinance data.
 - Fundamentals historical context column with Yahoo/yfinance 52-week daily close range, local fundamentals snapshot history, source/freshness/confidence labels, and minimum-observation Watchlist signal gating.
 - Consensus/source table and manual source editor.
@@ -33,6 +33,7 @@ Completed MVP pieces:
 - Reviewed initial peer groups for NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; tanker and offshore-service groups were split into tighter business-model groups.
 - Backend-assisted draft peer-group creation for new watchlist symbols without an existing group, with reuse of existing groups when the symbol is already a member.
 - Source quality tab.
+- Loading indicators on refresh buttons, main data panes, and the status pill while async refreshes are running.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
 
 Important current limitations:
@@ -44,6 +45,7 @@ Important current limitations:
 - Own-history context now appears primarily in Fundamentals, but true quarterly fundamental history, charts, and sector-specific metric history still need more data and design work.
 - Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
 - Automated NewsWeb/event collection is not implemented.
+- RSI14 coverage is limited to cards present in the published dashboard; a published `latest.csv` or equivalent full dataset is still needed for all 111 screened stocks.
 - Sector-specific metrics such as NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values need better data or manual inputs.
 
 ## Completed Sprint: Peer Group Curation
@@ -99,6 +101,13 @@ Remaining:
 - Keep sector and peer context separate from own-history signals until source quality and missing-data rules are stronger.
 
 ## Later Sprints
+
+### RSI14 Screener Coverage
+
+- Publish or locate the screener `latest.csv` / full output dataset.
+- Parse RSI14 for every watchlist symbol that is part of the 111-stock screener universe, not only symbols shown as current dashboard cards.
+- Keep RSI14 as technical screening context only; no buy/sell recommendation should be inferred from RSI alone.
+- Show source date, source coverage count, and missing-status labels for symbols outside the published dataset.
 
 ### Watchlist Expansion And Peer Group Creation
 

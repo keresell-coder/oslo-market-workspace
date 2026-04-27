@@ -15,7 +15,7 @@
     <header class="app-header">
       <div>
         <h1>Oslo Stock web-app</h1>
-        <p>Watchlists, fundamentals, and your existing Oslo screener in one local app.</p>
+        <p>Watchlists, fundamentals, and your RSI14 screener context in one local app.</p>
       </div>
       <div class="status-pill" id="health">Local</div>
     </header>
@@ -25,7 +25,7 @@
       <button class="tab" data-tab="watchlist">Watchlist</button>
       <button class="tab" data-tab="fundamentals">Fundamentals</button>
       <button class="tab" data-tab="benchmarks">Benchmarks</button>
-      <button class="tab" data-tab="dashboard">Oslo Screener</button>
+      <button class="tab" data-tab="dashboard">RSI14 screener</button>
       <button class="tab" data-tab="sources">Sources</button>
     </nav>
 
@@ -40,7 +40,7 @@
           <section class="start-intro">
             <div>
               <h2>Oslo Stock web-app</h2>
-              <p>A local-first workspace for watching Oslo-listed companies, combining screener signals, source-labeled fundamentals, peer context, consensus data, and tracked events in one place.</p>
+              <p>A local-first workspace for watching Oslo-listed companies, combining RSI14 screener signals, source-labeled fundamentals, peer context, consensus data, and tracked events in one place.</p>
             </div>
             <button class="button-link" data-start-watchlist>Open Watchlist</button>
           </section>
@@ -56,7 +56,7 @@
             </article>
             <article class="start-card">
               <h3>Data sources</h3>
-              <p>Yahoo Finance through yfinance, the published Oslo Screener dashboard, local consensus/source entries, local significant-event entries, and manually seeded peer groups.</p>
+              <p>Yahoo Finance through yfinance, the published RSI14 screener dashboard, local consensus/source entries, local significant-event entries, and manually seeded peer groups.</p>
             </article>
             <article class="start-card">
               <h3>Current limits</h3>
@@ -77,7 +77,7 @@
         <div class="section-head">
           <h2>Core Watchlist</h2>
           <div class="actions">
-            <button id="refresh-screener-alerts" class="secondary">Refresh screener alerts</button>
+            <button id="refresh-screener-alerts" class="secondary">Refresh RSI14</button>
             <button id="refresh-watchlist" class="secondary">Refresh</button>
           </div>
         </div>
@@ -156,14 +156,14 @@
       <section id="dashboard" class="panel">
         <div class="section-head">
           <div>
-            <h2>Existing Oslo Screener</h2>
+            <h2>RSI14 screener</h2>
             <p class="muted">Embedded from the published GitHub Pages dashboard. This MVP does not edit that project.</p>
           </div>
           <a class="button-link" href="https://keresell-coder.github.io/oslo-screener-dashboard/" target="_blank" rel="noreferrer">Open original</a>
         </div>
         <iframe
           class="screener-frame"
-          title="Oslo Screener Dashboard"
+          title="RSI14 screener dashboard"
           src="https://keresell-coder.github.io/oslo-screener-dashboard/"
         ></iframe>
       </section>
