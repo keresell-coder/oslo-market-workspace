@@ -18,6 +18,14 @@ http://127.0.0.1:8765
 
 If the port is busy, stop the stale Python process or use a temporary local port. During development `8768` has often been used.
 
+To open the app for normal Safari review after a sprint or update:
+
+```bash
+scripts/open_in_safari.sh
+```
+
+The script starts the local server in Terminal if needed, verifies `http://127.0.0.1:8765/api/health`, and opens Safari at `http://127.0.0.1:8765`.
+
 Repository: `keresell-coder/oslo-market-workspace`
 
 Local folder:
@@ -74,6 +82,14 @@ curl -s "http://127.0.0.1:8765/api/technical-indicators?universe=watchlist" | py
 
 Use the in-app browser for visual checks when UI changes. Specifically verify Watchlist, Fundamentals, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
 
+After every sprint or user-visible update, also run:
+
+```bash
+scripts/open_in_safari.sh
+```
+
+Leave the app available in Safari at `http://127.0.0.1:8765` unless the user asks to stop the local server.
+
 ## Documentation Discipline
 
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
@@ -87,6 +103,7 @@ After each completed task, update the relevant docs so they reflect what changed
 - Unreviewed or unsourced KPI values stay missing in benchmark output; reviewed/trusted values appear only when source context is present.
 - Benchmarks now include a collapsed sector KPI input editor while preserving peer status labels, explicit sector index/proxy rows, disabled valuation scores, and descriptive no-verdict language.
 - Verified syntax, Watchlist, Fundamentals, Benchmarks, Technical indicators, the separate RSI14 screener tab, and the README API checks.
+- Added a Safari launcher script and sprint closeout rule so the app is opened in Safari after future iterations.
 
 **UI Simplification And Progressive Disclosure**
 

@@ -47,6 +47,7 @@ Continuation guardrails:
 - Preserve the **Technical indicators** tab and `/api/technical-indicators`.
 - Keep the **RSI14 screener** dashboard as a separate embedded dashboard tab.
 - Before completing UI/tab work, verify Watchlist, Fundamentals, Benchmarks, Technical indicators, and RSI14 screener in the in-app browser.
+- After every sprint or user-visible update, run `scripts/open_in_safari.sh` so Safari opens `http://127.0.0.1:8765`; leave the local server available unless the user asks to stop it.
 - If README or this roadmap omits a major tab/API, update the docs before proceeding.
 
 ## Completed Sprints
@@ -127,6 +128,7 @@ Verified:
 - Kept benchmark KPI values missing unless stored inputs are reviewed/trusted and include source context; draft values can be stored for review but are not surfaced as reviewed benchmark values.
 - Kept optional sector index/proxy rows explicit through peer roles only; no automatic proxy inference was added.
 - Preserved disabled valuation scores and descriptive benchmark output.
+- Added `scripts/open_in_safari.sh` and documented Safari availability as a sprint closeout requirement.
 
 Verified:
 
@@ -136,6 +138,7 @@ Verified:
 - Checked `/api/benchmarks?symbol=DOFG.OL` for source-path KPI rows, missing unreviewed values, and disabled valuation scores.
 - Checked `/api/sector-kpi-inputs` with an empty non-mutating save payload.
 - Used the in-app browser to verify Watchlist, Fundamentals, Benchmarks including the KPI editor, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
 ## Next Sprint
 

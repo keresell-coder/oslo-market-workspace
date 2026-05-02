@@ -73,6 +73,14 @@ curl -s "http://127.0.0.1:8765/api/fundamentals?symbols=MOWI.OL" | python3 -m js
 
 Use the in-app browser for visual verification when possible.
 
+After every sprint or user-visible update, run:
+
+```bash
+scripts/open_in_safari.sh
+```
+
+This should leave the app available in Safari at `http://127.0.0.1:8765` unless the user explicitly asks to stop the local server.
+
 ## Next Sprint Priority
 
 Peer group curation:
