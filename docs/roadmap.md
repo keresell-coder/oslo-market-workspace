@@ -25,7 +25,7 @@ Completed MVP pieces:
 - Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches.
 - Published Oslo Screener `latest.csv` parsed through `/api/technical-indicators` for broader technical indicator coverage.
 - Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, manual consensus source editor, descriptive own-history context, local snapshot trend rows, and true-quarterly-fundamental-window requirements.
-- Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, sector KPI placeholders, and minimum-data checks.
+- Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and significant-event table/API.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
@@ -35,7 +35,7 @@ Important current limitations:
 - Peer groups are editable; researched groups can be marked `reviewed` or `trusted` locally, but all peer metrics remain descriptive.
 - Backend-assisted peer groups stay `draft` until reviewed.
 - Sector benchmark components are modeled, but optional sector index/proxy rows are only present when explicitly added.
-- Sector KPI placeholders exist, but values such as NAV/fleet/P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values still need reviewed manual or source-linked inputs.
+- Sector KPI input slots exist for NAV/fleet/P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values. Benchmark values stay missing until reviewed/trusted manual or source-linked inputs include source context.
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
 - Own-history context uses daily price history and local snapshots. True quarterly fundamental statement history and charts remain future work.
 - Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
@@ -119,26 +119,38 @@ Verified:
 - Checked the narrow in-app browser layout for readable wrapped labels, horizontal table scrolling, and collapsed support sections.
 - After the delegated-handler cleanup, repeated syntax/API checks passed; a second in-app browser pass was blocked because the browser-control tool was unavailable in the active tool list.
 
-## Next Sprint
-
 ### Reviewed Sector KPI Inputs And Benchmark Polish
 
-Goal: replace placeholder-only sector KPI scaffolding with reviewed manual/source-linked inputs while preserving missing-data discipline.
+- Added `/api/sector-kpi-inputs` for sector KPI rows with value, unit/currency, period, source name, source URL, note, input type, and review status.
+- Added Benchmark UI for collapsed sector KPI editing under Sector context while preserving the scan-first peer metric layout.
+- Added source-path guidance for shipping NAV/share, fleet value, P/NAV, seafood harvest volume and EBIT/kg, offshore/defence backlog, fleet/utilisation, bank ROE/CET1, and real-estate LTV/WAULT.
+- Kept benchmark KPI values missing unless stored inputs are reviewed/trusted and include source context; draft values can be stored for review but are not surfaced as reviewed benchmark values.
+- Kept optional sector index/proxy rows explicit through peer roles only; no automatic proxy inference was added.
+- Preserved disabled valuation scores and descriptive benchmark output.
 
-Scope:
+Verified:
 
-- Add UI/API flow for reviewed manual/source-linked sector KPI values with source URL, source name, period, unit/currency, note, and review status.
-- Review source paths for shipping NAV/fleet values, seafood EBIT/kg, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT.
-- Explicitly curate optional sector index/proxy rows where useful.
-- Consider compact own-history charts after trend data and true quarterly windows are stable.
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
+- Checked `/api/benchmarks?symbol=DOFG.OL` for source-path KPI rows, missing unreviewed values, and disabled valuation scores.
+- Checked `/api/sector-kpi-inputs` with an empty non-mutating save payload.
+- Used the in-app browser to verify Watchlist, Fundamentals, Benchmarks including the KPI editor, Technical indicators, and the separate RSI14 screener tab.
 
-## Later Sprints
+## Next Sprint
 
 ### Compact Charts And Trends
 
-- Add small price/own-history trend visuals where they clarify context without creating valuation labels.
-- Keep chart inputs source-labeled and observation-gated.
-- Avoid cluttering Watchlist; use expandable row or tab detail for dense charts.
+Goal: add compact visual context for price and own-history trends without creating recommendation or valuation verdicts.
+
+Scope:
+
+- Add small price/own-history trend visuals where they clarify context without cluttering Watchlist.
+- Keep chart inputs source-labeled, freshness-aware, and observation-gated.
+- Place denser charts behind expandable row or tab detail where needed.
+- Continue explicit optional sector index/proxy curation through peer rows only; do not infer proxy rows from sector labels.
+
+## Later Sprints
 
 ### Consensus Quality
 

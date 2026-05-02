@@ -5,6 +5,8 @@ let watchlistItems = [];
 const loadedTabs = new Set();
 const peerStatuses = ["draft", "reviewed", "trusted"];
 const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer", "international peer", "sector index/proxy"];
+const sectorKpiReviewStatuses = ["draft", "reviewed", "trusted"];
+const sectorKpiInputTypes = ["manual", "source-linked"];
 let loadingDepth = 0;
 const technicalIndicatorGuide = [
   {
@@ -1475,6 +1477,62 @@ function renderPeerReviewChecklist() {
   `;
 }
 
+function renderSourceLink(name, url) {
+  const label = name || url || "source n/a";
+  let safeUrl = "";
+  try {
+    const parsed = new URL(url || "", window.location.href);
+    safeUrl = ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+  } catch {
+    safeUrl = "";
+  }
+  if (!safeUrl) return escapeHtml(label);
+  return `<a class="link" href="${escapeHtml(safeUrl)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`;
+}
+
+function renderSectorKpiEditor(kpis, symbol) {
+  const rows = (kpis.rows || []).map((kpi) => renderSectorKpiEditorRow(kpi)).join("");
+  return `
+    <form class="sector-kpi-form" data-symbol="${escapeHtml(symbol || "")}">
+      <div class="table-wrap sector-kpi-edit-table">
+        <table>
+          <thead>
+            <tr>
+              <th>KPI</th><th class="number">Value</th><th>Unit/currency</th><th>Period</th><th>Review status</th><th>Input type</th><th>Source name</th><th>Source URL</th><th>Note</th>
+            </tr>
+          </thead>
+          <tbody>${rows || `<tr><td colspan="9">No sector-specific KPI input slots matched this company yet.</td></tr>`}</tbody>
+        </table>
+      </div>
+      <div class="actions peer-editor-actions">
+        <button type="submit" ${rows ? "" : "disabled"}>Save sector KPI inputs</button>
+        <span class="muted" data-sector-kpi-status></span>
+      </div>
+    </form>
+  `;
+}
+
+function renderSectorKpiEditorRow(kpi) {
+  const existing = Boolean(kpi.updatedAt || kpi.hasStoredValue || kpi.period || kpi.sourceName || kpi.sourceUrl || kpi.note);
+  return `
+    <tr data-sector-kpi-row data-existing="${existing ? "1" : "0"}" data-kpi-key="${escapeHtml(kpi.key || "")}" data-kpi-label="${escapeHtml(kpi.label || "")}">
+      <td>
+        <strong>${escapeHtml(kpi.label || "")}</strong><br>
+        <span class="muted">${escapeHtml(kpi.category || "")}</span><br>
+        <span class="muted">${escapeHtml(kpi.sourcePath || "Use reviewed company or sector source.")}</span>
+      </td>
+      <td><input class="number" data-kpi-value type="number" step="any" value="${kpi.storedValue === null || kpi.storedValue === undefined ? "" : escapeHtml(kpi.storedValue)}" /></td>
+      <td><input data-kpi-unit value="${escapeHtml(kpi.unit || "")}" placeholder="NOK, USD, %, years" /></td>
+      <td><input data-kpi-period value="${escapeHtml(kpi.period || "")}" placeholder="2025 Q4, FY2025" /></td>
+      <td><select data-kpi-review-status>${sectorKpiReviewStatuses.map((status) => `<option value="${status}" ${status === kpi.reviewStatus ? "selected" : ""}>${status}</option>`).join("")}</select></td>
+      <td><select data-kpi-input-type>${sectorKpiInputTypes.map((type) => `<option value="${type}" ${type === kpi.inputType ? "selected" : ""}>${type}</option>`).join("")}</select></td>
+      <td><input data-kpi-source-name value="${escapeHtml(kpi.sourceName || "")}" placeholder="Company report, source name" /></td>
+      <td><input data-kpi-source-url value="${escapeHtml(kpi.sourceUrl || "")}" placeholder="https://..." /></td>
+      <td><input data-kpi-note value="${escapeHtml(kpi.note || "")}" placeholder="Assumption, page, definition, limitation" /></td>
+    </tr>
+  `;
+}
+
 function renderSectorContext(sector) {
   if (!sector) return "";
   const components = (sector.components || [])
@@ -1497,11 +1555,11 @@ function renderSectorContext(sector) {
         <tr>
           <td><strong>${escapeHtml(kpi.label)}</strong><br><span class="muted">${escapeHtml(kpi.category || "")}</span></td>
           <td class="number">${metricValue(kpi.value, kpi.unit === "%" ? "%" : "")}</td>
-          <td>${escapeHtml(kpi.unit || "")}</td>
-          <td><span class="signal-badge ${kpi.status === "missing" ? "signal-draft" : "signal-neutral"}">${escapeHtml(kpi.status || "missing")}</span></td>
+          <td>${escapeHtml(kpi.unit || "")}<br><span class="muted">${escapeHtml(kpi.period || "period n/a")}</span></td>
+          <td><span class="signal-badge ${peerStatusClass(kpi.status)}">${escapeHtml(kpi.status || "missing")}</span><br><span class="muted">${escapeHtml(kpi.sourceQuality || "")}</span></td>
           <td>${escapeHtml(kpi.inputType || "missing")}</td>
-          <td>${escapeHtml(kpi.sourceName || "source n/a")}</td>
-          <td>${escapeHtml(kpi.use || "")}</td>
+          <td>${renderSourceLink(kpi.sourceName, kpi.sourceUrl)}<br><span class="muted">${escapeHtml(kpi.updatedAt ? `updated ${shortDate(kpi.updatedAt)}` : "timestamp n/a")}</span></td>
+          <td>${escapeHtml(kpi.use || "")}<br><span class="muted">${escapeHtml(kpi.sourcePath || "")}</span></td>
         </tr>
       `,
     )
@@ -1532,14 +1590,15 @@ function renderSectorContext(sector) {
         ${components}
       </div>
       <details class="peer-details">
-        <summary>Sector KPI placeholders</summary>
+        <summary>Sector KPI inputs</summary>
         <p class="muted">${escapeHtml(kpis.policy || "Sector KPI placeholders require reviewed manual/source-linked inputs.")}</p>
         <div class="table-wrap benchmark-table">
           <table>
-            <thead><tr><th>KPI</th><th class="number">Value</th><th>Unit</th><th>Status</th><th>Input</th><th>Source</th><th>Use</th></tr></thead>
+            <thead><tr><th>KPI</th><th class="number">Reviewed value</th><th>Unit/period</th><th>Review</th><th>Input</th><th>Source</th><th>Use/source path</th></tr></thead>
             <tbody>${kpiRows || `<tr><td colspan="7">No sector-specific KPI placeholders matched this company yet.</td></tr>`}</tbody>
           </table>
         </div>
+        ${renderSectorKpiEditor(kpis, sector.symbol)}
       </details>
     </section>
   `;
@@ -1759,6 +1818,42 @@ async function savePeerGroup(event) {
   }
 }
 
+async function saveSectorKpiInputs(event) {
+  event.preventDefault();
+  const form = event.target;
+  if (!form.matches(".sector-kpi-form")) return;
+  const status = form.querySelector("[data-sector-kpi-status]");
+  if (status) status.textContent = "Saving...";
+  const rows = [...form.querySelectorAll("[data-sector-kpi-row]")]
+    .map((row) => {
+      const payload = {
+        kpiKey: row.dataset.kpiKey,
+        label: row.dataset.kpiLabel,
+        value: row.querySelector("[data-kpi-value]").value.trim(),
+        unit: row.querySelector("[data-kpi-unit]").value.trim(),
+        period: row.querySelector("[data-kpi-period]").value.trim(),
+        reviewStatus: row.querySelector("[data-kpi-review-status]").value,
+        inputType: row.querySelector("[data-kpi-input-type]").value,
+        sourceName: row.querySelector("[data-kpi-source-name]").value.trim(),
+        sourceUrl: row.querySelector("[data-kpi-source-url]").value.trim(),
+        note: row.querySelector("[data-kpi-note]").value.trim(),
+      };
+      const hasContent = ["value", "period", "sourceName", "sourceUrl", "note"].some((key) => payload[key]);
+      return row.dataset.existing === "1" || hasContent ? payload : null;
+    })
+    .filter(Boolean);
+  try {
+    await api("/api/sector-kpi-inputs", {
+      method: "POST",
+      body: JSON.stringify({ symbol: form.dataset.symbol, rows }),
+    });
+    if (status) status.textContent = "Saved. Reviewed values appear only when source context is present.";
+    await loadBenchmark(false);
+  } catch (error) {
+    if (status) status.textContent = `Could not save sector KPI inputs: ${error.message}`;
+  }
+}
+
 function renderOwnHistory(history) {
   if (!history) return "";
   const rows = history.metrics
@@ -1819,8 +1914,13 @@ async function handleBenchmarkContentClick(event) {
 }
 
 async function handleBenchmarkContentSubmit(event) {
-  if (!event.target.matches(".peer-group-form")) return;
-  await savePeerGroup(event);
+  if (event.target.matches(".peer-group-form")) {
+    await savePeerGroup(event);
+    return;
+  }
+  if (event.target.matches(".sector-kpi-form")) {
+    await saveSectorKpiInputs(event);
+  }
 }
 
 async function boot() {

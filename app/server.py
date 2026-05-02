@@ -147,18 +147,21 @@ SECTOR_KPI_TEMPLATES = {
             "label": "NAV/share",
             "unit": "local currency/share",
             "use": "Input for P/NAV context where vessel/fleet values, debt, cash, currency, and timestamp are sourced.",
+            "sourcePath": "Company fleet/NAV report, broker/public NAV table, or company presentation that states NAV assumptions, currency, and date.",
         },
         {
             "key": "fleet_value",
             "label": "Fleet value",
             "unit": "local currency or USD",
             "use": "Manual/source-linked vessel or fleet valuation input; never inferred from sector labels.",
+            "sourcePath": "Company fleet list plus reviewed vessel-value source, or a public fleet valuation disclosure with valuation date and currency.",
         },
         {
             "key": "pnAv",
             "label": "P/NAV",
             "unit": "x",
             "use": "Computed only after reviewed NAV/share or equivalent NAV inputs exist.",
+            "sourcePath": "Reviewed NAV/share or net asset value input paired with current share price source and timestamp.",
         },
     ],
     "seafood": [
@@ -167,12 +170,14 @@ SECTOR_KPI_TEMPLATES = {
             "label": "Harvest volume",
             "unit": "tonnes",
             "use": "Source-linked production scale context for salmon/seafood comparisons.",
+            "sourcePath": "Company quarterly/annual report farming-volume table, preferably split by region and period.",
         },
         {
             "key": "ebit_per_kg",
             "label": "Operational EBIT/kg",
             "unit": "currency/kg",
             "use": "Sector margin KPI; should come from company reports or reviewed sector source.",
+            "sourcePath": "Company operational EBIT/kg disclosure from quarterly/annual report or reviewed sector dataset with period and currency.",
         },
     ],
     "offshore": [
@@ -181,12 +186,14 @@ SECTOR_KPI_TEMPLATES = {
             "label": "Order backlog",
             "unit": "local currency or USD",
             "use": "Contracted revenue visibility context for offshore services, drilling, and defence suppliers.",
+            "sourcePath": "Company order backlog/contracted revenue disclosure in report, presentation, or stock-exchange release.",
         },
         {
             "key": "fleet_utilisation",
             "label": "Fleet/utilisation",
             "unit": "%",
             "use": "Manual/source-linked utilisation metric where applicable to vessel or rig businesses.",
+            "sourcePath": "Company fleet, rig, or vessel utilisation table with period and denominator definition.",
         },
     ],
     "defence": [
@@ -195,12 +202,14 @@ SECTOR_KPI_TEMPLATES = {
             "label": "Order backlog",
             "unit": "local currency",
             "use": "Reported order book/backlog context for defence and aerospace suppliers.",
+            "sourcePath": "Company order backlog/order book disclosure from quarterly/annual report or investor presentation.",
         },
         {
             "key": "book_to_bill",
             "label": "Book-to-bill",
             "unit": "x",
             "use": "Order intake versus revenue context when source-linked.",
+            "sourcePath": "Company order intake and revenue disclosure for the same period; calculate only when both inputs are reviewed.",
         },
     ],
     "banks": [
@@ -209,12 +218,14 @@ SECTOR_KPI_TEMPLATES = {
             "label": "ROE",
             "unit": "%",
             "use": "Bank profitability context to pair with P/B and capital quality.",
+            "sourcePath": "Bank quarterly/annual report key-figures table showing ROE definition and period.",
         },
         {
             "key": "cet1",
             "label": "CET1 ratio",
             "unit": "%",
             "use": "Bank capital strength context from reported regulatory capital data.",
+            "sourcePath": "Bank capital adequacy/CET1 disclosure from report, Pillar 3 document, or regulatory filing.",
         },
     ],
     "real_estate": [
@@ -223,12 +234,14 @@ SECTOR_KPI_TEMPLATES = {
             "label": "LTV",
             "unit": "%",
             "use": "Real-estate leverage context from reported property/company data.",
+            "sourcePath": "Company report or investor presentation showing loan-to-value definition, date, and portfolio scope.",
         },
         {
             "key": "wault",
             "label": "WAULT",
             "unit": "years",
             "use": "Weighted average unexpired lease term for income-duration context.",
+            "sourcePath": "Company lease-maturity/WAULT disclosure from report or presentation with portfolio scope and date.",
         },
     ],
 }
@@ -408,6 +421,8 @@ FUNDAMENTAL_VALIDATION_FIELDS = [
 ]
 
 PEER_GROUP_STATUSES = {"draft", "reviewed", "trusted"}
+SECTOR_KPI_REVIEW_STATUSES = {"draft", "reviewed", "trusted"}
+SECTOR_KPI_INPUT_TYPES = {"manual", "source-linked"}
 PEER_ROLE_LABELS = {
     "focus company",
     "Oslo peer",
@@ -591,6 +606,30 @@ def normalize_peer_role(role: str, market: str = "") -> str:
 def normalize_peer_status(status: str) -> str:
     value = (status or "draft").strip().lower()
     return value if value in PEER_GROUP_STATUSES else "draft"
+
+
+def normalize_sector_kpi_status(status: str) -> str:
+    value = (status or "draft").strip().lower()
+    return value if value in SECTOR_KPI_REVIEW_STATUSES else "draft"
+
+
+def normalize_sector_kpi_input_type(input_type: str) -> str:
+    value = (input_type or "manual").strip().lower().replace("_", "-")
+    if value in {"source", "sourced", "linked", "source-linked"}:
+        return "source-linked"
+    return value if value in SECTOR_KPI_INPUT_TYPES else "manual"
+
+
+def parse_optional_float(value) -> float | None:
+    if value in (None, ""):
+        return None
+    if isinstance(value, bool):
+        return None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if math.isfinite(parsed) else None
 
 
 def normalize_group_key(value: str) -> str:
@@ -2405,6 +2444,62 @@ def sector_kpi_inputs_for_symbol(symbol: str) -> dict:
     return {row["kpi_key"]: row for row in rows}
 
 
+def sector_kpi_template_by_key(kpi_key: str) -> dict | None:
+    for templates in SECTOR_KPI_TEMPLATES.values():
+        for template in templates:
+            if template["key"] == kpi_key:
+                return template
+    return None
+
+
+def save_sector_kpi_inputs(symbol: str, raw_rows: list[dict]) -> dict:
+    symbol = normalize_symbol(symbol)
+    if not symbol:
+        raise ValueError("symbol is required")
+    now = utc_now()
+    saved = []
+    with connect() as con:
+        for raw in raw_rows:
+            kpi_key = (raw.get("kpiKey") or raw.get("kpi_key") or "").strip()
+            if not kpi_key:
+                continue
+            template = sector_kpi_template_by_key(kpi_key)
+            if not template:
+                raise ValueError(f"unknown sector KPI key: {kpi_key}")
+            value = parse_optional_float(raw.get("value"))
+            unit = (raw.get("unit") or template.get("unit") or "").strip()
+            period = (raw.get("period") or "").strip()
+            status = normalize_sector_kpi_status(raw.get("reviewStatus") or raw.get("status") or "draft")
+            input_type = normalize_sector_kpi_input_type(raw.get("inputType") or raw.get("input_type") or "manual")
+            source_name = (raw.get("sourceName") or raw.get("source_name") or "").strip()
+            source_url = (raw.get("sourceUrl") or raw.get("source_url") or "").strip()
+            note = (raw.get("note") or "").strip()
+            label = (raw.get("label") or template.get("label") or kpi_key).strip()
+            con.execute(
+                """
+                insert into sector_kpi_inputs(
+                    symbol, kpi_key, label, value, unit, period, status, input_type,
+                    source_name, source_url, note, updated_at
+                )
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(symbol, kpi_key) do update set
+                    label = excluded.label,
+                    value = excluded.value,
+                    unit = excluded.unit,
+                    period = excluded.period,
+                    status = excluded.status,
+                    input_type = excluded.input_type,
+                    source_name = excluded.source_name,
+                    source_url = excluded.source_url,
+                    note = excluded.note,
+                    updated_at = excluded.updated_at
+                """,
+                (symbol, kpi_key, label, value, unit, period, status, input_type, source_name, source_url, note, now),
+            )
+            saved.append({"kpiKey": kpi_key, "status": status, "inputType": input_type, "hasValue": value is not None})
+    return {"ok": True, "symbol": symbol, "saved": saved, "savedCount": len(saved)}
+
+
 def sector_kpi_placeholders(symbol: str, payload: dict, groups: list[dict]) -> dict:
     categories = sector_categories_for(symbol, payload, groups)
     existing = sector_kpi_inputs_for_symbol(symbol)
@@ -2416,30 +2511,50 @@ def sector_kpi_placeholders(symbol: str, payload: dict, groups: list[dict]) -> d
                 continue
             seen.add(template["key"])
             stored = existing.get(template["key"], {})
-            has_value = not is_missing_metric(stored.get("value"))
-            status = (stored.get("status") or "").strip() if stored else "missing"
+            stored_value = parse_optional_float(stored.get("value")) if stored else None
+            has_stored_value = not is_missing_metric(stored_value)
+            review_status = normalize_sector_kpi_status(stored.get("status", "draft")) if stored else "missing"
+            input_type = normalize_sector_kpi_input_type(stored.get("input_type", "manual")) if stored else "missing"
+            source_name = (stored.get("source_name") or "").strip()
+            source_url = (stored.get("source_url") or "").strip()
+            has_source_context = bool(source_name or source_url)
+            if input_type == "source-linked":
+                has_source_context = bool(source_url)
+            reviewed_input_available = has_stored_value and review_status in {"reviewed", "trusted"} and has_source_context
+            if reviewed_input_available:
+                source_quality = f"{review_status} {input_type} input"
+            elif has_stored_value:
+                source_quality = "stored draft/unreviewed input; benchmark value remains missing until reviewed/trusted with source context"
+            else:
+                source_quality = "missing until reviewed manual or source-linked input exists"
             rows.append(
                 {
                     **template,
                     "category": category,
-                    "value": stored.get("value"),
+                    "value": stored_value if reviewed_input_available else None,
+                    "storedValue": stored_value,
+                    "hasStoredValue": has_stored_value,
+                    "reviewedInputAvailable": reviewed_input_available,
                     "period": stored.get("period") or "",
-                    "status": status or ("draft" if has_value else "missing"),
-                    "inputType": stored.get("input_type") or ("manual" if has_value else "missing"),
-                    "sourceName": stored.get("source_name") or "",
-                    "sourceUrl": stored.get("source_url") or "",
+                    "status": review_status,
+                    "reviewStatus": review_status,
+                    "inputType": input_type,
+                    "sourceName": source_name,
+                    "sourceUrl": source_url,
                     "note": stored.get("note") or "",
                     "updatedAt": stored.get("updated_at"),
-                    "sourceQuality": (
-                        "source-linked/manual input"
-                        if has_value
-                        else "missing until reviewed manual or source-linked input exists"
-                    ),
+                    "sourceQuality": source_quality,
                     "limitations": "This app does not infer sector KPI values from sector labels or generic yfinance fields.",
                 }
             )
+    has_reviewed_input = any(row.get("reviewedInputAvailable") for row in rows)
+    has_unreviewed_input = any(row.get("hasStoredValue") for row in rows)
     return {
-        "status": "not applicable" if not categories else ("missing inputs" if not any(not is_missing_metric(row.get("value")) for row in rows) else "inputs present"),
+        "status": (
+            "not applicable"
+            if not categories
+            else ("reviewed inputs present" if has_reviewed_input else ("draft inputs only" if has_unreviewed_input else "missing inputs"))
+        ),
         "categories": categories,
         "rows": rows,
         "policy": "Sector KPI placeholders are explicit input slots only. Missing values stay missing until manually entered or source-linked and reviewed.",
@@ -2548,8 +2663,8 @@ def minimum_data_assessment(
         {
             "key": "sector_kpis",
             "label": "Sector KPI inputs",
-            "met": not kpis.get("rows") or any(row.get("status") in {"source-linked", "reviewed"} for row in kpis.get("rows", [])),
-            "detail": "Sector KPI placeholders may remain missing; source-linked/reviewed inputs are required before sector KPI-derived fields are used.",
+            "met": not kpis.get("rows") or any(row.get("reviewedInputAvailable") for row in kpis.get("rows", [])),
+            "detail": "Sector KPI placeholders may remain missing; reviewed/trusted manual or source-linked inputs with source context are required before sector KPI-derived fields are used.",
         },
     ]
     blockers = [check["label"] for check in checks if not check["met"]]
@@ -2711,6 +2826,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_peer_group_post()
         if parsed.path == "/api/peer-groups/draft":
             return self.handle_peer_group_draft_post()
+        if parsed.path == "/api/sector-kpi-inputs":
+            return self.handle_sector_kpi_inputs_post()
         if parsed.path == "/api/consensus":
             return self.handle_consensus_post()
         if parsed.path == "/api/events":
@@ -2949,6 +3066,20 @@ class AppHandler(SimpleHTTPRequestHandler):
         group_key = qs.get("group", [None])[0]
         refresh = qs.get("refresh", ["0"])[0] == "1"
         send_json(self, benchmark_for_symbol(symbol, group_key=group_key, refresh=refresh))
+
+    def handle_sector_kpi_inputs_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        rows = body.get("rows") or []
+        if not symbol:
+            return send_json(self, {"error": "symbol is required"}, HTTPStatus.BAD_REQUEST)
+        if not isinstance(rows, list):
+            return send_json(self, {"error": "rows must be a list"}, HTTPStatus.BAD_REQUEST)
+        try:
+            result = save_sector_kpi_inputs(symbol, rows)
+        except ValueError as exc:
+            return send_json(self, {"error": str(exc)}, HTTPStatus.BAD_REQUEST)
+        send_json(self, {**result, "sectorContext": sector_context(symbol)})
 
     def handle_consensus_get(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)

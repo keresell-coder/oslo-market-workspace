@@ -32,7 +32,7 @@ Local folder:
 - **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history, peer context status/counts, consensus target/rating, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, manual consensus source editor, descriptive own-history context, local snapshot trend rows, and true-quarterly-history requirements.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
-- **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and sector KPI placeholders; peer metric tables are shown before supporting checklist and sector details.
+- **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
@@ -57,8 +57,8 @@ Local folder:
 - Fundamentals metric guide and validation panel explain fields, coverage, source quality, and missing-data caveats behind progressive disclosure below the main scan table.
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
-- Sector KPI placeholders exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing until reviewed manual/source-linked inputs exist.
-- Remaining major gaps: reviewed sector KPI inputs, true quarterly fundamental statement history, compact charts, optional sector index/proxy curation, consensus quality improvements, NewsWeb/event automation, and deployment/sharing.
+- Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
+- Remaining major gaps: true quarterly fundamental statement history, compact charts, optional sector index/proxy curation, consensus quality improvements, NewsWeb/event automation, and deployment/sharing.
 
 ## Verification
 
@@ -80,6 +80,14 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Recently Completed
 
+**Reviewed Sector KPI Inputs And Benchmark Polish**
+
+- Added `/api/sector-kpi-inputs` for saving sector KPI input rows with value, unit/currency, period, source name, source URL, note, input type, and review status.
+- Benchmark sector KPI rows now carry source-path guidance for shipping NAV/fleet/P/NAV, seafood harvest volume and EBIT/kg, offshore/defence backlog and utilisation, bank ROE/CET1, and real-estate LTV/WAULT.
+- Unreviewed or unsourced KPI values stay missing in benchmark output; reviewed/trusted values appear only when source context is present.
+- Benchmarks now include a collapsed sector KPI input editor while preserving peer status labels, explicit sector index/proxy rows, disabled valuation scores, and descriptive no-verdict language.
+- Verified syntax, Watchlist, Fundamentals, Benchmarks, Technical indicators, the separate RSI14 screener tab, and the README API checks.
+
 **UI Simplification And Progressive Disclosure**
 
 - Watchlist scan now appears first; note editing and add-symbol controls are collapsed behind details controls.
@@ -91,11 +99,10 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**Reviewed Sector KPI Inputs And Benchmark Polish**
+**Compact Charts And Trends**
 
-- Add reviewed manual/source-linked sector KPI inputs with source URL, source name, period, unit/currency, note, and review status.
-- Review source paths for shipping NAV/fleet values, seafood EBIT/kg, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT.
-- Keep sector KPIs missing until reviewed inputs exist.
-- Explicitly curate optional sector index/proxy rows where useful.
+- Add compact price and own-history trend visuals where they clarify context without creating valuation labels.
+- Keep chart inputs source-labeled, observation-gated, and tucked behind progressive disclosure where needed.
+- Continue optional sector index/proxy curation only through explicit peer rows; never infer them from sector labels.
 
 See `docs/roadmap.md` for the broader sprint plan.
