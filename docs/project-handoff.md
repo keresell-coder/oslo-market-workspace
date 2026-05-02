@@ -19,7 +19,7 @@ https://github.com/keresell-coder/oslo-market-workspace
 Local git status:
 
 ```text
-current sprint branch: codex/rsi14-screener-coverage
+current branch: main
 ```
 
 Local app:
@@ -57,6 +57,9 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 ## What Works
 
 - Editable watchlist backed by SQLite.
+- Safari launcher:
+  - `scripts/open_in_safari.sh`
+  - starts the local server in Terminal if needed, verifies `/api/health`, and opens Safari at `http://127.0.0.1:8765`
 - Watchlist overview endpoint:
   - `/api/watchlist-overview`
 - Watchlist front page shows:
@@ -78,6 +81,10 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - consensus source editor in Fundamentals tab
 - Benchmark context:
   - `/api/benchmarks`
+  - editable peer groups with `draft`, `reviewed`, and `trusted` status
+  - explicit Oslo peer, international peer, and optional sector index/proxy components
+  - reviewed/source-linked sector KPI input slots
+  - `/api/sector-kpi-inputs`
   - descriptive only, no valuation verdict
 - Technical indicators:
   - `/api/technical-indicators`
@@ -96,7 +103,9 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - The app must not imply analyst-count weighted BUY/HOLD/SELL consensus unless reviewed source data supports it.
 - NewsWeb automation is not implemented. Current NewsWeb use is ticker search links only.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
-- Sector index benchmarking is not configured.
+- Backend-assisted peer groups stay `draft` until reviewed.
+- Sector index/proxy rows are optional and must be explicitly curated as peer items; they are never inferred automatically from sector labels.
+- Sector KPI values stay missing in benchmark output until reviewed/trusted manual or source-linked inputs include source context.
 - Technical BUY/SELL labels are external screener CSV signal names, not app advice.
 
 ## Current Running Server Notes
@@ -122,45 +131,54 @@ Restart:
 python3 app/server.py
 ```
 
+Normal Safari review after every sprint or visible update:
+
+```bash
+scripts/open_in_safari.sh
+```
+
+Leave the app available in Safari at `http://127.0.0.1:8765` unless the user asks to stop it.
+
 ## Codex Chat/Project Notes
 
 - User requested the Codex project/folder name **Oslo Stock web-app**.
 - User requested the chat named **Add GitHub account to Codex** be added to this project. That chat exists locally and was created against the same original generated workspace path, but no supported Codex project/chat membership tool was exposed in this session. If the Codex UI still shows it outside the project after the folder rename, move it manually in the Codex app.
-- After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, and `docs/links-and-resources.md` stay aligned with completed work and next plans.
+- After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, `docs/links-and-resources.md`, and `AGENTS.md` stay aligned with completed work and next plans.
 
 ## Completed This Sprint
 
-- Added the Technical indicators tab using the Oslo Screener `latest.csv`.
-- Added `/api/technical-indicators` with watchlist/full-universe filtering, source timestamps, coverage count, and source limitations.
-- Added the Watchlist Technical column, separate from the existing RSI14 dashboard-alert column.
-- Kept the embedded RSI14 screener dashboard tab unchanged.
-- Dashboard-overlap rows are highlighted, and source BUY/BUY-watch labels use green while SELL/SELL-watch labels use red.
-- Added a Technical Indicator Guide with common threshold bands and green/white/red dots on interpretive indicator values.
-- The wording keeps technical signals as screening context only, not investment advice.
+- Added `/api/sector-kpi-inputs` for reviewed manual/source-linked sector KPI rows with value, unit/currency, period, source name, source URL, note, input type, and review status.
+- Added collapsed Benchmark UI for sector KPI editing under Sector context while preserving scan-first peer metric layout.
+- Added source-path guidance for shipping NAV/share, fleet value, P/NAV, seafood harvest volume and EBIT/kg, offshore/defence backlog, fleet/utilisation, bank ROE/CET1, and real-estate LTV/WAULT.
+- Kept benchmark KPI values missing unless stored inputs are reviewed/trusted and include source context.
+- Preserved explicit optional sector index/proxy peer roles, disabled valuation scores, descriptive benchmark language, Technical indicators, and the separate RSI14 screener tab.
+- Added `scripts/open_in_safari.sh` and documented that each sprint/user-visible update should leave Safari open at `http://127.0.0.1:8765`.
 
 ## Next Sprint Brief
 
-Next priority: watchlist expansion and peer group workflow cleanup.
+Next priority: Compact Charts And Trends.
 
 Goal:
 
-- Keep watchlist and peer-group workflows efficient while preserving draft/reviewed/trusted source discipline.
+- Add compact visual context for price and own-history trends without creating recommendation or valuation verdicts.
 
 Tasks:
 
-- Keep watchlist editing simple: add/remove symbols, edit notes, and show peer context state.
-- Add a peer-group research checklist in the UI.
-- Keep backend-assisted peer groups marked draft until reviewed.
-- Do not auto-assign a company to an unrelated existing peer group based only on sector labels.
+- Add small price/own-history trend visuals where they clarify context without cluttering Watchlist.
+- Keep chart inputs source-labeled, freshness-aware, and observation-gated.
+- Place denser charts behind expandable row or tab detail where needed.
+- Continue explicit optional sector index/proxy curation through peer rows only; do not infer proxy rows from sector labels.
+- Preserve no-advice/no-verdict language and missing-data discipline.
 
 ## Verification Checklist For Next Chat
 
 1. Start server.
 2. Open Watchlist tab.
-3. Confirm rows render and the Watchlist consensus cells show target, upside, source quality, source count, freshness, and source-count recommendation.
-4. Confirm the Watchlist Technical column renders from `latest.csv`.
-5. Open Technical indicators tab and confirm source date, coverage count, and dashboard alert tags render.
-6. Open RSI14 screener tab and confirm the embedded dashboard is unchanged.
-7. Click a Watchlist consensus target and confirm Fundamentals opens at the matching row.
-8. Open Benchmarks tab and confirm current peer groups still render.
-9. Confirm no cheap/expensive/neutral labels exist.
+3. Confirm rows render and Watchlist remains scan-first.
+4. Open Fundamentals and confirm grouped scan table, own-history context, metric guide, and validation panel still render.
+5. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
+6. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor still render.
+7. Open RSI14 screener and confirm the embedded dashboard is unchanged.
+8. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
+9. Run README verification commands.
+10. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.

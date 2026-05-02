@@ -11,6 +11,7 @@
 - Raw GitHub fallback technical CSV: https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Local app default: http://127.0.0.1:8765
 - Local app alternate/debug: http://127.0.0.1:8768
+- Safari launcher: `scripts/open_in_safari.sh`
 
 ## Main Local Files
 
@@ -18,6 +19,8 @@
 - `AGENTS.md`
 - `docs/roadmap.md`
 - `docs/project-handoff.md`
+- `docs/links-and-resources.md`
+- `scripts/open_in_safari.sh`
 - `app/server.py`
 - `app/static/index.html`
 - `app/static/app.js`
@@ -42,7 +45,10 @@
 - `GET /api/consensus`
 - `POST /api/consensus`
 - `GET /api/benchmarks`
+- `POST /api/sector-kpi-inputs`
 - `GET /api/peer-groups`
+- `POST /api/peer-groups`
+- `POST /api/peer-groups/draft`
 - `GET /api/screener-alerts`
 - `GET /api/screener-signals`
 - `GET /api/technical-indicators`
@@ -55,6 +61,7 @@
 - Yahoo Finance via `yfinance`
 - Published RSI14/Oslo Screener Dashboard HTML
 - Published Oslo Screener `latest.csv` technical indicator output
+- Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
 - NewsWeb ticker search links
 - TradingView search links
 
