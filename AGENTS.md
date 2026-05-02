@@ -36,7 +36,7 @@ If a stale local server holds the port, stop the old Python process or run a tem
 
 ## Current Architecture
 
-- `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, screener parsing, consensus/event APIs.
+- `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, compact price/own-history chart payloads, screener parsing, consensus/event APIs.
 - `app/static/index.html`: single-page app shell.
 - `app/static/app.js`: frontend data loading and rendering.
 - `app/static/styles.css`: UI styling.
@@ -69,6 +69,7 @@ If the local server is running, also check:
 ```bash
 curl -s http://127.0.0.1:8765/api/watchlist-overview | python3 -m json.tool
 curl -s "http://127.0.0.1:8765/api/fundamentals?symbols=MOWI.OL" | python3 -m json.tool
+curl -s "http://127.0.0.1:8765/api/technical-indicators?universe=watchlist" | python3 -m json.tool
 ```
 
 Use the in-app browser for visual verification when possible.
@@ -81,12 +82,22 @@ scripts/open_in_safari.sh
 
 This should leave the app available in Safari at `http://127.0.0.1:8765` unless the user explicitly asks to stop the local server.
 
+## Current State Notes
+
+Compact Charts And Trends is complete:
+
+- price trend charts use sampled Yahoo/yfinance 1-year daily closes and the existing 120-observation gate
+- own-multiple trend charts use local `fundamentals_snapshots` and the existing 5-snapshot gate
+- Watchlist trend visuals stay behind expandable Trend preview rows
+- Fundamentals and Benchmarks show chart context only as descriptive, source-labeled screening data
+- missing chart inputs stay gated/missing
+
 ## Next Sprint Priority
 
-Peer group curation:
+Consensus Quality:
 
-- add editable peer groups in the app
-- add draft/reviewed/trusted peer-group status
-- add peer role labels
-- review initial peer groups for NOD, MOWI, FRO/HAFNI, DOFG/ODL, KOG, and LINK
-- keep unreviewed groups clearly marked as draft
+- improve consensus table/editor if needed
+- add manual override fields for unreliable free-API values
+- consider multiple consensus providers only if reliable and permitted
+- preserve caveats about overlapping analyst counts across providers
+- keep all output descriptive and non-advisory

@@ -895,6 +895,105 @@ tr:last-child td {
   font-size: 0.78rem;
 }
 
+.watchlist-history-cell {
+  min-width: 190px;
+}
+
+.trend-details {
+  margin-top: 7px;
+}
+
+.compact-trend-row {
+  min-width: 0;
+}
+
+.trend-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 7px;
+}
+
+.sparkline-card,
+.trend-gate {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px;
+  background: rgba(16, 21, 31, 0.36);
+}
+
+.trend-gate {
+  color: var(--muted);
+}
+
+.trend-gate strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.trend-gate span {
+  font-size: 0.74rem;
+}
+
+.sparkline-head,
+.sparkline-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.sparkline-head strong {
+  overflow: hidden;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sparkline-head span,
+.sparkline-meta,
+.sparkline-source {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.sparkline {
+  display: block;
+  width: 100%;
+  height: 46px;
+  overflow: visible;
+}
+
+.sparkline-baseline,
+.sparkline-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline-baseline {
+  stroke: rgba(159, 176, 196, 0.22);
+  stroke-width: 1;
+}
+
+.sparkline-line {
+  stroke: var(--accent-2);
+  stroke-width: 2;
+}
+
+.sparkline-source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .history-subsection {
   display: grid;
   gap: 7px;

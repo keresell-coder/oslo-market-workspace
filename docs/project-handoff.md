@@ -19,7 +19,8 @@ https://github.com/keresell-coder/oslo-market-workspace
 Local git status:
 
 ```text
-current branch: main
+default branch: main
+current sprint branch: codex/compact-charts-and-trends
 ```
 
 Local app:
@@ -71,6 +72,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - target upside
   - source-count recommendation summary
   - source quality, source count, and freshness
+  - expandable trend previews with source-labeled price and own-history charts
   - significant-update status
 - Watchlist consensus cell opens the matching Fundamentals row for the ticker.
 - Fundamentals endpoint:
@@ -86,6 +88,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - reviewed/source-linked sector KPI input slots
   - `/api/sector-kpi-inputs`
   - descriptive only, no valuation verdict
+  - own-history trend charts behind details controls
 - Technical indicators:
   - `/api/technical-indicators`
   - separate Technical indicators tab
@@ -107,6 +110,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Sector index/proxy rows are optional and must be explicitly curated as peer items; they are never inferred automatically from sector labels.
 - Sector KPI values stay missing in benchmark output until reviewed/trusted manual or source-linked inputs include source context.
 - Technical BUY/SELL labels are external screener CSV signal names, not app advice.
+- Compact chart lines are descriptive context only. Price charts use sampled Yahoo/yfinance daily closes and local own-multiple charts use `fundamentals_snapshots`; both stay gated when observation counts are below the configured minimums.
 
 ## Current Running Server Notes
 
@@ -147,37 +151,37 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
-- Added `/api/sector-kpi-inputs` for reviewed manual/source-linked sector KPI rows with value, unit/currency, period, source name, source URL, note, input type, and review status.
-- Added collapsed Benchmark UI for sector KPI editing under Sector context while preserving scan-first peer metric layout.
-- Added source-path guidance for shipping NAV/share, fleet value, P/NAV, seafood harvest volume and EBIT/kg, offshore/defence backlog, fleet/utilisation, bank ROE/CET1, and real-estate LTV/WAULT.
-- Kept benchmark KPI values missing unless stored inputs are reviewed/trusted and include source context.
-- Preserved explicit optional sector index/proxy peer roles, disabled valuation scores, descriptive benchmark language, Technical indicators, and the separate RSI14 screener tab.
-- Added `scripts/open_in_safari.sh` and documented that each sprint/user-visible update should leave Safari open at `http://127.0.0.1:8765`.
+- Added compact price chart payloads from sampled Yahoo/yfinance 1-year daily closes, gated by the existing 120-observation price-history minimum.
+- Added compact own-multiple chart payloads from local `fundamentals_snapshots`, gated by the existing 5-snapshot minimum.
+- Added Watchlist Trend preview details so charts do not clutter the scan table.
+- Added compact price charts to Fundamentals own-history cells, denser price/snapshot charts inside row details, and Benchmarks own-history charts behind a details control.
+- Kept chart metadata source-labeled, freshness-aware, confidence-aware, limitation-aware, and descriptive only.
+- Preserved peer status labels, explicit sector index/proxy peer rows, disabled valuation scores, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 
 ## Next Sprint Brief
 
-Next priority: Compact Charts And Trends.
+Next priority: Consensus Quality.
 
 Goal:
 
-- Add compact visual context for price and own-history trends without creating recommendation or valuation verdicts.
+- Improve consensus/source handling while preserving the distinction between provider rows, verified consensus, and non-advice screening context.
 
 Tasks:
 
-- Add small price/own-history trend visuals where they clarify context without cluttering Watchlist.
-- Keep chart inputs source-labeled, freshness-aware, and observation-gated.
-- Place denser charts behind expandable row or tab detail where needed.
-- Continue explicit optional sector index/proxy curation through peer rows only; do not infer proxy rows from sector labels.
-- Preserve no-advice/no-verdict language and missing-data discipline.
+- Improve consensus table/editor if the current form becomes cramped.
+- Add manual override fields for values not reliable from free APIs.
+- Consider multiple consensus providers only if reliable and permitted.
+- Preserve caveats about overlapping analyst counts across providers.
+- Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat
 
 1. Start server.
 2. Open Watchlist tab.
 3. Confirm rows render and Watchlist remains scan-first.
-4. Open Fundamentals and confirm grouped scan table, own-history context, metric guide, and validation panel still render.
+4. Open Fundamentals and confirm grouped scan table, compact own-history charts, metric guide, and validation panel still render.
 5. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
-6. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor still render.
+6. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, own-history chart details, and sector KPI input editor still render.
 7. Open RSI14 screener and confirm the embedded dashboard is unchanged.
 8. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
 9. Run README verification commands.

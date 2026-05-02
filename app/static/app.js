@@ -107,6 +107,13 @@ function shortDate(value) {
   return parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 }
 
+function shortChartDate(value) {
+  if (!value) return "date n/a";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return shortDate(value);
+  return parsed.toLocaleDateString("en-GB", { month: "short", year: "2-digit" });
+}
+
 function escapeHtml(input) {
   return String(input ?? "")
     .replaceAll("&", "&amp;")
@@ -114,6 +121,89 @@ function escapeHtml(input) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function chartPointValue(point) {
+  const value = Number(point?.value);
+  return Number.isFinite(value) ? value : null;
+}
+
+function chartPath(points, width = 180, height = 46, padding = 4) {
+  const values = points.map(chartPointValue).filter((item) => item !== null);
+  if (values.length < 2) return "";
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const xStep = (width - padding * 2) / Math.max(points.length - 1, 1);
+  return points
+    .map((point, index) => {
+      const rawValue = chartPointValue(point) ?? min;
+      const x = padding + xStep * index;
+      const y = height - padding - ((rawValue - min) / span) * (height - padding * 2);
+      return `${index === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
+function renderSparkline(chart, options = {}) {
+  const points = chart?.points || [];
+  const width = options.width || 180;
+  const height = options.height || 46;
+  const path = chart?.status === "available" && points.length >= 2 ? chartPath(points, width, height) : "";
+  if (!path) {
+    const obs = chart?.observationCount ?? 0;
+    const minimum = chart?.minimumObservations ?? "n/a";
+    return `
+      <div class="trend-gate">
+        <strong>${escapeHtml(chart?.label || options.label || "Trend gated")}</strong>
+        <span>${escapeHtml(obs)} / ${escapeHtml(minimum)} observation${obs === 1 ? "" : "s"}</span>
+        <span>${escapeHtml(chart?.source || "source n/a")} / ${escapeHtml(shortDate(chart?.fetchedAt || chart?.lastObservationAt))}</span>
+      </div>
+    `;
+  }
+  const first = points[0];
+  const last = points[points.length - 1];
+  const formatPoint = (point) => {
+    const rawValue = chartPointValue(point);
+    if (chart.currency) return `${metricValue(rawValue, "")} ${chart.currency}`;
+    return metricValue(rawValue, chart.unit || "");
+  };
+  return `
+    <div class="sparkline-card">
+      <div class="sparkline-head">
+        <strong>${escapeHtml(options.label || chart.label || "Trend")}</strong>
+        <span>${escapeHtml(chart.confidence || "confidence n/a")}</span>
+      </div>
+      <svg class="sparkline" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(options.label || chart.label || "Trend chart")}">
+        <path class="sparkline-baseline" d="M4 ${height - 4} H${width - 4}"></path>
+        <path class="sparkline-line" d="${escapeHtml(path)}"></path>
+      </svg>
+      <div class="sparkline-meta">
+        <span>${escapeHtml(shortChartDate(first?.date))} ${escapeHtml(formatPoint(first))}</span>
+        <span>${escapeHtml(shortChartDate(last?.date))} ${escapeHtml(formatPoint(last))}</span>
+      </div>
+      <div class="sparkline-source" title="${escapeHtml(chart.limitations || "")}">
+        ${escapeHtml(chart.source || "source n/a")} / ${escapeHtml(shortDate(chart.fetchedAt || chart.lastObservationAt))}
+      </div>
+    </div>
+  `;
+}
+
+function renderSnapshotTrendCharts(charts, options = {}) {
+  const selected = (charts || []).slice(0, options.limit || 4);
+  if (!selected.length) {
+    return `
+      <div class="trend-gate">
+        <strong>Own-multiple trend gated</strong>
+        <span>Local snapshot series unavailable.</span>
+      </div>
+    `;
+  }
+  return `
+    <div class="trend-chart-grid">
+      ${selected.map((chart) => renderSparkline(chart)).join("")}
+    </div>
+  `;
 }
 
 function loadingMarkup(label) {
@@ -379,6 +469,7 @@ function renderFundamentalHighlight(row) {
 
 function renderOwnHistoryWatchlistCell(row) {
   const history = row.ownHistorySignal || {};
+  const trend = row.trendContext || {};
   let label = history.label || "Own history";
   let detail = "Needs more observations";
   let klass = "signal-draft";
@@ -390,11 +481,19 @@ function renderOwnHistoryWatchlistCell(row) {
     klass = "signal-neutral";
   }
   return `
-    <button class="summary-button compact-summary" data-open-fundamentals="${escapeHtml(row.symbol)}">
-      <span class="signal-badge ${klass}">${escapeHtml(label)}</span>
-      <strong>${escapeHtml(detail)}</strong>
-      <span class="muted">${escapeHtml(history.confidence || "source-labeled screening data")}</span>
-    </button>
+    <div class="signal-cell watchlist-history-cell">
+      <button class="summary-button compact-summary" data-open-fundamentals="${escapeHtml(row.symbol)}">
+        <span class="signal-badge ${klass}">${escapeHtml(label)}</span>
+        <strong>${escapeHtml(detail)}</strong>
+        <span class="muted">${escapeHtml(history.confidence || "source-labeled screening data")}</span>
+      </button>
+      <details class="compact-details trend-details">
+        <summary>Trend preview</summary>
+        ${renderSparkline(trend.priceChart, { label: "1y price" })}
+        ${renderSnapshotTrendCharts(trend.snapshotCharts, { limit: 2 })}
+        <p class="muted">${escapeHtml(trend.policy || "Descriptive context only; no valuation verdict.")}</p>
+      </details>
+    </div>
   `;
 }
 
@@ -512,6 +611,9 @@ function renderHistoricalContext(row) {
           <small>${escapeHtml(snapshot.status || "history n/a")}</small>
         </span>
       </div>
+      <div class="compact-trend-row">
+        ${renderSparkline(priceWindow.chart, { label: "1y price trend" })}
+      </div>
       <span class="muted">${escapeHtml(priceObs)}; ${escapeHtml(priceWindow.confidence || snapshot.metrics?.[0]?.confidence || "screening-grade")}</span>
       ${renderHistoricalContextDetails(context)}
     </div>
@@ -552,6 +654,7 @@ function renderPriceHistoryDetails(priceWindow) {
   return `
     <div class="history-subsection">
       <strong>52-week price window</strong>
+      ${renderSparkline(priceWindow.chart, { label: "1y daily close trend" })}
       <div class="history-range">
         <span>${metricValue(priceWindow.low, "")}</span>
         <meter min="0" max="100" value="${Number(priceWindow.rangePositionPct ?? 0)}"></meter>
@@ -635,6 +738,8 @@ function renderSnapshotHistoryDetails(snapshot) {
         </table>
       </div>
       <p class="muted">${escapeHtml(snapshot.requirement || "")}</p>
+      <strong>Compact own-multiple trends</strong>
+      ${renderSnapshotTrendCharts(snapshot.trendCharts)}
       <strong>Snapshot trend</strong>
       <div class="mini-table-wrap">
         <table class="mini-table wide-mini-table">
@@ -1879,6 +1984,11 @@ function renderOwnHistory(history) {
         </div>
         <span class="tag">${escapeHtml(history.status)}</span>
       </div>
+      <details class="peer-details">
+        <summary>Compact own-multiple trends</summary>
+        ${renderSnapshotTrendCharts(history.trendCharts)}
+        <p class="muted">Local snapshot visuals are shown only after the same minimum-observation gate used for own-history context. They are descriptive screening context, not valuation labels.</p>
+      </details>
       <div class="table-wrap benchmark-table">
         <table>
           <thead><tr><th>Metric</th><th class="number">Current</th><th class="number">History median</th><th class="number">History min</th><th class="number">History max</th><th class="number">Obs.</th></tr></thead>

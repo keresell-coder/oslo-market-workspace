@@ -29,7 +29,7 @@
 
 ## Codex Chats
 
-- Current project chat: Link consensus to fundamentals.
+- Current sprint branch: `codex/compact-charts-and-trends`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -59,9 +59,11 @@
 ## External Sources In Use
 
 - Yahoo Finance via `yfinance`
+- Yahoo/yfinance 1-year daily closes for sampled compact price charts, with observation count, freshness, confidence, and limitations shown in the app
 - Published RSI14/Oslo Screener Dashboard HTML
 - Published Oslo Screener `latest.csv` technical indicator output
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
+- Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
 - NewsWeb ticker search links
 - TradingView search links
 

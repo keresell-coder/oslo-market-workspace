@@ -46,6 +46,8 @@ TECHNICAL_CACHE_TTL_SECONDS = 60 * 15
 TECHNICAL_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
 PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
+PRICE_CHART_SAMPLE_POINTS = 48
+SNAPSHOT_CHART_SAMPLE_POINTS = 8
 
 INITIAL_WATCHLIST = [
     "NOD.OL",
@@ -1095,6 +1097,47 @@ def quarterly_price_windows(close) -> list[dict]:
     return [price_window_stats(label, grouped[label]) for label in labels[-4:]]
 
 
+def sampled_points(items: list[dict], max_points: int) -> list[dict]:
+    if len(items) <= max_points:
+        return items
+    step = (len(items) - 1) / (max_points - 1)
+    indexes = sorted({round(i * step) for i in range(max_points)})
+    return [items[index] for index in indexes]
+
+
+def price_chart_payload(
+    close,
+    observation_count: int,
+    confidence: str,
+    fetched_at: str,
+    currency: str,
+    source: str,
+    limitations: str,
+) -> dict:
+    raw_points = []
+    for index_value, raw_value in close.items():
+        value = finite_float(raw_value)
+        if value is None or value <= 0:
+            continue
+        raw_points.append({"date": history_index_date(index_value), "value": value})
+    points = sampled_points(raw_points, PRICE_CHART_SAMPLE_POINTS)
+    return {
+        "type": "price_close",
+        "label": "1y close trend",
+        "status": "available" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS and len(points) >= 2 else "insufficient observations",
+        "points": points if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else [],
+        "observationCount": observation_count,
+        "minimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
+        "source": source,
+        "fetchedAt": fetched_at,
+        "firstObservationAt": raw_points[0]["date"] if raw_points else None,
+        "lastObservationAt": raw_points[-1]["date"] if raw_points else None,
+        "currency": currency,
+        "confidence": confidence,
+        "limitations": limitations,
+    }
+
+
 def fetch_yfinance_price_history(ticker, current_price: float | None, currency: str, fetched_at: str) -> dict:
     base = {
         "source": "Yahoo Finance via yfinance",
@@ -1125,10 +1168,11 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
         range_position = max(0.0, min(100.0, (current - low) / (high - low) * 100))
 
     observation_count = len(values)
+    confidence = "screening-grade" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "low"
     return {
         **base,
         "status": "available" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "thin history",
-        "confidence": "screening-grade" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "low",
+        "confidence": confidence,
         "observationCount": observation_count,
         "current": current,
         "median": median(values),
@@ -1141,6 +1185,15 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
         "pctFromLow": pct_diff(current, low),
         "pctFromHigh": pct_diff(current, high),
         "quarterWindows": quarterly_price_windows(close),
+        "chart": price_chart_payload(
+            close,
+            observation_count,
+            confidence,
+            fetched_at,
+            currency,
+            base["source"],
+            base["limitations"],
+        ),
     }
 
 
@@ -1661,6 +1714,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "technicalSignal": technical_map.get(symbol),
                 "fundamentalHighlight": fundamental_highlight(fundamental),
                 "ownHistorySignal": fundamental.get("ownHistorySignal"),
+                "trendContext": compact_trend_context(fundamental),
                 "peerContext": peer_context_summary(symbol, fundamental),
                 "consensusTargetSummary": target_summary,
                 "consensusRatingSummary": rating_summary,
@@ -1766,7 +1820,7 @@ def needs_historical_context_refresh(payload: dict) -> bool:
     price_history = payload.get("priceHistory") or {}
     if not price_history:
         return True
-    return "quarterWindows" not in price_history
+    return "quarterWindows" not in price_history or "chart" not in price_history
 
 
 def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
@@ -1800,6 +1854,35 @@ def stock_price_summary(fundamental: dict) -> dict:
         "fetchedAt": fundamental.get("fetchedAt"),
         "source": fundamental.get("source") or "Yahoo Finance via yfinance",
         "cacheStatus": fundamental.get("cacheStatus"),
+    }
+
+
+def compact_trend_context(fundamental: dict) -> dict:
+    historical = fundamental.get("historicalContext") or {}
+    price_window = historical.get("priceWindow") or {}
+    snapshot = historical.get("snapshotHistory") or {}
+    return {
+        "priceChart": price_window.get("chart"),
+        "priceWindow": {
+            "status": price_window.get("status"),
+            "observationCount": price_window.get("observationCount"),
+            "minimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
+            "source": price_window.get("source"),
+            "fetchedAt": price_window.get("fetchedAt"),
+            "confidence": price_window.get("confidence"),
+            "limitations": price_window.get("limitations"),
+        },
+        "snapshotCharts": snapshot.get("trendCharts") or [],
+        "snapshotHistory": {
+            "status": snapshot.get("status"),
+            "snapshotCount": snapshot.get("snapshotCount"),
+            "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+            "source": "local fundamentals snapshots",
+            "confidence": "screening-grade"
+            if (snapshot.get("snapshotCount") or 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS
+            else "insufficient observations",
+        },
+        "policy": historical.get("policy"),
     }
 
 
@@ -2166,6 +2249,33 @@ def own_history_observation(row) -> dict:
     return {"payload": json.loads(row["payload"]), "fetched_at": row["fetched_at"]}
 
 
+def own_history_chart(metric: dict, observations: list[dict]) -> dict:
+    points = []
+    for item in observations:
+        value = numeric_metric(item["payload"], metric["key"], metric.get("positiveOnly", False))
+        if value is None:
+            continue
+        points.append({"date": item["fetched_at"], "value": value})
+    sampled = sampled_points(points, SNAPSHOT_CHART_SAMPLE_POINTS)
+    available = len(points) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS and len(sampled) >= 2
+    return {
+        "type": "fundamental_snapshot",
+        "key": metric["key"],
+        "label": metric["label"],
+        "unit": metric["unit"],
+        "status": "available" if available else "insufficient observations",
+        "points": sampled if available else [],
+        "observationCount": len(points),
+        "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+        "source": "local fundamentals snapshots",
+        "fetchedAt": points[-1]["date"] if points else None,
+        "firstObservationAt": points[0]["date"] if points else None,
+        "lastObservationAt": points[-1]["date"] if points else None,
+        "confidence": "screening-grade" if available else "insufficient observations",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+    }
+
+
 def own_history_summary(symbol: str, current_payload: dict | None = None) -> dict:
     with connect() as con:
         rows = con.execute(
@@ -2228,6 +2338,11 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
                 "dividendYield": numeric_metric(payload, "dividendYield", False),
             }
         )
+    chart_metrics = [
+        own_history_chart(metric, observations)
+        for metric in BENCHMARK_METRICS
+        if metric["key"] in OWN_HISTORY_METRIC_KEYS
+    ]
     return {
         "symbol": symbol,
         "snapshotCount": len(observations),
@@ -2235,6 +2350,7 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
         "lastSnapshotAt": observations[-1]["fetched_at"] if observations else None,
         "metrics": summaries,
         "trendRows": trend_rows,
+        "trendCharts": chart_metrics,
         "status": "insufficient history" if len(observations) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS else "usable history",
         "requirement": (
             "Own-history valuation context needs several dated observations. "
