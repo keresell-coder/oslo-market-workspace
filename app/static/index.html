@@ -53,7 +53,7 @@
             </article>
             <article class="start-card">
               <h3>Metrics used</h3>
-              <p>Price, market cap, P/E, P/B, EV/EBITDA, dividend yield, target range, screener signal, peer median comparison, and significant update status. Relative valuation requires peer, sector, own-history, and source-quality context.</p>
+              <p>Price, market cap, P/E, P/B, EV/EBITDA, dividend yield, target range, screener signal, peer context status, own-history context, and significant update status. Relative valuation requires peer, sector, own-history, and source-quality context.</p>
             </article>
             <article class="start-card">
               <h3>Data sources</h3>
@@ -61,22 +61,18 @@
             </article>
             <article class="start-card">
               <h3>Current limits</h3>
-              <p>Peer groups use local curation status, sector benchmarks are not configured, NewsWeb collection is manual, and target/rating methodology is not verified across providers.</p>
+              <p>Peer groups use local curation status, sector benchmark components are explicit but still need reviewed KPI inputs, NewsWeb collection is manual, and target/rating methodology is not verified across providers.</p>
             </article>
           </section>
         </div>
       </section>
 
       <section id="watchlist" class="panel">
-        <div class="toolbar">
-          <form id="add-watchlist-form" class="inline-form">
-            <input id="watchlist-symbol" name="symbol" placeholder="Ticker, e.g. DNB or DNB.OL" autocomplete="off" />
-            <input id="watchlist-note" name="note" placeholder="Optional note" autocomplete="off" />
-            <button type="submit">Add</button>
-          </form>
-        </div>
         <div class="section-head">
-          <h2>Core Watchlist</h2>
+          <div>
+            <h2>Core Watchlist</h2>
+            <p class="muted">Source-labeled scan only. Open row actions for fundamentals, peer context, technical detail, and source links.</p>
+          </div>
           <div class="actions">
             <button id="refresh-screener-alerts" class="secondary">Refresh RSI14</button>
             <button id="refresh-watchlist" class="secondary">Refresh</button>
@@ -84,14 +80,21 @@
         </div>
         <div id="screener-alerts" class="alert-panel"></div>
         <div id="watchlist-table" class="table-wrap"></div>
+        <details class="editor-panel add-watchlist-panel">
+          <summary>Add watchlist symbol</summary>
+          <form id="add-watchlist-form" class="inline-form">
+            <input id="watchlist-symbol" name="symbol" placeholder="Ticker, e.g. DNB or DNB.OL" autocomplete="off" />
+            <input id="watchlist-note" name="note" placeholder="Optional note" autocomplete="off" />
+            <button type="submit">Add</button>
+          </form>
+        </details>
       </section>
 
       <section id="technical" class="panel">
         <div class="section-head">
           <div>
             <h2>Technical Indicators</h2>
-            <p class="muted">Parsed from oslo-screener latest.csv. These are technical screening fields only, not investment advice.</p>
-            <p class="muted">The RSI14 Screener dashboard remains a separate tab; rows that also appear there are highlighted here.</p>
+            <p class="muted">Parsed from oslo-screener latest.csv. Source labels are technical screening fields only, not investment advice.</p>
           </div>
           <div class="actions">
             <select id="technical-universe">
@@ -103,8 +106,8 @@
         </div>
         <div id="technical-summary" class="alert-panel"></div>
         <div id="technical-errors"></div>
-        <div id="technical-guide"></div>
         <div id="technical-table" class="table-wrap"></div>
+        <div id="technical-guide"></div>
       </section>
 
       <section id="fundamentals" class="panel">
@@ -112,7 +115,6 @@
           <div>
             <h2>Fundamental Valuation Screener</h2>
             <p class="muted">Cached open/free data. Empty fields mean the source did not provide a reliable value.</p>
-            <p class="muted">No valuation flagging is shown. Own-history context is descriptive and still depends on source quality and observation count.</p>
           </div>
           <div class="actions">
             <select id="fundamental-universe">
@@ -123,14 +125,20 @@
           </div>
         </div>
         <div id="fundamental-errors"></div>
-        <div class="method-card">
-          <strong>Target-price policy</strong>
-          <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
-        </div>
-        <div class="method-card">
-          <strong>Historical context policy</strong>
-          <span>52-week price ranges come from Yahoo/yfinance daily closes when refreshed. Multiple history uses local dated snapshots and stays hidden from the Watchlist until there are enough observations.</span>
-        </div>
+        <div id="fundamentals-table" class="table-wrap"></div>
+        <details class="editor-panel info-panel">
+          <summary>Fundamentals policies and editors</summary>
+          <div class="method-card">
+            <strong>Target-price policy</strong>
+            <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
+          </div>
+          <div class="method-card">
+            <strong>Historical context policy</strong>
+            <span>52-week price ranges come from Yahoo/yfinance daily closes when refreshed. Multiple history uses local dated snapshots and stays hidden from the Watchlist until there are enough observations.</span>
+          </div>
+          <p class="muted">No valuation flagging is shown. Own-history context is descriptive and still depends on source quality and observation count.</p>
+        </details>
+        <div id="fundamental-guide"></div>
         <details class="editor-panel">
           <summary>Consensus source editor</summary>
           <form id="consensus-form" class="editor-grid">
@@ -157,7 +165,6 @@
           </form>
           <div id="consensus-editor-status" class="muted"></div>
         </details>
-        <div id="fundamentals-table" class="table-wrap"></div>
       </section>
 
       <section id="benchmarks" class="panel">

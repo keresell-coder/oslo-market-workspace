@@ -129,6 +129,284 @@ BENCHMARK_METRICS = [
 
 OWN_HISTORY_METRIC_KEYS = {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda", "dividendYield"}
 
+MINIMUM_DATA_REQUIREMENTS = {
+    "peerMetricMinimumPeers": 3,
+    "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
+    "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+    "minimumPeerStatusForDerivedScore": "reviewed",
+    "policy": (
+        "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, "
+        "own-history coverage, source quality, and sector KPI inputs meet minimum requirements."
+    ),
+}
+
+SECTOR_KPI_TEMPLATES = {
+    "shipping": [
+        {
+            "key": "nav_per_share",
+            "label": "NAV/share",
+            "unit": "local currency/share",
+            "use": "Input for P/NAV context where vessel/fleet values, debt, cash, currency, and timestamp are sourced.",
+        },
+        {
+            "key": "fleet_value",
+            "label": "Fleet value",
+            "unit": "local currency or USD",
+            "use": "Manual/source-linked vessel or fleet valuation input; never inferred from sector labels.",
+        },
+        {
+            "key": "pnAv",
+            "label": "P/NAV",
+            "unit": "x",
+            "use": "Computed only after reviewed NAV/share or equivalent NAV inputs exist.",
+        },
+    ],
+    "seafood": [
+        {
+            "key": "harvest_volume",
+            "label": "Harvest volume",
+            "unit": "tonnes",
+            "use": "Source-linked production scale context for salmon/seafood comparisons.",
+        },
+        {
+            "key": "ebit_per_kg",
+            "label": "Operational EBIT/kg",
+            "unit": "currency/kg",
+            "use": "Sector margin KPI; should come from company reports or reviewed sector source.",
+        },
+    ],
+    "offshore": [
+        {
+            "key": "backlog",
+            "label": "Order backlog",
+            "unit": "local currency or USD",
+            "use": "Contracted revenue visibility context for offshore services, drilling, and defence suppliers.",
+        },
+        {
+            "key": "fleet_utilisation",
+            "label": "Fleet/utilisation",
+            "unit": "%",
+            "use": "Manual/source-linked utilisation metric where applicable to vessel or rig businesses.",
+        },
+    ],
+    "defence": [
+        {
+            "key": "backlog",
+            "label": "Order backlog",
+            "unit": "local currency",
+            "use": "Reported order book/backlog context for defence and aerospace suppliers.",
+        },
+        {
+            "key": "book_to_bill",
+            "label": "Book-to-bill",
+            "unit": "x",
+            "use": "Order intake versus revenue context when source-linked.",
+        },
+    ],
+    "banks": [
+        {
+            "key": "roe",
+            "label": "ROE",
+            "unit": "%",
+            "use": "Bank profitability context to pair with P/B and capital quality.",
+        },
+        {
+            "key": "cet1",
+            "label": "CET1 ratio",
+            "unit": "%",
+            "use": "Bank capital strength context from reported regulatory capital data.",
+        },
+    ],
+    "real_estate": [
+        {
+            "key": "ltv",
+            "label": "LTV",
+            "unit": "%",
+            "use": "Real-estate leverage context from reported property/company data.",
+        },
+        {
+            "key": "wault",
+            "label": "WAULT",
+            "unit": "years",
+            "use": "Weighted average unexpired lease term for income-duration context.",
+        },
+    ],
+}
+
+FUNDAMENTAL_METRIC_GUIDE = [
+    {
+        "group": "Price and size",
+        "metric": "Last price",
+        "field": "price",
+        "sourceField": "currentPrice, regularMarketPrice, or previousClose from Yahoo/yfinance",
+        "shows": "Latest cached share price available from the free source.",
+        "usefulFor": "Screening row context and comparing target/source fields against the same cached price point.",
+        "caveats": "Can be delayed, stale, adjusted differently, or missing. It is not a live executable price.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Leave blank/n/a when yfinance does not provide a usable number.",
+        "placement": "default table",
+    },
+    {
+        "group": "Price and size",
+        "metric": "Market cap",
+        "field": "marketCap",
+        "sourceField": "marketCap from Yahoo/yfinance",
+        "shows": "Equity market value implied by the source share count and price.",
+        "usefulFor": "Sizing companies and spotting scale differences before peer comparison.",
+        "caveats": "Share count timing and currency mapping can differ from filings or exchange data.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Do not estimate locally unless a reviewed share-count source is added.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "TTM P/E",
+        "field": "trailingPE",
+        "sourceField": "trailingPE from Yahoo/yfinance",
+        "shows": "Price relative to trailing twelve-month earnings.",
+        "usefulFor": "Initial context for profitable, less cyclical companies when compared with peers and own history.",
+        "caveats": "Weak for losses, one-off earnings, cyclicals, banks, and asset-heavy shipping cycles.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Missing or non-positive earnings should stay n/a.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "Forward P/E",
+        "field": "forwardPE",
+        "sourceField": "forwardPE from Yahoo/yfinance",
+        "shows": "Price relative to forward earnings estimates.",
+        "usefulFor": "Estimate-backed context where analyst coverage is broad enough to review.",
+        "caveats": "Depends on third-party estimates and methodology that this app does not verify.",
+        "sourceQuality": "low to screening-grade yfinance estimate field",
+        "missingData": "Leave missing when the provider has no estimate.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "P/B",
+        "field": "priceToBook",
+        "sourceField": "priceToBook from Yahoo/yfinance",
+        "shows": "Price relative to accounting book value.",
+        "usefulFor": "Banks, insurers, asset-heavy sectors, and capital-intensive companies when paired with ROE and asset quality.",
+        "caveats": "Book value is not NAV, replacement value, or fleet value. Intangibles and accounting timing matter.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Do not use P/B as a substitute for P/NAV.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "P/NAV",
+        "field": "pnAv",
+        "sourceField": "not available from current yfinance mapping",
+        "shows": "Price relative to net asset value, often important for shipping and other asset-backed sectors.",
+        "usefulFor": "Shipping names such as HAFNI.OL and FRO.OL when NAV/fleet values are sourced and reviewed.",
+        "caveats": "NAV requires vessel/fleet values, debt, cash, and timing assumptions. This app should not infer it from generic sector labels.",
+        "sourceQuality": "missing until manually entered or source-linked",
+        "missingData": "Keep n/a until reviewed source-linked or manual NAV inputs exist.",
+        "placement": "default table as explicit missing sector gap",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "EV/EBITDA",
+        "field": "enterpriseToEbitda",
+        "sourceField": "enterpriseToEbitda from Yahoo/yfinance",
+        "shows": "Enterprise value relative to EBITDA.",
+        "usefulFor": "Capital structure-aware screening for many industrial and asset-heavy businesses.",
+        "caveats": "Lease/debt treatment, cyclicality, negative EBITDA, and one-offs can make it misleading.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Leave missing when EV or EBITDA is unavailable or unusable.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "EV/EBIT",
+        "field": "evToEbit",
+        "sourceField": "not available from current yfinance mapping",
+        "shows": "Enterprise value relative to EBIT after depreciation/amortization.",
+        "usefulFor": "Asset-heavy sectors where depreciation matters, if EBIT and EV are source-linked.",
+        "caveats": "Current app has no reliable EBIT field mapping, so no interpretation should be added yet.",
+        "sourceQuality": "missing until source-linked or computed from reviewed inputs",
+        "missingData": "Keep n/a until the source path is explicit.",
+        "placement": "default table for now; candidate for expandable detail later",
+    },
+    {
+        "group": "Earnings and yield",
+        "metric": "EPS TTM",
+        "field": "epsTrailingTwelveMonths",
+        "sourceField": "epsTrailingTwelveMonths or trailingEps from Yahoo/yfinance",
+        "shows": "Trailing earnings per share from the provider.",
+        "usefulFor": "Checking whether P/E values have a source earnings base.",
+        "caveats": "May differ from company adjusted EPS or local-currency reporting.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Leave missing when absent; do not backfill from P/E.",
+        "placement": "default table",
+    },
+    {
+        "group": "Earnings and yield",
+        "metric": "Dividend yield",
+        "field": "dividendYield",
+        "sourceField": "dividendYield from Yahoo/yfinance",
+        "shows": "Provider dividend yield, normalized to percent in this app.",
+        "usefulFor": "Income-screening context before reviewing payout, balance sheet, and cyclicality.",
+        "caveats": "Can reflect historical dividends, special dividends, or stale provider data.",
+        "sourceQuality": "screening-grade yfinance",
+        "missingData": "Missing does not mean no dividend; verify before relying on it.",
+        "placement": "default table",
+    },
+    {
+        "group": "Own history",
+        "metric": "52-week price position",
+        "field": "historicalContext.priceWindow",
+        "sourceField": "1y daily Close history from Yahoo/yfinance",
+        "shows": "Where the cached price sits inside its own 52-week daily close range.",
+        "usefulFor": "Descriptive own-history context and watchlist scanning after minimum observations.",
+        "caveats": "It is price context only, not a valuation verdict. Corporate actions and source gaps can affect history.",
+        "sourceQuality": "screening-grade yfinance with observation count",
+        "missingData": "Watchlist signal stays gated until enough closes exist.",
+        "placement": "default summary plus expandable detail",
+    },
+    {
+        "group": "Own history",
+        "metric": "Local multiple snapshots",
+        "field": "historicalContext.snapshotHistory",
+        "sourceField": "local fundamentals_snapshots created by refreshes",
+        "shows": "How current multiples compare with prior locally cached snapshots.",
+        "usefulFor": "Own-history context after repeated refreshes accumulate enough observations.",
+        "caveats": "Early history is thin and inherits yfinance source limitations.",
+        "sourceQuality": "local cache of screening-grade inputs",
+        "missingData": "Keep insufficient until the minimum snapshot count is reached.",
+        "placement": "default summary plus expandable detail",
+    },
+    {
+        "group": "Consensus refs",
+        "metric": "Target fields and reported analyst refs",
+        "field": "consensus",
+        "sourceField": "Yahoo/yfinance plus manual consensus_sources rows",
+        "shows": "Provider target range, recommendation label, and reported analyst-reference counts.",
+        "usefulFor": "Source review and comparison across provider rows when manually added.",
+        "caveats": "Counts can overlap and are not deduplicated. Recommendation weighting is not verified.",
+        "sourceQuality": "low until manually reviewed across providers",
+        "missingData": "Missing or single-provider rows should not be treated as verified consensus.",
+        "placement": "default table with editor and source notes",
+    },
+]
+
+FUNDAMENTAL_VALIDATION_FIELDS = [
+    ("Last price", "price"),
+    ("Market cap", "marketCap"),
+    ("TTM P/E", "trailingPE"),
+    ("Forward P/E", "forwardPE"),
+    ("P/B", "priceToBook"),
+    ("P/NAV", "pnAv"),
+    ("EV/EBITDA", "enterpriseToEbitda"),
+    ("EV/EBIT", "evToEbit"),
+    ("EPS TTM", "epsTrailingTwelveMonths"),
+    ("Dividend yield", "dividendYield"),
+    ("Target mean", "targetMeanPrice"),
+    ("Reported analyst refs", "numberOfAnalystOpinions"),
+]
+
 PEER_GROUP_STATUSES = {"draft", "reviewed", "trusted"}
 PEER_ROLE_LABELS = {
     "focus company",
@@ -476,9 +754,26 @@ def init_db() -> None:
                 created_at_epoch integer not null,
                 created_at text not null
             );
+
+            create table if not exists sector_kpi_inputs (
+                symbol text not null,
+                kpi_key text not null,
+                label text not null,
+                value real,
+                unit text default '',
+                period text default '',
+                status text default 'draft',
+                input_type text default 'manual',
+                source_name text default '',
+                source_url text default '',
+                note text default '',
+                updated_at text not null,
+                primary key (symbol, kpi_key)
+            );
             """
         )
         ensure_peer_group_schema(con)
+        ensure_sector_kpi_schema(con)
         now = utc_now()
         con.execute(
             "insert or ignore into watchlists(name, created_at) values (?, ?)",
@@ -610,6 +905,22 @@ def ensure_peer_group_schema(con: sqlite3.Connection) -> None:
         end
         where source = 'manual seed' and (note is null or note = '')
         """
+    )
+
+
+def ensure_sector_kpi_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "sector_kpi_inputs", "period", "text default ''")
+    ensure_column(con, "sector_kpi_inputs", "status", "text default 'draft'")
+    ensure_column(con, "sector_kpi_inputs", "input_type", "text default 'manual'")
+    ensure_column(con, "sector_kpi_inputs", "source_name", "text default ''")
+    ensure_column(con, "sector_kpi_inputs", "source_url", "text default ''")
+    ensure_column(con, "sector_kpi_inputs", "note", "text default ''")
+    ensure_column(con, "sector_kpi_inputs", "updated_at", "text")
+    con.execute("update sector_kpi_inputs set status = 'draft' where status is null or status = ''")
+    con.execute("update sector_kpi_inputs set input_type = 'manual' where input_type is null or input_type = ''")
+    con.execute(
+        "update sector_kpi_inputs set updated_at = ? where updated_at is null or updated_at = ''",
+        (utc_now(),),
     )
 
 
@@ -1521,38 +1832,19 @@ def peer_context_summary(symbol: str, focus: dict) -> dict:
     items = peer_group_items(group["group_key"])
     peer_symbols = [item["symbol"] for item in items if item["symbol"] != symbol]
     peers = [payload for payload in (cached_payload_if_present(item) for item in peer_symbols) if payload]
-    metric_candidates = [
-        metric_summary(focus, peers, metric)
-        for metric in BENCHMARK_METRICS
-        if metric["key"] in {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda"}
-    ]
-    notable = [
-        metric
-        for metric in metric_candidates
-        if metric["focusValue"] is not None and metric["peerMedian"] is not None and metric["peerCount"] >= 2
-    ]
-    notable.sort(key=lambda metric: abs(metric["vsPeerMedianPct"] or 0), reverse=True)
-    if notable:
-        metric = notable[0]
-        return {
-            "label": f"{metric['label']} vs peers",
-            "detail": f"{metric['focusValue']:.1f}{metric['unit']} / median {metric['peerMedian']:.1f}{metric['unit']}",
-            "vsPeerMedianPct": metric["vsPeerMedianPct"],
-            "peerCount": metric["peerCount"],
-            "status": group_status,
-            "groupName": group["name"],
-            "note": peer_status_note(group_status),
-            "updatedAt": group.get("updated_at"),
-        }
+    minimum_peer_count = MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"]
+    loaded_peer_note = f"{len(peers)} loaded peer row(s); minimum {minimum_peer_count} for metric context."
 
     return {
         "label": f"{group_status.title()} peer group",
-        "detail": f"{len(peer_symbols)} peers configured; load Benchmarks for context.",
+        "detail": f"{len(peer_symbols)} peers configured. {loaded_peer_note}",
         "peerCount": len(peer_symbols),
+        "loadedPeerCount": len(peers),
         "status": group_status,
         "groupName": group["name"],
         "note": peer_status_note(group_status),
         "updatedAt": group.get("updated_at"),
+        "minimumPeerCount": minimum_peer_count,
     }
 
 
@@ -1815,6 +2107,19 @@ def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
         "vsPeerMedianPct": pct_diff(focus_value, peer_median),
         "percentileInGroup": percentile_position(focus_value, all_values),
         "positionNote": metric["positionNote"],
+        "minimumDataMet": focus_value is not None and len(peer_values) >= MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
+        "minimumPeerCount": MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
+    }
+
+
+def peer_metric_coverage(focus: dict, peers: list[dict]) -> dict:
+    summaries = [metric_summary(focus, peers, metric) for metric in BENCHMARK_METRICS]
+    usable = [item for item in summaries if item.get("minimumDataMet")]
+    return {
+        "usableMetricCount": len(usable),
+        "totalMetricCount": len(summaries),
+        "minimumPeerCount": MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
+        "usableMetrics": [item["label"] for item in usable],
     }
 
 
@@ -1867,6 +2172,21 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
                 "historyMin": min(values) if values else None,
                 "historyMax": max(values) if values else None,
                 "percentileInOwnHistory": percentile_position(current, values) if len(values) >= 2 else None,
+                "minimumDataMet": len(values) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+                "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+            }
+        )
+    trend_rows = []
+    for item in observations[-8:]:
+        payload = item["payload"]
+        trend_rows.append(
+            {
+                "fetchedAt": item["fetched_at"],
+                "trailingPE": numeric_metric(payload, "trailingPE", True),
+                "forwardPE": numeric_metric(payload, "forwardPE", True),
+                "priceToBook": numeric_metric(payload, "priceToBook", True),
+                "enterpriseToEbitda": numeric_metric(payload, "enterpriseToEbitda", True),
+                "dividendYield": numeric_metric(payload, "dividendYield", False),
             }
         )
     return {
@@ -1875,11 +2195,13 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
         "firstSnapshotAt": observations[0]["fetched_at"] if observations else None,
         "lastSnapshotAt": observations[-1]["fetched_at"] if observations else None,
         "metrics": summaries,
+        "trendRows": trend_rows,
         "status": "insufficient history" if len(observations) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS else "usable history",
         "requirement": (
             "Own-history valuation context needs several dated observations. "
             "Local snapshots start accumulating when fundamentals are refreshed."
         ),
+        "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
     }
 
 
@@ -2029,6 +2351,15 @@ def historical_pricing_context(symbol: str, payload: dict) -> dict:
             "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
             "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
         },
+        "quarterlyFundamentalPlan": {
+            "status": "not implemented",
+            "label": "True quarterly fundamental windows",
+            "requirement": (
+                "Requires dated quarterly statement fields such as revenue, EBIT/EBITDA, EPS, book value, "
+                "net debt, and sector KPIs before quarterly valuation windows can be shown."
+            ),
+            "currentProxy": "Only price quarter windows are shown today from Yahoo/yfinance daily closes.",
+        },
         "policy": (
             "Historical context is descriptive only. It compares current values with own price history and local "
             "fundamentals snapshots without producing cheap, expensive, buy, sell, or hold conclusions."
@@ -2036,18 +2367,221 @@ def historical_pricing_context(symbol: str, payload: dict) -> dict:
     }
 
 
-def sector_context(symbol: str) -> dict:
+def sector_categories_for(symbol: str, payload: dict, groups: list[dict]) -> list[str]:
+    text_parts = [
+        symbol,
+        payload.get("name"),
+        payload.get("sector"),
+        payload.get("industry"),
+        *(group.get("group_key") for group in groups),
+        *(group.get("name") for group in groups),
+        *(group.get("description") for group in groups),
+    ]
+    text = " ".join(str(part or "") for part in text_parts).lower()
+    categories = []
+    if symbol in {"FRO.OL", "HAFNI.OL"} or any(token in text for token in ("shipping", "tanker", "marine transportation")):
+        categories.append("shipping")
+    if symbol == "MOWI.OL" or any(token in text for token in ("seafood", "salmon", "aquaculture", "fish farming")):
+        categories.append("seafood")
+    if symbol in {"DOFG.OL", "ODL.OL"} or any(token in text for token in ("offshore", "subsea", "drilling", "rig", "vessel")):
+        categories.append("offshore")
+    if symbol == "KOG.OL" or any(token in text for token in ("defence", "defense", "aerospace")):
+        categories.append("defence")
+    if any(token in text for token in ("bank", "financial services", "sparebank")):
+        categories.append("banks")
+    if any(token in text for token in ("real estate", "property", "reit")):
+        categories.append("real_estate")
+    return categories
+
+
+def sector_kpi_inputs_for_symbol(symbol: str) -> dict:
+    with connect() as con:
+        rows = rows_to_dicts(
+            con.execute(
+                "select * from sector_kpi_inputs where symbol = ? order by kpi_key",
+                (symbol,),
+            ).fetchall()
+        )
+    return {row["kpi_key"]: row for row in rows}
+
+
+def sector_kpi_placeholders(symbol: str, payload: dict, groups: list[dict]) -> dict:
+    categories = sector_categories_for(symbol, payload, groups)
+    existing = sector_kpi_inputs_for_symbol(symbol)
+    rows = []
+    seen = set()
+    for category in categories:
+        for template in SECTOR_KPI_TEMPLATES.get(category, []):
+            if template["key"] in seen:
+                continue
+            seen.add(template["key"])
+            stored = existing.get(template["key"], {})
+            has_value = not is_missing_metric(stored.get("value"))
+            status = (stored.get("status") or "").strip() if stored else "missing"
+            rows.append(
+                {
+                    **template,
+                    "category": category,
+                    "value": stored.get("value"),
+                    "period": stored.get("period") or "",
+                    "status": status or ("draft" if has_value else "missing"),
+                    "inputType": stored.get("input_type") or ("manual" if has_value else "missing"),
+                    "sourceName": stored.get("source_name") or "",
+                    "sourceUrl": stored.get("source_url") or "",
+                    "note": stored.get("note") or "",
+                    "updatedAt": stored.get("updated_at"),
+                    "sourceQuality": (
+                        "source-linked/manual input"
+                        if has_value
+                        else "missing until reviewed manual or source-linked input exists"
+                    ),
+                    "limitations": "This app does not infer sector KPI values from sector labels or generic yfinance fields.",
+                }
+            )
+    return {
+        "status": "not applicable" if not categories else ("missing inputs" if not any(not is_missing_metric(row.get("value")) for row in rows) else "inputs present"),
+        "categories": categories,
+        "rows": rows,
+        "policy": "Sector KPI placeholders are explicit input slots only. Missing values stay missing until manually entered or source-linked and reviewed.",
+    }
+
+
+def sector_benchmark_components(symbol: str, groups: list[dict]) -> list[dict]:
+    if not groups:
+        return [
+            {
+                "type": "Oslo peer group",
+                "status": "missing",
+                "configuredCount": 0,
+                "symbols": [],
+                "requirement": "Configure and review an Oslo peer group before this component can support benchmark context.",
+            },
+            {
+                "type": "International peer group",
+                "status": "missing",
+                "configuredCount": 0,
+                "symbols": [],
+                "requirement": "Add reviewed Nordic, European, or international peers where they are business-model relevant.",
+            },
+            {
+                "type": "Sector index/proxy",
+                "status": "missing",
+                "configuredCount": 0,
+                "symbols": [],
+                "requirement": "Optional sector index/proxy must be explicitly added as a peer item; it is never inferred from sector labels.",
+            },
+        ]
+
+    items = peer_group_items(groups[0]["group_key"])
+    status = normalize_peer_status(groups[0].get("status", "draft"))
+
+    def component(label: str, roles: set[str], requirement: str) -> dict:
+        component_items = [item for item in items if item.get("role") in roles and item.get("symbol") != symbol]
+        return {
+            "type": label,
+            "status": status if component_items else "missing",
+            "configuredCount": len(component_items),
+            "symbols": [item["symbol"] for item in component_items],
+            "requirement": requirement,
+        }
+
+    return [
+        component(
+            "Oslo peer group",
+            {"Oslo peer"},
+            "Needs reviewed business-model fit and at least three loaded peer rows before any derived peer metric is considered.",
+        ),
+        component(
+            "International peer group",
+            {"Nordic peer", "European peer", "international peer"},
+            "Use only as relative context after geography, segment mix, scale, and source coverage are reviewed.",
+        ),
+        component(
+            "Sector index/proxy",
+            {"sector index/proxy"},
+            "Optional explicit proxy/index slot. Missing is acceptable and should not be backfilled from a generic sector label.",
+        ),
+    ]
+
+
+def minimum_data_assessment(
+    group: dict | None,
+    focus: dict,
+    peers: list[dict],
+    own_history: dict,
+    kpis: dict,
+) -> dict:
+    status = normalize_peer_status(group.get("status", "draft")) if group else "missing"
+    metric_coverage = peer_metric_coverage(focus, peers)
+    price_window = (focus.get("historicalContext") or {}).get("priceWindow") or {}
+    checks = [
+        {
+            "key": "peer_status",
+            "label": "Peer group reviewed",
+            "met": status in {"reviewed", "trusted"},
+            "detail": f"Current peer status: {status}.",
+        },
+        {
+            "key": "peer_count",
+            "label": "Minimum peer rows",
+            "met": len(peers) >= MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
+            "detail": f"{len(peers)} loaded peer row(s); minimum {MINIMUM_DATA_REQUIREMENTS['peerMetricMinimumPeers']}.",
+        },
+        {
+            "key": "peer_metric_coverage",
+            "label": "Peer metric coverage",
+            "met": metric_coverage["usableMetricCount"] >= 1,
+            "detail": f"{metric_coverage['usableMetricCount']} metric(s) have focus value plus enough peer observations.",
+        },
+        {
+            "key": "price_history",
+            "label": "Price-history observations",
+            "met": (price_window.get("observationCount") or 0) >= PRICE_HISTORY_MIN_OBSERVATIONS,
+            "detail": f"{price_window.get('observationCount') or 0} daily close observation(s); minimum {PRICE_HISTORY_MIN_OBSERVATIONS}.",
+        },
+        {
+            "key": "snapshot_history",
+            "label": "Local multiple snapshots",
+            "met": (own_history.get("snapshotCount") or 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+            "detail": f"{own_history.get('snapshotCount') or 0} local snapshot(s); minimum {SNAPSHOT_HISTORY_MIN_OBSERVATIONS}.",
+        },
+        {
+            "key": "sector_kpis",
+            "label": "Sector KPI inputs",
+            "met": not kpis.get("rows") or any(row.get("status") in {"source-linked", "reviewed"} for row in kpis.get("rows", [])),
+            "detail": "Sector KPI placeholders may remain missing; source-linked/reviewed inputs are required before sector KPI-derived fields are used.",
+        },
+    ]
+    blockers = [check["label"] for check in checks if not check["met"]]
+    return {
+        "status": "not considered" if blockers else "minimum context available",
+        "valuationScoreEnabled": False,
+        "checks": checks,
+        "blockers": blockers,
+        "requirements": MINIMUM_DATA_REQUIREMENTS,
+        "policy": MINIMUM_DATA_REQUIREMENTS["policy"],
+    }
+
+
+def sector_context(symbol: str, groups: list[dict] | None = None) -> dict:
     with connect() as con:
         row = con.execute(
             "select symbol, name, exchange, sector, industry from tickers where symbol = ?",
             (symbol,),
         ).fetchone()
     payload = dict(row) if row else {"symbol": symbol}
+    groups = groups if groups is not None else peer_groups_for_symbol(symbol)
+    components = sector_benchmark_components(symbol, groups)
+    kpis = sector_kpi_placeholders(symbol, payload, groups)
     return {
         **payload,
-        "status": "not configured",
-        "message": "No Oslo sector-index or reviewed sector peer benchmark is configured yet.",
-        "requirement": "Sector context should use a reviewed Oslo sector group, official sector index, or both before any valuation score is shown.",
+        "status": "modeled" if groups else "not configured",
+        "message": "Sector benchmark model is explicit: Oslo peers, international peers, and optional sector index/proxy are separate components.",
+        "requirement": "Sector context should use reviewed peer components and source-linked sector KPIs before any derived valuation score is considered.",
+        "components": components,
+        "sectorKpis": kpis,
+        "source": "Local peer-group roles and manual/source-linked sector KPI input slots.",
+        "limitations": "No sector index/proxy is inferred automatically. Backend-assisted peer groups remain draft until reviewed.",
     }
 
 
@@ -2056,13 +2590,16 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
     groups = peer_groups_for_symbol(symbol)
     if group_key:
         groups = [group for group in groups if group["group_key"] == group_key]
+    own_history = own_history_summary(symbol)
+    sector = sector_context(symbol, groups)
     if not groups:
         return {
             "symbol": symbol,
             "groups": [],
-            "ownHistory": own_history_summary(symbol),
-            "sectorContext": sector_context(symbol),
-            "status": "no peer group",
+            "ownHistory": own_history,
+            "sectorContext": sector,
+            "minimumData": minimum_data_assessment(None, {"symbol": symbol}, [], own_history, sector.get("sectorKpis") or {}),
+            "status": "missing",
             "message": "No peer group is configured for this symbol yet.",
         }
 
@@ -2096,6 +2633,8 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
 
         peers = [row for row in rows if row.get("symbol") != symbol]
         confidence, confidence_reason = peer_confidence(group)
+        kpis = sector.get("sectorKpis") or {}
+        minimum_data = minimum_data_assessment(group, focus, peers, own_history, kpis)
         results.append(
             {
                 **group,
@@ -2103,6 +2642,7 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
                 "configuredItems": items,
                 "errors": errors,
                 "metricSummaries": [metric_summary(focus, peers, metric) for metric in BENCHMARK_METRICS],
+                "minimumData": minimum_data,
                 "coverage": {
                     "configuredPeers": len(items),
                     "loadedRows": len(rows),
@@ -2116,8 +2656,9 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
     return {
         "symbol": symbol,
         "groups": results,
-        "ownHistory": own_history_summary(symbol),
-        "sectorContext": sector_context(symbol),
+        "ownHistory": own_history,
+        "sectorContext": sector,
+        "minimumData": results[0]["minimumData"] if results else minimum_data_assessment(None, {"symbol": symbol}, [], own_history, sector.get("sectorKpis") or {}),
         "status": "benchmark context available",
         "policy": "No cheap/expensive label is produced. Metrics are descriptive until peer group, sector context, own-history coverage, and source quality are reviewed.",
     }
@@ -2288,7 +2829,16 @@ class AppHandler(SimpleHTTPRequestHandler):
                 rows.append(cached_fundamental(symbol, refresh=refresh))
             except Exception as exc:
                 errors.append({"symbol": symbol, "error": str(exc)})
-        send_json(self, {"rows": rows, "errors": errors, "sourceNotes": source_notes()})
+        send_json(
+            self,
+            {
+                "rows": rows,
+                "errors": errors,
+                "sourceNotes": source_notes(),
+                "metricGuide": FUNDAMENTAL_METRIC_GUIDE,
+                "dataValidation": fundamental_data_validation(rows),
+            },
+        )
 
     def handle_peer_groups(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
@@ -2557,8 +3107,12 @@ def source_notes() -> dict:
             "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and is not a sector, peer, or valuation verdict.",
         },
         "benchmarks": {
-            "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. New symbols can create backend-assisted draft groups from local/yfinance sector metadata.",
-            "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only. Backend-assisted groups are draft only and require business-model review; own-history context starts accumulating from local refresh snapshots.",
+            "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. Sector benchmark components now separate Oslo peers, international peers, and optional sector index/proxy roles.",
+            "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only. Backend-assisted groups are draft only and require business-model review; sector index/proxy rows are never inferred from generic sector labels.",
+        },
+        "sectorKpis": {
+            "use": "Manual/source-linked input slots for sector KPIs such as NAV/fleet values, EBIT/kg, backlog, ROE/CET1, LTV, and WAULT.",
+            "limitations": "Missing sector KPIs stay missing until explicit reviewed inputs exist. The app does not infer sector KPI values from yfinance sector labels.",
         },
         "newsweb": {
             "use": "Ticker-specific search links in the MVP.",
@@ -2568,6 +3122,82 @@ def source_notes() -> dict:
             "use": "Search links only in this MVP.",
             "limitations": "Consensus and target-price fields are not pulled automatically because there is no confirmed open public API for this use.",
         },
+    }
+
+
+def is_missing_metric(value) -> bool:
+    if value in (None, ""):
+        return True
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, (int, float)):
+        return not math.isfinite(float(value))
+    return False
+
+
+def is_shipping_context(row: dict) -> bool:
+    text = " ".join(
+        str(row.get(key) or "")
+        for key in ("symbol", "name", "sector", "industry")
+    ).lower()
+    if row.get("symbol") in {"FRO.OL", "HAFNI.OL"}:
+        return True
+    return any(token in text for token in ("shipping", "tanker", "marine transportation"))
+
+
+def fundamental_data_validation(rows: list[dict]) -> dict:
+    total = len(rows)
+    field_coverage = []
+    for label, key in FUNDAMENTAL_VALIDATION_FIELDS:
+        present_symbols = [row["symbol"] for row in rows if not is_missing_metric(row.get(key))]
+        missing_symbols = [row["symbol"] for row in rows if is_missing_metric(row.get(key))]
+        field_coverage.append(
+            {
+                "label": label,
+                "field": key,
+                "present": len(present_symbols),
+                "missing": len(missing_symbols),
+                "coveragePct": round(len(present_symbols) / total * 100, 1) if total else None,
+                "missingSymbols": missing_symbols[:12],
+            }
+        )
+
+    shipping_rows = [row for row in rows if is_shipping_context(row)]
+    shipping_gaps = []
+    for row in shipping_rows:
+        missing = []
+        if is_missing_metric(row.get("pnAv")):
+            missing.append("P/NAV")
+        if is_missing_metric(row.get("evToEbit")):
+            missing.append("EV/EBIT")
+        if missing:
+            shipping_gaps.append(
+                {
+                    "symbol": row.get("symbol"),
+                    "name": row.get("name"),
+                    "industry": row.get("industry"),
+                    "missing": missing,
+                    "decision": "NAV/fleet values and P/NAV should be manual inputs or source-linked reviewed fields first. Computed fields need explicit vessel/fleet value, net debt, currency, and timestamp inputs before they are safe to show.",
+                }
+            )
+
+    fetched_values = sorted(row.get("fetchedAt") for row in rows if row.get("fetchedAt"))
+    cache_statuses: dict[str, int] = {}
+    for row in rows:
+        status = row.get("cacheStatus") or "unknown"
+        cache_statuses[status] = cache_statuses.get(status, 0) + 1
+
+    return {
+        "rowCount": total,
+        "source": "Yahoo Finance via yfinance plus local/manual consensus rows",
+        "fetchedAtOldest": fetched_values[0] if fetched_values else None,
+        "fetchedAtNewest": fetched_values[-1] if fetched_values else None,
+        "cacheStatuses": cache_statuses,
+        "fieldCoverage": field_coverage,
+        "shippingSectorGaps": shipping_gaps,
+        "minimumDataRequirements": MINIMUM_DATA_REQUIREMENTS,
+        "defaultTableDecision": "Keep the current default table unchanged for now. P/NAV remains visible as explicit missing context for shipping and asset-backed sectors; NAV/fleet values, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and similar sector KPIs belong behind reviewed manual/source-linked fields before any computed presentation.",
+        "policy": "Validation checks source presence and mapping only. It does not create cheap, expensive, fair, neutral, buy, sell, or hold labels.",
     }
 
 

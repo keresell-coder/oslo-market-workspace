@@ -2,6 +2,7 @@ const fmt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 const pct = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 let screenerAlerts = { matches: [], bySymbol: new Map() };
 let watchlistItems = [];
+const loadedTabs = new Set();
 const peerStatuses = ["draft", "reviewed", "trusted"];
 const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer", "international peer", "sector index/proxy"];
 let loadingDepth = 0;
@@ -70,6 +71,16 @@ const technicalIndicatorGuide = [
     neutral: "20 to 25",
     notSupportive: "Below 20",
   },
+];
+const peerReviewChecklist = [
+  "business fit",
+  "geography",
+  "listing",
+  "segment mix",
+  "scale",
+  "source quality",
+  "missing sector KPIs",
+  "why each peer belongs",
 ];
 
 function value(v, suffix = "") {
@@ -177,10 +188,19 @@ function activateTab(tabName, options = {}) {
   document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === tabName));
   document.querySelectorAll(".panel").forEach((panel) => panel.classList.toggle("active", panel.id === tabName));
   if (!shouldLoad) return;
+  if (loadedTabs.has(tabName)) return;
   if (tabName === "fundamentals") loadFundamentals(false);
   if (tabName === "technical") loadTechnicalIndicators(false);
   if (tabName === "benchmarks") loadBenchmarkOptions();
   if (tabName === "sources") loadSources();
+}
+
+function markLoaded(tabName) {
+  loadedTabs.add(tabName);
+}
+
+function invalidateLoadedTabs(...tabNames) {
+  tabNames.forEach((tabName) => loadedTabs.delete(tabName));
 }
 
 async function loadWatchlist() {
@@ -207,11 +227,7 @@ async function loadWatchlist() {
         const alert = row.screenerSignal;
         return `
         <tr class="${alert ? "watchlist-hit" : ""}">
-          <td>
-            <strong>${escapeHtml(row.symbol)}</strong><br>
-            <span class="muted">${escapeHtml(row.name || "")}</span>
-            <br><span class="muted">${escapeHtml(row.sector || "")}</span>
-          </td>
+          <td>${renderWatchlistCompany(row)}</td>
           <td>${renderPriceCell(row.priceSummary || row)}</td>
           <td>${renderRsiScreenerCell(alert)}</td>
           <td>${renderTechnicalWatchlistCell(row)}</td>
@@ -247,29 +263,81 @@ async function loadWatchlist() {
       <tbody>${rows || `<tr><td colspan="11">No watchlist items yet.</td></tr>`}</tbody>
     </table>
   `;
-  document.querySelectorAll("[data-remove]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await api(`/api/watchlist?watchlist=Core%20Watchlist&symbol=${encodeURIComponent(button.dataset.remove)}`, {
-        method: "DELETE",
-      });
-      await loadWatchlist();
+}
+
+async function handleWatchlistTableClick(event) {
+  const removeButton = event.target.closest("[data-remove]");
+  if (removeButton) {
+    await api(`/api/watchlist?watchlist=Core%20Watchlist&symbol=${encodeURIComponent(removeButton.dataset.remove)}`, {
+      method: "DELETE",
     });
-  });
-  document.querySelectorAll("[data-open-fundamentals]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await openFundamentalsForSymbol(button.dataset.openFundamentals);
+    invalidateLoadedTabs("fundamentals", "technical", "benchmarks");
+    await loadWatchlist();
+    return;
+  }
+
+  const fundamentalsButton = event.target.closest("[data-open-fundamentals]");
+  if (fundamentalsButton) {
+    await openFundamentalsForSymbol(fundamentalsButton.dataset.openFundamentals);
+    return;
+  }
+
+  const benchmarksButton = event.target.closest("[data-open-benchmarks]");
+  if (benchmarksButton) {
+    await openBenchmarkForSymbol(benchmarksButton.dataset.openBenchmarks);
+    return;
+  }
+
+  const technicalButton = event.target.closest("[data-open-technical]");
+  if (technicalButton) {
+    await openTechnicalForSymbol(technicalButton.dataset.openTechnical);
+  }
+}
+
+async function handleWatchlistTableSubmit(event) {
+  if (!event.target.matches("[data-watchlist-note-form]")) return;
+  await saveWatchlistNote(event);
+}
+
+function renderWatchlistCompany(row) {
+  const note = row.note || "";
+  return `
+    <div class="company-cell">
+      <strong>${escapeHtml(row.symbol)}</strong>
+      <span class="muted">${escapeHtml(row.name || "")}</span>
+      <span class="muted">${escapeHtml(row.sector || "")}</span>
+      ${note ? `<span class="note-preview">${escapeHtml(note)}</span>` : ""}
+      <details class="compact-details note-details">
+        <summary>${note ? "Edit note" : "Add note"}</summary>
+        <form class="watchlist-note-form" data-watchlist-note-form data-symbol="${escapeHtml(row.symbol)}">
+          <textarea name="note" rows="2" placeholder="Watchlist note">${escapeHtml(note)}</textarea>
+          <div class="note-actions">
+            <button type="submit" class="secondary">Save note</button>
+            <span class="muted" data-watchlist-note-status></span>
+          </div>
+        </form>
+      </details>
+    </div>
+  `;
+}
+
+async function saveWatchlistNote(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const status = form.querySelector("[data-watchlist-note-status]");
+  const symbol = form.dataset.symbol;
+  if (status) status.textContent = "Saving...";
+  try {
+    await api("/api/watchlist", {
+      method: "POST",
+      body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note: form.elements.note.value }),
     });
-  });
-  document.querySelectorAll("[data-open-benchmarks]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await openBenchmarkForSymbol(button.dataset.openBenchmarks);
-    });
-  });
-  document.querySelectorAll("[data-open-technical]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await openTechnicalForSymbol(button.dataset.openTechnical);
-    });
-  });
+    if (status) status.textContent = "Saved.";
+    const item = watchlistItems.find((row) => row.symbol === symbol);
+    if (item) item.note = form.elements.note.value;
+  } catch (error) {
+    if (status) status.textContent = `Could not save: ${error.message}`;
+  }
 }
 
 function renderPriceCell(priceSummary) {
@@ -451,11 +519,13 @@ function renderHistoricalContext(row) {
 function renderHistoricalContextDetails(context) {
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
+  const plan = context.quarterlyFundamentalPlan || {};
   return `
     <details class="history-details">
       <summary>Price and multiple detail</summary>
       ${renderPriceHistoryDetails(priceWindow)}
       ${renderSnapshotHistoryDetails(snapshot)}
+      ${plan.label ? renderQuarterlyFundamentalPlan(plan) : ""}
       <p class="muted">${escapeHtml(context.watchlistSignal?.detail || "Needs more dated observations before stronger own-history context is shown.")}</p>
       <p class="muted">${escapeHtml(context.policy || "Descriptive context only.")}</p>
     </details>
@@ -526,8 +596,28 @@ function renderSnapshotHistoryDetails(snapshot) {
       `,
     )
     .join("");
+  const trendRows = (snapshot.trendRows || [])
+    .map(
+      (row) => `
+        <tr>
+          <td>${escapeHtml(shortDate(row.fetchedAt))}</td>
+          <td class="number">${metricValue(row.trailingPE, "x")}</td>
+          <td class="number">${metricValue(row.forwardPE, "x")}</td>
+          <td class="number">${metricValue(row.priceToBook, "x")}</td>
+          <td class="number">${metricValue(row.enterpriseToEbitda, "x")}</td>
+          <td class="number">${metricValue(row.dividendYield, "%")}</td>
+        </tr>
+      `,
+    )
+    .join("");
   return `
     <div class="history-subsection">
+      <div class="requirement-strip">
+        <span class="${(snapshot.snapshotCount || 0) >= (snapshot.minimumObservations || 5) ? "met" : "missing"}">
+          ${escapeHtml(snapshot.snapshotCount ?? 0)} / ${escapeHtml(snapshot.minimumObservations ?? 5)} local snapshots
+        </span>
+        <span>${escapeHtml(snapshot.status || "history n/a")}</span>
+      </div>
       <strong>Largest own-multiple gaps</strong>
       <div class="mini-table-wrap">
         <table class="mini-table">
@@ -543,6 +633,23 @@ function renderSnapshotHistoryDetails(snapshot) {
         </table>
       </div>
       <p class="muted">${escapeHtml(snapshot.requirement || "")}</p>
+      <strong>Snapshot trend</strong>
+      <div class="mini-table-wrap">
+        <table class="mini-table wide-mini-table">
+          <thead><tr><th>Date</th><th class="number">TTM P/E</th><th class="number">Fwd P/E</th><th class="number">P/B</th><th class="number">EV/EBITDA</th><th class="number">Div Yield</th></tr></thead>
+          <tbody>${trendRows || `<tr><td colspan="6">No dated snapshots yet.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function renderQuarterlyFundamentalPlan(plan) {
+  return `
+    <div class="method-card validation-note">
+      <strong>${escapeHtml(plan.label || "Quarterly fundamental windows")}</strong>
+      <span>${escapeHtml(plan.requirement || "")}</span>
+      <span>${escapeHtml(plan.currentProxy || "")}</span>
     </div>
   `;
 }
@@ -829,6 +936,7 @@ async function loadTechnicalIndicators(refresh = false) {
       <tbody>${rows || `<tr><td colspan="6">No technical indicator rows loaded.</td></tr>`}</tbody>
     </table>
   `;
+  markLoaded("technical");
 }
 
 function renderTechnicalMetricGroup(items, row) {
@@ -852,8 +960,9 @@ function renderTechnicalGuide() {
   const target = document.getElementById("technical-guide");
   if (!target) return;
   target.innerHTML = `
-    <section class="technical-guide">
-      <div class="benchmark-group-head">
+    <details class="technical-guide guide-panel">
+      <summary>Indicator guide and threshold notes</summary>
+      <div class="benchmark-group-head guide-panel-head">
         <div>
           <h3>Technical Indicator Guide</h3>
           <p class="muted">Common screening thresholds. Status wording is supportive, neutral, or not supportive; these are not trading instructions.</p>
@@ -892,7 +1001,7 @@ function renderTechnicalGuide() {
           </tbody>
         </table>
       </div>
-    </section>
+    </details>
   `;
 }
 
@@ -920,11 +1029,6 @@ function countTechnicalSignals(rows, signal) {
   return rows.filter((row) => String(row.signal || "").toLowerCase().includes(signal)).length;
 }
 
-function signedValue(v) {
-  if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
-  return `${v > 0 ? "+" : ""}${fmt.format(v)}`;
-}
-
 async function loadFundamentals(refresh = false) {
   const universe = document.getElementById("fundamental-universe").value;
   document.getElementById("fundamentals-table").innerHTML = renderLoadingPanel(
@@ -934,6 +1038,7 @@ async function loadFundamentals(refresh = false) {
   document.getElementById("fundamental-errors").innerHTML = data.errors?.length
     ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
     : "";
+  renderFundamentalMetricGuide(data.metricGuide || [], data.dataValidation || {});
   const rows = data.rows
     .map(
       (row) => `
@@ -986,6 +1091,191 @@ async function loadFundamentals(refresh = false) {
       </thead>
       <tbody>${rows || `<tr><td colspan="8">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
+  `;
+  markLoaded("fundamentals");
+}
+
+function renderFundamentalMetricGuide(guide, validation) {
+  const target = document.getElementById("fundamental-guide");
+  if (!target) return;
+  if (!guide.length && !validation.rowCount) {
+    target.innerHTML = "";
+    return;
+  }
+  target.innerHTML = `
+    <details class="technical-guide fundamental-guide guide-panel">
+      <summary>Metric guide and data-validation panel</summary>
+      <div class="benchmark-group-head guide-panel-head">
+        <div>
+          <h3>Fundamentals Metric Guide</h3>
+          <p class="muted">Field definitions and source checks for the metrics currently displayed in the Fundamentals table. This validates source presence only; it does not create valuation labels or investment advice.</p>
+        </div>
+        <span class="tag">${escapeHtml(validation.rowCount ?? 0)} row${validation.rowCount === 1 ? "" : "s"} checked</span>
+      </div>
+      ${renderFundamentalValidationSummary(validation)}
+      ${renderFundamentalMinimumData(validation.minimumDataRequirements || {})}
+      <details class="guide-details">
+        <summary>Metric definitions and caveats</summary>
+        <div class="table-wrap technical-guide-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>What it shows</th>
+                <th>Common use</th>
+                <th>Caveats</th>
+                <th>Source and missing data</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${guide.map(renderFundamentalGuideRow).join("")}
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details class="guide-details">
+        <summary>Current field coverage</summary>
+        ${renderFundamentalCoverage(validation.fieldCoverage || [])}
+      </details>
+      ${renderShippingSectorGaps(validation.shippingSectorGaps || [])}
+      <p class="muted">${escapeHtml(validation.defaultTableDecision || "")}</p>
+      <p class="muted">${escapeHtml(validation.policy || "")}</p>
+    </details>
+  `;
+}
+
+function renderFundamentalMinimumData(requirements) {
+  if (!requirements.policy) return "";
+  return `
+    <div class="method-card validation-note">
+      <strong>Minimum-data gate</strong>
+      <span>${escapeHtml(requirements.policy)}</span>
+      <span>Peer metric rows need at least ${escapeHtml(requirements.peerMetricMinimumPeers ?? "n/a")} peers; own price history needs ${escapeHtml(requirements.priceWindowMinimumObservations ?? "n/a")} daily closes; local multiple history needs ${escapeHtml(requirements.snapshotMinimumObservations ?? "n/a")} snapshots.</span>
+    </div>
+  `;
+}
+
+function renderFundamentalGuideRow(item) {
+  return `
+    <tr>
+      <td>
+        <strong>${escapeHtml(item.metric)}</strong><br>
+        <span class="muted">${escapeHtml(item.group || "")}</span><br>
+        <span class="muted">${escapeHtml(item.placement || "")}</span>
+      </td>
+      <td>${escapeHtml(item.shows || "")}</td>
+      <td>${escapeHtml(item.usefulFor || "")}</td>
+      <td>${escapeHtml(item.caveats || "")}</td>
+      <td>
+        <strong>${escapeHtml(item.sourceQuality || "source n/a")}</strong><br>
+        <span class="muted">${escapeHtml(item.sourceField || "")}</span><br>
+        <span class="muted">${escapeHtml(item.missingData || "")}</span>
+      </td>
+    </tr>
+  `;
+}
+
+function renderFundamentalValidationSummary(validation) {
+  const statuses = Object.entries(validation.cacheStatuses || {})
+    .map(([status, count]) => `${status}: ${count}`)
+    .join("; ");
+  const missingCritical = (validation.fieldCoverage || []).filter((item) => item.missing > 0).length;
+  return `
+    <div class="validation-grid">
+      <span>
+        <em>Source</em>
+        <strong>${escapeHtml(validation.source || "source n/a")}</strong>
+      </span>
+      <span>
+        <em>Fetched range</em>
+        <strong>${escapeHtml(shortDate(validation.fetchedAtOldest))} to ${escapeHtml(shortDate(validation.fetchedAtNewest))}</strong>
+      </span>
+      <span>
+        <em>Cache status</em>
+        <strong>${escapeHtml(statuses || "n/a")}</strong>
+      </span>
+      <span>
+        <em>Fields with gaps</em>
+        <strong>${escapeHtml(missingCritical)}</strong>
+      </span>
+    </div>
+  `;
+}
+
+function renderFundamentalCoverage(rows) {
+  return `
+    <div class="table-wrap validation-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th class="number">Present</th>
+            <th class="number">Missing</th>
+            <th class="number">Coverage</th>
+            <th>Missing symbols</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${
+            rows
+              .map(
+                (row) => `
+                  <tr>
+                    <td><strong>${escapeHtml(row.label)}</strong><br><span class="muted">${escapeHtml(row.field)}</span></td>
+                    <td class="number">${escapeHtml(row.present ?? 0)}</td>
+                    <td class="number">${escapeHtml(row.missing ?? 0)}</td>
+                    <td class="number">${row.coveragePct === null || row.coveragePct === undefined ? "n/a" : `${escapeHtml(row.coveragePct)}%`}</td>
+                    <td>${escapeHtml((row.missingSymbols || []).join(", ") || "none")}</td>
+                  </tr>
+                `,
+              )
+              .join("") || `<tr><td colspan="5">No coverage rows loaded.</td></tr>`
+          }
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderShippingSectorGaps(gaps) {
+  if (!gaps.length) {
+    return `
+      <div class="method-card validation-note">
+        <strong>Sector KPI review</strong>
+        <span>No shipping NAV/P/NAV gaps were detected in the currently loaded rows. Sector-specific fields still require reviewed manual or source-linked inputs before use.</span>
+      </div>
+    `;
+  }
+  return `
+    <details class="guide-details sector-gap-details">
+      <summary>Shipping NAV/P/NAV gaps</summary>
+      <div class="table-wrap validation-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Industry</th>
+              <th>Missing sector fields</th>
+              <th>Data decision</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${gaps
+              .map(
+                (gap) => `
+                  <tr>
+                    <td><strong>${escapeHtml(gap.symbol)}</strong><br><span class="muted">${escapeHtml(gap.name || "")}</span></td>
+                    <td>${escapeHtml(gap.industry || "industry n/a")}</td>
+                    <td>${escapeHtml((gap.missing || []).join(", ") || "n/a")}</td>
+                    <td>${escapeHtml(gap.decision || "")}</td>
+                  </tr>
+                `,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    </details>
   `;
 }
 
@@ -1097,13 +1387,6 @@ async function saveConsensusSource(event) {
   }
 }
 
-function renderConsensusStatus(consensus) {
-  if (!consensus?.sources?.length) return "consensus: missing";
-  return consensus.sources
-    .map((source) => `${source.source}: ${source.staleStatus || "unknown"}`)
-    .join("; ");
-}
-
 async function loadBenchmarkOptions() {
   if (!watchlistItems.length) {
     try {
@@ -1143,8 +1426,7 @@ async function loadBenchmark(refresh = false) {
   try {
     const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
     target.innerHTML = renderBenchmark(data);
-    bindPeerEditors();
-    bindDraftPeerGroupActions();
+    markLoaded("benchmarks");
   } catch (error) {
     target.innerHTML = `<div class="error-box">Benchmark could not load for ${escapeHtml(symbol)}: ${escapeHtml(error.message)}</div>`;
   }
@@ -1154,6 +1436,7 @@ function renderBenchmark(data) {
   if (!data.groups?.length) {
     return `
       <div class="method-card missing-peer-card">
+        <span class="signal-badge ${peerStatusClass(data.status)}">${escapeHtml(data.status || "missing")}</span>
         <strong>No peer group configured for ${escapeHtml(data.symbol)}</strong>
         <span>${escapeHtml(data.message || "Add a peer group before drawing relative valuation context.")}</span>
         <span>Use a draft group for new watchlist companies. If the symbol already belongs to an existing group, the app will reuse that group instead.</span>
@@ -1162,23 +1445,67 @@ function renderBenchmark(data) {
           <span class="muted" data-draft-peer-status></span>
         </div>
       </div>
-      ${renderSectorContext(data.sectorContext)}
-      ${renderOwnHistory(data.ownHistory)}
-    `;
-  }
+    ${renderPeerReviewChecklist()}
+    ${renderSectorContext(data.sectorContext)}
+    ${renderMinimumData(data.minimumData)}
+    ${renderOwnHistory(data.ownHistory)}
+  `;
+}
   return `
     <div class="benchmark-policy">
       <strong>${escapeHtml(data.symbol)}</strong>
       <span>${escapeHtml(data.policy || "Descriptive benchmark context only.")}</span>
     </div>
-    ${renderSectorContext(data.sectorContext)}
     ${data.groups.map(renderBenchmarkGroup).join("")}
+    ${renderMinimumData(data.minimumData)}
+    ${renderSectorContext(data.sectorContext)}
     ${renderOwnHistory(data.ownHistory)}
+    ${renderPeerReviewChecklist()}
+  `;
+}
+
+function renderPeerReviewChecklist() {
+  return `
+    <div class="method-card peer-review-checklist">
+      <strong>Peer-group research checklist</strong>
+      <div class="checklist-grid">
+        ${peerReviewChecklist.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+      </div>
+    </div>
   `;
 }
 
 function renderSectorContext(sector) {
   if (!sector) return "";
+  const components = (sector.components || [])
+    .map(
+      (component) => `
+        <article class="source-card sector-component-card">
+          <h3>${escapeHtml(component.type)}</h3>
+          <span class="signal-badge ${peerStatusClass(component.status)}">${escapeHtml(component.status || "missing")}</span>
+          <p>${escapeHtml(component.configuredCount ?? 0)} configured item(s)</p>
+          <p>${escapeHtml((component.symbols || []).join(", ") || "No explicit symbols configured")}</p>
+          <p>${escapeHtml(component.requirement || "")}</p>
+        </article>
+      `,
+    )
+    .join("");
+  const kpis = sector.sectorKpis || {};
+  const kpiRows = (kpis.rows || [])
+    .map(
+      (kpi) => `
+        <tr>
+          <td><strong>${escapeHtml(kpi.label)}</strong><br><span class="muted">${escapeHtml(kpi.category || "")}</span></td>
+          <td class="number">${metricValue(kpi.value, kpi.unit === "%" ? "%" : "")}</td>
+          <td>${escapeHtml(kpi.unit || "")}</td>
+          <td><span class="signal-badge ${kpi.status === "missing" ? "signal-draft" : "signal-neutral"}">${escapeHtml(kpi.status || "missing")}</span></td>
+          <td>${escapeHtml(kpi.inputType || "missing")}</td>
+          <td>${escapeHtml(kpi.sourceName || "source n/a")}</td>
+          <td>${escapeHtml(kpi.use || "")}</td>
+        </tr>
+      `,
+    )
+    .join("");
   return `
     <section class="benchmark-group">
       <div class="benchmark-group-head">
@@ -1197,8 +1524,50 @@ function renderSectorContext(sector) {
         <article class="source-card">
           <h3>Sector benchmark</h3>
           <p>${escapeHtml(sector.message || "No sector benchmark configured.")}</p>
+          <p>${escapeHtml(sector.source || "")}</p>
+          <p>${escapeHtml(sector.limitations || "")}</p>
         </article>
       </div>
+      <div class="source-grid compact-grid sector-component-grid">
+        ${components}
+      </div>
+      <details class="peer-details">
+        <summary>Sector KPI placeholders</summary>
+        <p class="muted">${escapeHtml(kpis.policy || "Sector KPI placeholders require reviewed manual/source-linked inputs.")}</p>
+        <div class="table-wrap benchmark-table">
+          <table>
+            <thead><tr><th>KPI</th><th class="number">Value</th><th>Unit</th><th>Status</th><th>Input</th><th>Source</th><th>Use</th></tr></thead>
+            <tbody>${kpiRows || `<tr><td colspan="7">No sector-specific KPI placeholders matched this company yet.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  `;
+}
+
+function renderMinimumData(minimumData) {
+  if (!minimumData) return "";
+  const checks = (minimumData.checks || [])
+    .map(
+      (check) => `
+        <span class="${check.met ? "met" : "missing"}">
+          <strong>${escapeHtml(check.label)}</strong>
+          <em>${escapeHtml(check.detail || "")}</em>
+        </span>
+      `,
+    )
+    .join("");
+  return `
+    <section class="benchmark-group minimum-data-card">
+      <div class="benchmark-group-head">
+        <div>
+          <h3>Minimum Data Requirements</h3>
+          <p class="muted">${escapeHtml(minimumData.policy || "")}</p>
+        </div>
+        <span class="tag">${escapeHtml(minimumData.status || "not considered")}</span>
+      </div>
+      <div class="requirement-grid">${checks}</div>
+      <p class="muted">Valuation score enabled: ${minimumData.valuationScoreEnabled ? "yes" : "no"}.</p>
     </section>
   `;
 }
@@ -1250,7 +1619,7 @@ function renderBenchmarkGroup(group) {
       </div>
       <p class="muted">${escapeHtml(group.confidenceReason)} Source: ${escapeHtml(group.source || "manual")}; updated ${escapeHtml(shortDate(group.updated_at || group.created_at))}.</p>
       ${group.curator_note ? `<p class="muted">${escapeHtml(group.curator_note)}</p>` : ""}
-      ${renderPeerGroupEditor(group)}
+      ${renderMinimumData(group.minimumData)}
       ${group.errors?.length ? `<div class="error-box">${group.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>` : ""}
       <div class="table-wrap benchmark-table">
         <table>
@@ -1260,6 +1629,7 @@ function renderBenchmarkGroup(group) {
           <tbody>${metricRows}</tbody>
         </table>
       </div>
+      ${renderPeerGroupEditor(group)}
       <details class="peer-details">
         <summary>Peer data used</summary>
         <div class="table-wrap benchmark-table">
@@ -1328,20 +1698,9 @@ function renderPeerEditorRow(row) {
   `;
 }
 
-function bindPeerEditors() {
-  document.querySelectorAll(".peer-group-form").forEach((form) => {
-    form.addEventListener("submit", savePeerGroup);
-  });
-}
-
-function bindDraftPeerGroupActions() {
-  document.querySelectorAll("[data-create-draft-peer-group]").forEach((button) => {
-    button.addEventListener("click", createDraftPeerGroup);
-  });
-}
-
 async function createDraftPeerGroup(event) {
-  const button = event.currentTarget;
+  const button = event.target.closest("[data-create-draft-peer-group]");
+  if (!button) return;
   const status = document.querySelector("[data-draft-peer-status]");
   const symbol = button.dataset.createDraftPeerGroup;
   button.disabled = true;
@@ -1367,7 +1726,8 @@ async function createDraftPeerGroup(event) {
 
 async function savePeerGroup(event) {
   event.preventDefault();
-  const form = event.currentTarget;
+  const form = event.target;
+  if (!form.matches(".peer-group-form")) return;
   const status = form.querySelector("[data-peer-editor-status]");
   status.textContent = "Saving...";
   const items = [...form.querySelectorAll("[data-peer-edit-row]")]
@@ -1450,6 +1810,17 @@ async function loadSources() {
       `,
     )
     .join("");
+  markLoaded("sources");
+}
+
+async function handleBenchmarkContentClick(event) {
+  if (!event.target.closest("[data-create-draft-peer-group]")) return;
+  await createDraftPeerGroup(event);
+}
+
+async function handleBenchmarkContentSubmit(event) {
+  if (!event.target.matches(".peer-group-form")) return;
+  await savePeerGroup(event);
 }
 
 async function boot() {
@@ -1457,6 +1828,10 @@ async function boot() {
   document.querySelectorAll("[data-start-watchlist]").forEach((button) => {
     button.addEventListener("click", () => activateTab("watchlist"));
   });
+  document.getElementById("watchlist-table").addEventListener("click", handleWatchlistTableClick);
+  document.getElementById("watchlist-table").addEventListener("submit", handleWatchlistTableSubmit);
+  document.getElementById("benchmark-content").addEventListener("click", handleBenchmarkContentClick);
+  document.getElementById("benchmark-content").addEventListener("submit", handleBenchmarkContentSubmit);
   document.getElementById("add-watchlist-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     await withLoading("Adding symbol", event.submitter, async () => {
@@ -1467,6 +1842,7 @@ async function boot() {
         body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note }),
       });
       event.target.reset();
+      invalidateLoadedTabs("fundamentals", "technical", "benchmarks");
       await loadWatchlist();
     });
   });
@@ -1491,6 +1867,7 @@ async function boot() {
     await withLoading("Refreshing fundamentals", event.currentTarget, () => loadFundamentals(true));
   });
   document.getElementById("fundamental-universe").addEventListener("change", async () => {
+    invalidateLoadedTabs("fundamentals");
     await withLoading("Loading fundamentals", null, () => loadFundamentals(false));
   });
   document.getElementById("refresh-technical").addEventListener("click", async (event) => {
@@ -1500,6 +1877,7 @@ async function boot() {
     });
   });
   document.getElementById("technical-universe").addEventListener("change", async () => {
+    invalidateLoadedTabs("technical");
     await withLoading("Loading technical indicators", null, () => loadTechnicalIndicators(false));
   });
   document.getElementById("reload-sources").addEventListener("click", async (event) => {
