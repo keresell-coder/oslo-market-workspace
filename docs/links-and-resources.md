@@ -80,6 +80,15 @@
 - Current public dashboard after refresh: `Screener data: 05 May 2026`, `Generated: 05 May 2026 18:58 UTC`, source labels BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, 111 screened rows.
 - Generation source limitations to remember: Yahoo RSS returned rate-limit errors and Oslo Bors news parsing failed for some symbols, but the screener data itself refreshed from the current CSV.
 
+## Oslo Screener Reliability Notes
+
+- `oslo-screener` default branch: `main`.
+- `oslo-screener-dashboard` default branch: `main`.
+- `oslo-screener-dashboard` published branch: `gh-pages`.
+- `oslo-screener` daily workflow verifies `latest.csv` metadata, required columns, and non-empty rows before publishing.
+- `oslo-screener-dashboard` daily workflow runs at 09:30 UTC and 12:30 UTC weekdays, verifies generated HTML, and displays `latest.csv` source-generation freshness from `generated_at`.
+- Optional cross-repo immediate refresh path: configure `DASHBOARD_WORKFLOW_TOKEN` in `oslo-screener` repo secrets so the daily screener deploy can dispatch `oslo-screener-dashboard` after the CSV publishes.
+
 ## External Sources Considered But Not Automated
 
 - TradingView analyst/target-price pages

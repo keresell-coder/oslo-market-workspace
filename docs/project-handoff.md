@@ -47,6 +47,8 @@ Dashboard source repository:
 https://github.com/keresell-coder/oslo-screener-dashboard
 ```
 
+Dashboard default branch is now `main`; published site content is served from `gh-pages`.
+
 The existing Oslo Screener repo/project should not be edited unless explicitly requested. This project only embeds/parses the published dashboard.
 
 Published Oslo Screener technical CSV:
@@ -107,6 +109,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - RSI14 screener dashboard:
   - embedded from `https://keresell-coder.github.io/oslo-screener-dashboard/`
   - refreshed to 05 May 2026 after the dashboard `gh-pages` branch lagged the current `latest.csv`
+  - now renders `latest.csv` source-generation freshness from the CSV metadata header
+  - dashboard workflow runs at 09:30 UTC and 12:30 UTC weekdays, after the screener producer, with manual dispatch support
   - source labels remain external screener labels only, not app advice
 - Significant event infrastructure:
   - `significant_events` table
@@ -125,6 +129,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Sector KPI values stay missing in benchmark output until reviewed/trusted manual or source-linked inputs include source context.
 - Technical BUY/SELL labels are external screener CSV signal names, not app advice.
 - The Oslo Screener CSV and the separate dashboard HTML can become stale independently. If the RSI14 tab date is old, compare `https://keresell-coder.github.io/oslo-screener/latest.csv` with `https://keresell-coder.github.io/oslo-screener-dashboard/` and check the dashboard repo default branch plus `gh-pages` deployment.
+- `oslo-screener` daily workflow now verifies `latest.csv` metadata/columns/rows before publishing and can trigger dashboard refresh if `DASHBOARD_WORKFLOW_TOKEN` is configured in GitHub secrets.
 - Compact chart lines are descriptive context only. Price charts use sampled Yahoo/yfinance daily closes and local own-multiple charts use `fundamentals_snapshots`; both stay gated when observation counts are below the configured minimums.
 
 ## Current Running Server Notes
@@ -181,6 +186,13 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Refreshed and published the dashboard to `gh-pages`; the public page now shows **Screener data: 05 May 2026** and **Generated: 05 May 2026 18:58 UTC**.
 - Fast-forwarded the dashboard default branch to the fixed `main` workflow state so future scheduled runs should update the served Pages branch.
 - Source-news fetches during generation logged Yahoo RSS rate limits and Oslo Bors parse failures; the dashboard keeps those limitations visible.
+
+## Completed Reliability Pass
+
+- Updated `oslo-screener` workflow reliability: concurrency, timeouts, `latest.csv` verification, safer bot push flow, optional dashboard dispatch trigger, and `.DS_Store` cleanup.
+- Updated `oslo-screener-dashboard` workflow reliability: default branch set to `main`, later primary schedule plus backup schedule, concurrency, HTML verification, explicit `Pillow` dependency, and source freshness display.
+- Published regenerated dashboard content to `gh-pages`.
+- Verification passed for screener compile/tests, dashboard compile/generation, generated HTML checks, GitHub branch state, web-app API checks, and Safari launch.
 
 ## Next Sprint Brief
 

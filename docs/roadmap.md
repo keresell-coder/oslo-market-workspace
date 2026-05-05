@@ -43,6 +43,7 @@ Important current limitations:
 - Automated NewsWeb/event collection is not implemented.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
+- Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
 
 Continuation guardrails:
 
@@ -222,6 +223,30 @@ Verified:
 - Confirmed the GitHub Pages build for the refreshed `gh-pages` commit completed successfully.
 - Ran the README syntax/API checks.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
+
+### Oslo Screener Reliability Pass
+
+- Changed `oslo-screener-dashboard` repository default branch from the old setup branch to `main`.
+- Hardened `oslo-screener` workflows:
+  - daily and weekly jobs now use concurrency and timeouts
+  - daily output verifies `latest.csv` metadata, required columns, and row count before publish
+  - bot commits pull/rebase before push to reduce scheduled-job write conflicts
+  - daily deploy can trigger dashboard refresh when `DASHBOARD_WORKFLOW_TOKEN` is configured
+  - tracked `.DS_Store` was removed and ignored
+- Hardened `oslo-screener-dashboard` workflows:
+  - scheduled later at 09:30 UTC with a 12:30 UTC backup run
+  - supports manual `workflow_dispatch` and `repository_dispatch`
+  - verifies generated dashboard HTML before deploy
+  - publishes source `generated_at` freshness in the dashboard header and source-quality block
+  - keeps source-news failures visible without blocking fresh screener data
+- Published the regenerated dashboard to `gh-pages` so the embedded RSI14 tab has the freshness display immediately.
+
+Verified:
+
+- `oslo-screener`: Python compile and `pytest` suite, 23 tests passing.
+- `oslo-screener-dashboard`: Python compile, local dashboard generation, icon generation, generated HTML checks, and public Pages deployment.
+- GitHub API shows both `oslo-screener` and `oslo-screener-dashboard` default branch as `main`.
+- Web-app README API checks, RSI14 parser refresh, and Safari launch.
 
 ## Next Sprint
 

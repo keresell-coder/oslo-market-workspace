@@ -137,6 +137,15 @@ After each completed task, update the relevant docs so they reflect what changed
 - Yahoo RSS and Oslo Bors news subfetches had rate-limit/source parse failures during generation; those limitations are visible in the dashboard source notes and do not change the screener data freshness.
 - Verified the public dashboard URL, GitHub Pages deployment success, README API checks, and Safari launch.
 
+**Oslo Screener Reliability Pass**
+
+- Set `oslo-screener-dashboard` default branch to `main` so scheduled workflows run from the intended branch.
+- Hardened `oslo-screener` daily/weekly workflows with concurrency, timeouts, `latest.csv` metadata/row verification, safer `git pull --rebase` before bot pushes, and optional dashboard workflow triggering when `DASHBOARD_WORKFLOW_TOKEN` is configured.
+- Removed tracked `.DS_Store` from `oslo-screener` and ignored it going forward.
+- Hardened `oslo-screener-dashboard` with later 09:30 UTC and backup 12:30 UTC weekday schedules, concurrency, output verification, `Pillow` in requirements, and dashboard source freshness rendering from the `latest.csv` `generated_at` metadata.
+- Published the regenerated dashboard to `gh-pages`; the RSI14 tab should now show both the screener data date and source-generation freshness.
+- Verified screener compile/tests, dashboard compile/generation, workflow YAML parsing, GitHub default branches, public dashboard output, web-app API checks, and Safari launch.
+
 **Reviewed Sector KPI Inputs And Benchmark Polish**
 
 - Added `/api/sector-kpi-inputs` for saving sector KPI input rows with value, unit/currency, period, source name, source URL, note, input type, and review status.
