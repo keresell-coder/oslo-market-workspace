@@ -24,6 +24,7 @@
       <button class="tab active" data-tab="start">Start</button>
       <button class="tab" data-tab="watchlist">Watchlist</button>
       <button class="tab" data-tab="fundamentals">Fundamentals</button>
+      <button class="tab" data-tab="own-history">Own history</button>
       <button class="tab" data-tab="technical">Technical indicators</button>
       <button class="tab" data-tab="benchmarks">Benchmarks</button>
       <button class="tab" data-tab="dashboard">RSI14 screener</button>
@@ -130,47 +131,114 @@
           <summary>Fundamentals policies and editors</summary>
           <div class="method-card">
             <strong>Target-price policy</strong>
-            <span>Targets shown here are Yahoo/yfinance fields only. Recommendation weighting and consensus methodology are not verified in this MVP, so targets are shown as source data, not conclusions.</span>
+            <span>Targets and rating labels are provider/source rows. Yahoo/yfinance rows are not verified consensus, analyst counts may overlap, and the app does not produce weighted BUY/HOLD/SELL recommendations.</span>
           </div>
-          <div class="method-card">
-            <strong>Historical context policy</strong>
-            <span>52-week price ranges come from Yahoo/yfinance daily closes when refreshed. Multiple history uses local dated snapshots and stays hidden from the Watchlist until there are enough observations.</span>
-          </div>
-          <p class="muted">No valuation flagging is shown. Own-history context is descriptive and still depends on source quality and observation count.</p>
+          <p class="muted">No valuation flagging is shown. Own-history context has its own tab so the Fundamentals matrix stays focused on current source fields.</p>
         </details>
         <div id="fundamental-guide"></div>
         <details class="editor-panel">
-          <summary>Consensus source editor</summary>
-          <form id="consensus-form" class="editor-grid">
-            <input id="consensus-symbol" placeholder="Ticker, e.g. MOWI.OL" autocomplete="off" />
-            <input id="consensus-source" placeholder="Source, e.g. MarketScreener" autocomplete="off" />
-            <input id="consensus-target" placeholder="Target mean" inputmode="decimal" />
-            <input id="consensus-high" placeholder="Target high" inputmode="decimal" />
-            <input id="consensus-low" placeholder="Target low" inputmode="decimal" />
-            <input id="consensus-analysts" placeholder="Analyst count" inputmode="decimal" />
-            <select id="consensus-recommendation">
-              <option value="">Recommendation</option>
-              <option value="buy">BUY</option>
-              <option value="hold">HOLD</option>
-              <option value="sell">SELL</option>
-            </select>
-            <select id="consensus-confidence">
-              <option value="manual">manual</option>
-              <option value="reviewed">reviewed</option>
-              <option value="verified">verified</option>
-            </select>
-            <input id="consensus-url" placeholder="Source URL" autocomplete="off" />
-            <input id="consensus-note" placeholder="Method note" autocomplete="off" />
-            <button type="submit">Save source</button>
+          <summary>Consensus/source row editor</summary>
+          <form id="consensus-form" class="consensus-form">
+            <fieldset class="consensus-fieldset">
+              <legend>Source row</legend>
+              <label class="form-field">Ticker
+                <input id="consensus-symbol" placeholder="MOWI.OL" autocomplete="off" />
+              </label>
+              <label class="form-field">Source
+                <input id="consensus-source" placeholder="MarketScreener, broker note, company IR" autocomplete="off" />
+              </label>
+              <label class="form-field">Row type
+                <select id="consensus-source-type">
+                  <option value="manual-source">manual source row</option>
+                  <option value="manual-override">manual override</option>
+                  <option value="provider-row">provider row</option>
+                </select>
+              </label>
+              <label class="form-field">Review status
+                <select id="consensus-review-status">
+                  <option value="draft">draft</option>
+                  <option value="reviewed">reviewed</option>
+                  <option value="verified">verified</option>
+                </select>
+              </label>
+              <label class="form-field">Source URL
+                <input id="consensus-url" placeholder="https://..." autocomplete="off" />
+              </label>
+              <label class="form-field">As-of date
+                <input id="consensus-as-of" type="date" />
+              </label>
+            </fieldset>
+            <fieldset class="consensus-fieldset">
+              <legend>Provider values</legend>
+              <label class="form-field">Target mean
+                <input id="consensus-target" inputmode="decimal" />
+              </label>
+              <label class="form-field">Target high
+                <input id="consensus-high" inputmode="decimal" />
+              </label>
+              <label class="form-field">Target low
+                <input id="consensus-low" inputmode="decimal" />
+              </label>
+              <label class="form-field">Currency
+                <input id="consensus-currency" placeholder="NOK" autocomplete="off" />
+              </label>
+              <label class="form-field">Reported analyst refs
+                <input id="consensus-analysts" inputmode="decimal" />
+              </label>
+              <label class="form-field">Raw rating label
+                <select id="consensus-recommendation">
+                  <option value="">missing</option>
+                  <option value="buy">BUY source label</option>
+                  <option value="hold">HOLD source label</option>
+                  <option value="sell">SELL source label</option>
+                </select>
+              </label>
+            </fieldset>
+            <fieldset class="consensus-fieldset">
+              <legend>Quality notes</legend>
+              <label class="form-field">Confidence
+                <select id="consensus-confidence">
+                  <option value="manual">manual</option>
+                  <option value="reviewed">reviewed</option>
+                  <option value="verified">verified</option>
+                </select>
+              </label>
+              <label class="form-field form-span-2">Method note
+                <textarea id="consensus-note" rows="2" placeholder="How the source defines target/rating fields"></textarea>
+              </label>
+              <label class="form-field form-span-2">Limitations
+                <textarea id="consensus-limitations" rows="2" placeholder="Coverage gaps, overlapping analyst counts, stale data, or unclear methodology"></textarea>
+              </label>
+              <button type="submit">Save source row</button>
+            </fieldset>
           </form>
           <div id="consensus-editor-status" class="muted"></div>
+          <div id="consensus-source-table" class="table-wrap consensus-source-table"></div>
         </details>
+      </section>
+
+      <section id="own-history" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Own History</h2>
+            <p class="muted">Descriptive price and local snapshot context only. Charts stay source-labeled and observation-gated.</p>
+          </div>
+          <div class="actions">
+            <select id="own-history-universe">
+              <option value="watchlist">Watchlist</option>
+              <option value="all">Ticker database</option>
+            </select>
+            <button id="refresh-own-history">Refresh data</button>
+          </div>
+        </div>
+        <div id="own-history-errors"></div>
+        <div id="own-history-table" class="table-wrap"></div>
       </section>
 
       <section id="benchmarks" class="panel">
         <div class="section-head">
           <div>
-            <h2>Peer, Sector & Own-History Benchmarks</h2>
+            <h2>Peer & Sector Benchmarks</h2>
             <p class="muted">Descriptive comparison only. No valuation verdict is produced.</p>
           </div>
           <form id="benchmark-form" class="actions">

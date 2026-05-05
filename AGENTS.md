@@ -38,7 +38,7 @@ If a stale local server holds the port, stop the old Python process or run a tem
 
 - `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, compact price/own-history chart payloads, screener parsing, consensus/event APIs.
 - `app/static/index.html`: single-page app shell.
-- `app/static/app.js`: frontend data loading and rendering.
+- `app/static/app.js`: frontend data loading and rendering; Own History reuses `/api/fundamentals` rather than a separate backend endpoint.
 - `app/static/styles.css`: UI styling.
 - `app/data/oslo_workspace.sqlite3`: local runtime database, ignored by git.
 - `docs/roadmap.md`: sprint plan.
@@ -84,20 +84,22 @@ This should leave the app available in Safari at `http://127.0.0.1:8765` unless 
 
 ## Current State Notes
 
-Compact Charts And Trends is complete:
+Consensus Quality is complete:
 
-- price trend charts use sampled Yahoo/yfinance 1-year daily closes and the existing 120-observation gate
-- own-multiple trend charts use local `fundamentals_snapshots` and the existing 5-snapshot gate
-- Watchlist trend visuals stay behind expandable Trend preview rows
-- Fundamentals and Benchmarks show chart context only as descriptive, source-labeled screening data
-- missing chart inputs stay gated/missing
+- Yahoo/yfinance target and rating fields are labeled as provider-row data, not verified consensus
+- consensus/source rows have row type, review status, target currency, as-of date, source URL, method note, and limitation note fields
+- Fundamentals has a grouped consensus/source row editor and a stored source-row table
+- Watchlist and Fundamentals use provider/source row wording and raw rating labels
+- rating summaries count raw B/H/S provider rows but do not create a majority or analyst-weighted BUY/HOLD/SELL recommendation
+- reported analyst refs may overlap across providers and are not deduplicated
+- Own History remains a separate tab between Fundamentals and Technical indicators
+- Technical indicators and `/api/technical-indicators` remain separate from the RSI14 screener dashboard tab
 
 ## Next Sprint Priority
 
-Consensus Quality:
+NewsWeb And Event Monitoring:
 
-- improve consensus table/editor if needed
-- add manual override fields for unreliable free-API values
-- consider multiple consensus providers only if reliable and permitted
-- preserve caveats about overlapping analyst counts across providers
+- keep watchlist-first filtering
+- confirm reliable/permitted NewsWeb or Euronext source handling before automation
+- add event categories and a daily digest only after source path is clear
 - keep all output descriptive and non-advisory

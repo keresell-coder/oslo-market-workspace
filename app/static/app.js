@@ -282,6 +282,7 @@ function activateTab(tabName, options = {}) {
   if (!shouldLoad) return;
   if (loadedTabs.has(tabName)) return;
   if (tabName === "fundamentals") loadFundamentals(false);
+  if (tabName === "own-history") loadOwnHistory(false);
   if (tabName === "technical") loadTechnicalIndicators(false);
   if (tabName === "benchmarks") loadBenchmarkOptions();
   if (tabName === "sources") loadSources();
@@ -363,7 +364,7 @@ async function handleWatchlistTableClick(event) {
     await api(`/api/watchlist?watchlist=Core%20Watchlist&symbol=${encodeURIComponent(removeButton.dataset.remove)}`, {
       method: "DELETE",
     });
-    invalidateLoadedTabs("fundamentals", "technical", "benchmarks");
+    invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks");
     await loadWatchlist();
     return;
   }
@@ -371,6 +372,12 @@ async function handleWatchlistTableClick(event) {
   const fundamentalsButton = event.target.closest("[data-open-fundamentals]");
   if (fundamentalsButton) {
     await openFundamentalsForSymbol(fundamentalsButton.dataset.openFundamentals);
+    return;
+  }
+
+  const ownHistoryButton = event.target.closest("[data-open-own-history]");
+  if (ownHistoryButton) {
+    await openOwnHistoryForSymbol(ownHistoryButton.dataset.openOwnHistory);
     return;
   }
 
@@ -469,7 +476,6 @@ function renderFundamentalHighlight(row) {
 
 function renderOwnHistoryWatchlistCell(row) {
   const history = row.ownHistorySignal || {};
-  const trend = row.trendContext || {};
   let label = history.label || "Own history";
   let detail = "Needs more observations";
   let klass = "signal-draft";
@@ -482,17 +488,12 @@ function renderOwnHistoryWatchlistCell(row) {
   }
   return `
     <div class="signal-cell watchlist-history-cell">
-      <button class="summary-button compact-summary" data-open-fundamentals="${escapeHtml(row.symbol)}">
+      <button class="summary-button compact-summary" data-open-own-history="${escapeHtml(row.symbol)}">
         <span class="signal-badge ${klass}">${escapeHtml(label)}</span>
         <strong>${escapeHtml(detail)}</strong>
         <span class="muted">${escapeHtml(history.confidence || "source-labeled screening data")}</span>
+        <span class="muted">Open Own history</span>
       </button>
-      <details class="compact-details trend-details">
-        <summary>Trend preview</summary>
-        ${renderSparkline(trend.priceChart, { label: "1y price" })}
-        ${renderSnapshotTrendCharts(trend.snapshotCharts, { limit: 2 })}
-        <p class="muted">${escapeHtml(trend.policy || "Descriptive context only; no valuation verdict.")}</p>
-      </details>
     </div>
   `;
 }
@@ -512,10 +513,12 @@ function renderPeerContext(row) {
 function renderConsensusTargetCell(row) {
   const target = row.consensusTargetSummary || {};
   const method = target.method || "Open the Fundamentals tab to inspect target source details.";
+  const sourceRows = target.sourceRows ?? target.providerRows ?? 0;
+  const status = target.status || "source rows n/a";
   return `
     <div class="consensus-cell">
       <button class="consensus-target" data-open-fundamentals="${escapeHtml(row.symbol)}" title="${escapeHtml(method)}">
-        <span>Consensus target</span>
+        <span>Provider target</span>
         <strong>${value(target.target)}</strong>
         <em class="${targetUpsideClass(target.targetUpsidePct)}">${signedPctValue(target.targetUpsidePct)}</em>
       </button>
@@ -523,7 +526,8 @@ function renderConsensusTargetCell(row) {
         <span class="tag">Low ${value(target.targetLow)}</span>
         <span class="tag">High ${value(target.targetHigh)}</span>
       </div>
-      <span class="muted">${escapeHtml(target.providerRows ?? 0)} provider row${target.providerRows === 1 ? "" : "s"}; overlaps not deduped</span>
+      <span class="muted">${escapeHtml(sourceRows)} source row${sourceRows === 1 ? "" : "s"}; ${escapeHtml(status)}</span>
+      <span class="muted">Provider refs only; overlaps not deduped</span>
     </div>
   `;
 }
@@ -538,11 +542,11 @@ function renderConsensusRatingCell(row) {
     : "analyst refs n/a";
   return `
     <div class="signal-cell">
-      <span class="signal-badge ${recommendationClass(label)}">${escapeHtml(label)}</span>
+      <span class="signal-badge signal-source">${escapeHtml(label)}</span>
       <strong>${escapeHtml(analystText)}</strong>
       <span class="muted">${escapeHtml(countLine)}</span>
       <span class="muted">${escapeHtml(rating.confidence || "low confidence")} / ${escapeHtml(rating.providerRows ?? 0)} provider row${rating.providerRows === 1 ? "" : "s"}</span>
-      <span class="muted">Not verified weighted advice</span>
+      <span class="muted">Raw source labels only; no weighted advice</span>
     </div>
   `;
 }
@@ -579,54 +583,94 @@ function historySignalClass(signal) {
   return "signal-neutral";
 }
 
-function renderHistoricalContext(row) {
+function ownHistoryRangeText(priceWindow, row) {
+  return priceWindow.low !== null && priceWindow.low !== undefined && priceWindow.high !== null && priceWindow.high !== undefined
+    ? `${value(priceWindow.low)}-${value(priceWindow.high)} ${priceWindow.currency || row.currency || ""}`
+    : "52w range n/a";
+}
+
+function ownHistoryPositionText(priceWindow) {
+  return priceWindow.rangePositionPct === null || priceWindow.rangePositionPct === undefined
+    ? "n/a"
+    : `${pct.format(priceWindow.rangePositionPct)}%`;
+}
+
+function renderOwnHistorySignalCell(row) {
   const context = row.historicalContext || {};
   const signal = context.watchlistSignal || {};
-  const priceWindow = context.priceWindow || {};
-  const snapshot = context.snapshotHistory || {};
-  const priceRange =
-    priceWindow.low !== null && priceWindow.low !== undefined && priceWindow.high !== null && priceWindow.high !== undefined
-      ? `${value(priceWindow.low)}-${value(priceWindow.high)} ${priceWindow.currency || row.currency || ""}`
-      : "52w range n/a";
-  const rangePosition =
-    priceWindow.rangePositionPct === null || priceWindow.rangePositionPct === undefined
-      ? "n/a"
-      : `${pct.format(priceWindow.rangePositionPct)}%`;
-  const priceObs = priceWindow.observationCount
-    ? `${priceWindow.observationCount} closes`
-    : "price obs n/a";
-  const snapshotCount = snapshot.snapshotCount ?? 0;
   return `
     <div class="signal-cell history-cell">
       <span class="signal-badge ${historySignalClass(signal)}">${escapeHtml(signal.label || "Own history")}</span>
-      <div class="history-summary-grid">
+      <strong>${escapeHtml(signal.detail || "Needs more dated observations before stronger own-history context is shown.")}</strong>
+      <span class="muted">${escapeHtml(signal.confidence || "source-labeled screening data")}</span>
+      <span class="muted">${escapeHtml(signal.source || "Yahoo/yfinance and local snapshots")}</span>
+    </div>
+  `;
+}
+
+function renderOwnHistoryPriceCell(row) {
+  const context = row.historicalContext || {};
+  const priceWindow = context.priceWindow || {};
+  const priceRange = ownHistoryRangeText(priceWindow, row);
+  const rangePosition = ownHistoryPositionText(priceWindow);
+  const priceObs = priceWindow.observationCount ? `${priceWindow.observationCount} closes` : "price obs n/a";
+  return `
+    <div class="signal-cell history-cell">
+      <div class="history-summary-grid single-history-summary">
         <span>
           <em>52w position</em>
           <strong>${escapeHtml(rangePosition)}</strong>
           <small>${escapeHtml(priceRange)}</small>
         </span>
-        <span>
-          <em>Snapshots</em>
-          <strong>${escapeHtml(snapshotCount)} obs</strong>
-          <small>${escapeHtml(snapshot.status || "history n/a")}</small>
-        </span>
       </div>
       <div class="compact-trend-row">
         ${renderSparkline(priceWindow.chart, { label: "1y price trend" })}
       </div>
-      <span class="muted">${escapeHtml(priceObs)}; ${escapeHtml(priceWindow.confidence || snapshot.metrics?.[0]?.confidence || "screening-grade")}</span>
-      ${renderHistoricalContextDetails(context)}
+      <span class="muted">${escapeHtml(priceObs)}; ${escapeHtml(priceWindow.confidence || "screening-grade")}</span>
     </div>
   `;
 }
 
-function renderHistoricalContextDetails(context) {
+function renderOwnHistorySnapshotCell(row) {
+  const context = row.historicalContext || {};
+  const snapshot = context.snapshotHistory || {};
+  const snapshotCount = snapshot.snapshotCount ?? 0;
+  const gapRows = (snapshot.largestGaps || [])
+    .slice(0, 2)
+    .map(
+      (metric) => `
+        <span class="metric-line">
+          <span>${escapeHtml(metric.label)}</span>
+          <b>${signedPctValue(metric.vsHistoryMedianPct)}</b>
+        </span>
+      `,
+    )
+    .join("");
+  return `
+    <div class="signal-cell history-cell">
+      <div class="history-summary-grid single-history-summary">
+        <span>
+          <em>Local snapshots</em>
+          <strong>${escapeHtml(snapshotCount)} obs</strong>
+          <small>${escapeHtml(snapshot.status || "history n/a")}</small>
+        </span>
+      </div>
+      <div class="metric-group own-gap-list">
+        ${gapRows || `<span class="muted">Need more local snapshots for own-multiple gaps.</span>`}
+      </div>
+      ${renderSnapshotTrendCharts(snapshot.trendCharts, { limit: 2 })}
+    </div>
+  `;
+}
+
+function renderOwnHistoryDetailCell(row) {
+  const context = row.historicalContext || {};
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
   const plan = context.quarterlyFundamentalPlan || {};
   return `
     <details class="history-details">
-      <summary>Price and multiple detail</summary>
+      <summary>Full detail</summary>
       ${renderPriceHistoryDetails(priceWindow)}
       ${renderSnapshotHistoryDetails(snapshot)}
       ${plan.label ? renderQuarterlyFundamentalPlan(plan) : ""}
@@ -768,6 +812,20 @@ async function openFundamentalsForSymbol(symbol) {
   await loadFundamentals(false);
   const target = Array.from(document.querySelectorAll("[data-fundamental-symbol]")).find(
     (row) => row.dataset.fundamentalSymbol === symbol,
+  );
+  if (!target) return;
+  document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
+  target.classList.add("row-focus");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function openOwnHistoryForSymbol(symbol) {
+  activateTab("own-history", { load: false });
+  const universe = document.getElementById("own-history-universe");
+  if (universe) universe.value = "watchlist";
+  await loadOwnHistory(false);
+  const target = Array.from(document.querySelectorAll("[data-own-history-symbol]")).find(
+    (row) => row.dataset.ownHistorySymbol === symbol,
   );
   if (!target) return;
   document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
@@ -1164,7 +1222,6 @@ async function loadFundamentals(refresh = false) {
           ["EPS TTM", value(row.epsTrailingTwelveMonths)],
           ["Div yield", value(row.dividendYield, "%")],
         ])}</td>
-        <td>${renderHistoricalContext(row)}</td>
         <td>${renderFundamentalConsensus(row)}</td>
         <td>${renderFundamentalSource(row)}</td>
         <td>${renderFundamentalLinks(row)}</td>
@@ -1179,7 +1236,6 @@ async function loadFundamentals(refresh = false) {
         <col class="fund-col-price">
         <col class="fund-col-multiples">
         <col class="fund-col-earnings">
-        <col class="fund-col-history">
         <col class="fund-col-consensus">
         <col class="fund-col-source">
         <col class="fund-col-links">
@@ -1190,16 +1246,85 @@ async function loadFundamentals(refresh = false) {
           <th>Price & size</th>
           <th>Valuation multiples</th>
           <th>Earnings & yield</th>
-          <th>Own history</th>
           <th>Consensus refs</th>
           <th>Source</th>
           <th>Links</th>
         </tr>
       </thead>
-      <tbody>${rows || `<tr><td colspan="8">No fundamentals loaded.</td></tr>`}</tbody>
+      <tbody>${rows || `<tr><td colspan="7">No fundamentals loaded.</td></tr>`}</tbody>
     </table>
   `;
+  await loadConsensusRows();
   markLoaded("fundamentals");
+}
+
+async function loadOwnHistory(refresh = false) {
+  const universe = document.getElementById("own-history-universe").value;
+  document.getElementById("own-history-table").innerHTML = renderLoadingPanel(
+    refresh ? "Refreshing own history" : "Loading own history",
+  );
+  const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
+  document.getElementById("own-history-errors").innerHTML = data.errors?.length
+    ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
+    : "";
+  const rows = data.rows
+    .map(
+      (row) => `
+      <tr data-own-history-symbol="${escapeHtml(row.symbol)}">
+        <td>${renderFundamentalCompany(row)}</td>
+        <td>${renderOwnHistorySignalCell(row)}</td>
+        <td>${renderOwnHistoryPriceCell(row)}</td>
+        <td>${renderOwnHistorySnapshotCell(row)}</td>
+        <td>${renderOwnHistorySourceCell(row)}</td>
+        <td>${renderOwnHistoryDetailCell(row)}</td>
+      </tr>
+    `,
+    )
+    .join("");
+  document.getElementById("own-history-table").innerHTML = `
+    <table class="own-history-table">
+      <colgroup>
+        <col class="own-col-company">
+        <col class="own-col-signal">
+        <col class="own-col-price">
+        <col class="own-col-snapshot">
+        <col class="own-col-source">
+        <col class="own-col-detail">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Context signal</th>
+          <th>Price history</th>
+          <th>Local snapshots</th>
+          <th>Source / gate</th>
+          <th>Detail</th>
+        </tr>
+      </thead>
+      <tbody>${rows || `<tr><td colspan="6">No own-history rows loaded.</td></tr>`}</tbody>
+    </table>
+  `;
+  markLoaded("own-history");
+}
+
+function renderOwnHistorySourceCell(row) {
+  const context = row.historicalContext || {};
+  const priceWindow = context.priceWindow || {};
+  const snapshot = context.snapshotHistory || {};
+  return `
+    <div class="fund-cell">
+      <span class="tag">${escapeHtml(row.cacheStatus || "cache n/a")}</span>
+      <span class="metric-line"><span>Price closes</span><b>${escapeHtml(priceWindow.observationCount ?? 0)}</b></span>
+      <span class="metric-line"><span>Local snapshots</span><b>${escapeHtml(snapshot.snapshotCount ?? 0)}</b></span>
+      <span class="muted">${escapeHtml(priceWindow.source || row.source || "source n/a")}</span>
+      <span class="muted">Fetched ${escapeHtml(shortDate(priceWindow.fetchedAt || row.fetchedAt))}</span>
+      <details class="compact-details">
+        <summary>Policy</summary>
+        <p class="muted">${escapeHtml(context.policy || "Historical context is descriptive only.")}</p>
+        <p class="muted">${escapeHtml(priceWindow.limitations || row.sourceReliability || "Open/free data; verify against primary sources.")}</p>
+      </details>
+    </div>
+  `;
 }
 
 function renderFundamentalMetricGuide(guide, validation) {
@@ -1428,14 +1553,18 @@ function renderFundamentalConsensus(row) {
   const consensus = row.consensus || {};
   const recommendation = consensus.recommendationSummary?.label || row.recommendationKey || "n/a";
   const freshness = consensus.sources?.length ? consensusFreshness(consensus.sources) : "freshness n/a";
+  const status = row.targetStatus || consensus.status || "source rows n/a";
+  const sourceRows = row.targetSourceCount ?? consensus.sourceCount ?? 0;
+  const reviewedRows = consensus.reviewedRows ?? 0;
   return `
     <div class="fund-cell">
-      <span class="metric-line"><span>Target</span><b>${value(row.targetMeanPrice)}</b></span>
+      <span class="metric-line"><span>Provider target</span><b>${value(row.targetMeanPrice)}</b></span>
       <span class="metric-line"><span>Vs price</span><b>${signedPctValue(row.targetUpsidePct)}</b></span>
       <span class="metric-line"><span>Reported refs</span><b>${value(consensus.reportedAnalystRefs ?? row.numberOfAnalystOpinions)}</b></span>
       <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span>
-      <span class="muted">${escapeHtml(row.targetStatus || "single-provider")}; ${escapeHtml(row.targetSourceCount ?? 0)} provider row(s)</span>
-      <span class="muted">Source rec: ${escapeHtml(recommendation)}; ${escapeHtml(freshness)}</span>
+      <span class="muted">${escapeHtml(status)}; ${escapeHtml(sourceRows)} source row(s); ${escapeHtml(reviewedRows)} reviewed</span>
+      <span class="muted">Raw rating label: ${escapeHtml(recommendation)}; ${escapeHtml(freshness)}</span>
+      <span class="muted">Analyst refs may overlap across providers.</span>
     </div>
   `;
 }
@@ -1465,19 +1594,87 @@ function renderFundamentalLinks(row) {
   `;
 }
 
+async function loadConsensusRows() {
+  const target = document.getElementById("consensus-source-table");
+  if (!target) return;
+  try {
+    const data = await api("/api/consensus");
+    target.innerHTML = renderConsensusSourceRows(data.sources || []);
+  } catch (error) {
+    target.innerHTML = `<div class="error-box">Consensus source rows could not load: ${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function renderConsensusSourceRows(rows) {
+  return `
+    <table class="mini-table wide-mini-table">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Source row</th>
+          <th>Target values</th>
+          <th>Rating row</th>
+          <th>Quality</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          rows
+            .map(
+              (row) => `
+                <tr>
+                  <td><strong>${escapeHtml(row.symbol)}</strong></td>
+                  <td>
+                    <strong>${escapeHtml(row.source || "source n/a")}</strong><br>
+                    <span class="muted">${escapeHtml(row.sourceType || row.source_type || "source type n/a")}</span><br>
+                    ${row.source_url ? `<a class="link" href="${escapeHtml(row.source_url)}" target="_blank" rel="noreferrer">Source link</a>` : `<span class="muted">source link missing</span>`}
+                  </td>
+                  <td>
+                    <span class="metric-line"><span>Mean</span><b>${value(row.target_mean)} ${escapeHtml(row.target_currency || "")}</b></span>
+                    <span class="metric-line"><span>Low/high</span><b>${value(row.target_low)} / ${value(row.target_high)}</b></span>
+                    <span class="muted">As of ${escapeHtml(row.as_of_date || shortDate(row.collected_at) || "date n/a")}</span>
+                  </td>
+                  <td>
+                    <span class="signal-badge signal-source">${escapeHtml(row.recommendation || "missing")}</span><br>
+                    <span class="muted">${escapeHtml(value(row.analyst_count))} reported analyst refs</span>
+                  </td>
+                  <td>
+                    <span class="tag">${escapeHtml(row.reviewStatus || row.review_status || "draft")}</span><br>
+                    <span class="muted">${escapeHtml(row.confidence || "confidence n/a")}; ${escapeHtml(row.staleStatus || "freshness n/a")}</span>
+                  </td>
+                  <td>
+                    <span class="muted">${escapeHtml(row.method_note || "method note missing")}</span><br>
+                    <span class="muted">${escapeHtml(row.limitation_note || "limitations not stated")}</span>
+                  </td>
+                </tr>
+              `,
+            )
+            .join("") || `<tr><td colspan="6">No consensus source rows stored.</td></tr>`
+        }
+      </tbody>
+    </table>
+  `;
+}
+
 async function saveConsensusSource(event) {
   event.preventDefault();
   const body = {
     symbol: document.getElementById("consensus-symbol").value,
     source: document.getElementById("consensus-source").value,
+    sourceType: document.getElementById("consensus-source-type").value,
+    reviewStatus: document.getElementById("consensus-review-status").value,
     targetMean: document.getElementById("consensus-target").value,
     targetHigh: document.getElementById("consensus-high").value,
     targetLow: document.getElementById("consensus-low").value,
+    currency: document.getElementById("consensus-currency").value,
     analystCount: document.getElementById("consensus-analysts").value,
     recommendation: document.getElementById("consensus-recommendation").value,
     confidence: document.getElementById("consensus-confidence").value,
+    asOfDate: document.getElementById("consensus-as-of").value,
     sourceUrl: document.getElementById("consensus-url").value,
     methodNote: document.getElementById("consensus-note").value,
+    limitationNote: document.getElementById("consensus-limitations").value,
   };
   const status = document.getElementById("consensus-editor-status");
   try {
@@ -1489,6 +1686,7 @@ async function saveConsensusSource(event) {
     document.getElementById("consensus-form").reset();
     await loadWatchlist();
     await loadFundamentals(false);
+    await loadConsensusRows();
   } catch (error) {
     status.textContent = `Could not save consensus source: ${error.message}`;
   }
@@ -1555,7 +1753,6 @@ function renderBenchmark(data) {
     ${renderPeerReviewChecklist()}
     ${renderSectorContext(data.sectorContext)}
     ${renderMinimumData(data.minimumData)}
-    ${renderOwnHistory(data.ownHistory)}
   `;
 }
   return `
@@ -1566,7 +1763,6 @@ function renderBenchmark(data) {
     ${data.groups.map(renderBenchmarkGroup).join("")}
     ${renderMinimumData(data.minimumData)}
     ${renderSectorContext(data.sectorContext)}
-    ${renderOwnHistory(data.ownHistory)}
     ${renderPeerReviewChecklist()}
   `;
 }
@@ -1959,46 +2155,6 @@ async function saveSectorKpiInputs(event) {
   }
 }
 
-function renderOwnHistory(history) {
-  if (!history) return "";
-  const rows = history.metrics
-    .map(
-      (metric) => `
-      <tr>
-        <td>${escapeHtml(metric.label)}</td>
-        <td class="number">${metricValue(metric.current, metric.unit)}</td>
-        <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
-        <td class="number">${metricValue(metric.historyMin, metric.unit)}</td>
-        <td class="number">${metricValue(metric.historyMax, metric.unit)}</td>
-        <td class="number">${metric.observations}</td>
-      </tr>
-    `,
-    )
-    .join("");
-  return `
-    <section class="benchmark-group">
-      <div class="benchmark-group-head">
-        <div>
-          <h3>Own history</h3>
-          <p class="muted">${escapeHtml(history.requirement)}</p>
-        </div>
-        <span class="tag">${escapeHtml(history.status)}</span>
-      </div>
-      <details class="peer-details">
-        <summary>Compact own-multiple trends</summary>
-        ${renderSnapshotTrendCharts(history.trendCharts)}
-        <p class="muted">Local snapshot visuals are shown only after the same minimum-observation gate used for own-history context. They are descriptive screening context, not valuation labels.</p>
-      </details>
-      <div class="table-wrap benchmark-table">
-        <table>
-          <thead><tr><th>Metric</th><th class="number">Current</th><th class="number">History median</th><th class="number">History min</th><th class="number">History max</th><th class="number">Obs.</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </section>
-  `;
-}
-
 async function loadSources() {
   const data = await api("/api/sources");
   document.getElementById("sources-content").innerHTML = Object.entries(data)
@@ -2052,7 +2208,7 @@ async function boot() {
         body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note }),
       });
       event.target.reset();
-      invalidateLoadedTabs("fundamentals", "technical", "benchmarks");
+      invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks");
       await loadWatchlist();
     });
   });
@@ -2074,11 +2230,24 @@ async function boot() {
     await withLoading("Refreshing benchmark", event.currentTarget, () => loadBenchmark(true));
   });
   document.getElementById("refresh-fundamentals").addEventListener("click", async (event) => {
-    await withLoading("Refreshing fundamentals", event.currentTarget, () => loadFundamentals(true));
+    await withLoading("Refreshing fundamentals", event.currentTarget, async () => {
+      await loadFundamentals(true);
+      invalidateLoadedTabs("own-history", "benchmarks");
+    });
   });
   document.getElementById("fundamental-universe").addEventListener("change", async () => {
     invalidateLoadedTabs("fundamentals");
     await withLoading("Loading fundamentals", null, () => loadFundamentals(false));
+  });
+  document.getElementById("refresh-own-history").addEventListener("click", async (event) => {
+    await withLoading("Refreshing own history", event.currentTarget, async () => {
+      await loadOwnHistory(true);
+      invalidateLoadedTabs("fundamentals", "benchmarks");
+    });
+  });
+  document.getElementById("own-history-universe").addEventListener("change", async () => {
+    invalidateLoadedTabs("own-history");
+    await withLoading("Loading own history", null, () => loadOwnHistory(false));
   });
   document.getElementById("refresh-technical").addEventListener("click", async (event) => {
     await withLoading("Refreshing technical indicators", event.currentTarget, async () => {

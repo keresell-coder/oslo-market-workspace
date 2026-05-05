@@ -398,11 +398,11 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "metric": "Target fields and reported analyst refs",
         "field": "consensus",
         "sourceField": "Yahoo/yfinance plus manual consensus_sources rows",
-        "shows": "Provider target range, recommendation label, and reported analyst-reference counts.",
+        "shows": "Provider target range, raw rating label, and reported analyst-reference counts.",
         "usefulFor": "Source review and comparison across provider rows when manually added.",
-        "caveats": "Counts can overlap and are not deduplicated. Recommendation weighting is not verified.",
+        "caveats": "Counts can overlap and are not deduplicated. Rating labels are not weighted or converted into app recommendations.",
         "sourceQuality": "low until manually reviewed across providers",
-        "missingData": "Missing or single-provider rows should not be treated as verified consensus.",
+        "missingData": "Missing or single-provider rows stay source-row data and should not be treated as verified consensus.",
         "placement": "default table with editor and source notes",
     },
 ]
@@ -768,15 +768,20 @@ def init_db() -> None:
             create table if not exists consensus_sources (
                 symbol text not null,
                 source text not null,
+                source_type text default 'provider-row',
+                review_status text default 'draft',
                 target_mean real,
                 target_high real,
                 target_low real,
                 analyst_count real,
                 recommendation text,
                 recommendation_score real,
+                target_currency text default '',
+                as_of_date text default '',
                 source_url text,
                 confidence text default 'single-provider',
                 method_note text default '',
+                limitation_note text default '',
                 collected_at_epoch integer not null,
                 collected_at text not null,
                 primary key (symbol, source)
@@ -814,6 +819,7 @@ def init_db() -> None:
             """
         )
         ensure_peer_group_schema(con)
+        ensure_consensus_schema(con)
         ensure_sector_kpi_schema(con)
         now = utc_now()
         con.execute(
@@ -949,6 +955,44 @@ def ensure_peer_group_schema(con: sqlite3.Connection) -> None:
     )
 
 
+def ensure_consensus_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "consensus_sources", "source_type", "text default 'provider-row'")
+    ensure_column(con, "consensus_sources", "review_status", "text default 'draft'")
+    ensure_column(con, "consensus_sources", "target_currency", "text default ''")
+    ensure_column(con, "consensus_sources", "as_of_date", "text default ''")
+    ensure_column(con, "consensus_sources", "limitation_note", "text default ''")
+    con.execute(
+        """
+        update consensus_sources
+        set source_type = 'provider-row'
+        where source_type is null or source_type = ''
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = confidence
+        where confidence in ('reviewed', 'verified', 'trusted')
+          and (review_status is null or review_status = '' or review_status = 'draft')
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = 'provider-row'
+        where lower(coalesce(source, '')) like '%yfinance%'
+          and (review_status is null or review_status = '' or review_status = 'draft')
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = 'draft'
+        where review_status is null or review_status = ''
+        """
+    )
+
+
 def ensure_sector_kpi_schema(con: sqlite3.Connection) -> None:
     ensure_column(con, "sector_kpi_inputs", "period", "text default ''")
     ensure_column(con, "sector_kpi_inputs", "status", "text default 'draft'")
@@ -1032,7 +1076,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "targetUpsidePct": upside,
         "targetPriceSource": "Yahoo Finance via yfinance",
         "targetPriceMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
-        "recommendationScale": "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
+        "recommendationScale": "Yahoo/yfinance rating-label fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
         "pnAv": None,
         "evToEbit": None,
         "source": "Yahoo Finance via yfinance",
@@ -1227,6 +1271,35 @@ def stale_status(collected_at_epoch: int | None, fresh_seconds: int = CONSENSUS_
     return "old"
 
 
+def consensus_review_status(row: dict) -> str:
+    review_status = (row.get("review_status") or "").strip().lower()
+    confidence = (row.get("confidence") or "").strip().lower()
+    if review_status:
+        return review_status
+    if confidence in {"reviewed", "verified", "trusted"}:
+        return confidence
+    if "yfinance" in (row.get("source") or "").lower():
+        return "provider-row"
+    return "draft"
+
+
+def consensus_source_type(row: dict) -> str:
+    source_type = (row.get("source_type") or "").strip().lower()
+    if source_type:
+        return source_type
+    if "yfinance" in (row.get("source") or "").lower():
+        return "provider-row"
+    return "manual-source"
+
+
+def is_reviewed_consensus_row(row: dict) -> bool:
+    return consensus_review_status(row) in {"reviewed", "verified", "trusted"}
+
+
+def is_source_linked_consensus_row(row: dict) -> bool:
+    return bool((row.get("source_url") or "").strip())
+
+
 def record_consensus_source(payload: dict) -> None:
     symbol = payload.get("symbol")
     if not symbol:
@@ -1247,36 +1320,46 @@ def record_consensus_source(payload: dict) -> None:
         con.execute(
             """
             insert into consensus_sources(
-                symbol, source, target_mean, target_high, target_low, analyst_count,
-                recommendation, recommendation_score, source_url, confidence, method_note,
-                collected_at_epoch, collected_at
+                symbol, source, source_type, review_status, target_mean, target_high, target_low, analyst_count,
+                recommendation, recommendation_score, target_currency, as_of_date, source_url, confidence,
+                method_note, limitation_note, collected_at_epoch, collected_at
             )
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict(symbol, source) do update set
+                source_type = excluded.source_type,
+                review_status = excluded.review_status,
                 target_mean = excluded.target_mean,
                 target_high = excluded.target_high,
                 target_low = excluded.target_low,
                 analyst_count = excluded.analyst_count,
                 recommendation = excluded.recommendation,
                 recommendation_score = excluded.recommendation_score,
+                target_currency = excluded.target_currency,
+                as_of_date = excluded.as_of_date,
                 source_url = excluded.source_url,
                 confidence = excluded.confidence,
                 method_note = excluded.method_note,
+                limitation_note = excluded.limitation_note,
                 collected_at_epoch = excluded.collected_at_epoch,
                 collected_at = excluded.collected_at
             """,
             (
                 symbol,
                 "Yahoo Finance via yfinance",
+                "provider-row",
+                "provider-row",
                 payload.get("targetMeanPrice"),
                 payload.get("targetHighPrice"),
                 payload.get("targetLowPrice"),
                 payload.get("numberOfAnalystOpinions"),
                 payload.get("recommendationKey"),
                 payload.get("recommendationMean"),
+                payload.get("currency") or "",
+                payload.get("fetchedAt") or collected_at,
                 f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}/analysis/",
                 "single-provider",
-                "Yahoo/yfinance target and recommendation fields are not treated as verified consensus weighting.",
+                "Yahoo/yfinance target and rating-label fields are not treated as verified consensus weighting.",
+                "Free provider-row data. Methodology, contributor overlap, and estimate timestamp are not independently verified by this app.",
                 now_epoch,
                 collected_at,
             ),
@@ -1291,32 +1374,53 @@ def consensus_for_symbol(symbol: str) -> dict:
                 "select * from consensus_sources where symbol = ? order by source",
                 (symbol,),
             ).fetchall()
-        )
+    )
     for row in rows:
         row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+        row["sourceType"] = consensus_source_type(row)
+        row["reviewStatus"] = consensus_review_status(row)
+        row["isReviewed"] = is_reviewed_consensus_row(row)
+        row["isSourceLinked"] = is_source_linked_consensus_row(row)
 
     numeric_targets = [row["target_mean"] for row in rows if isinstance(row.get("target_mean"), (int, float))]
     analyst_counts = [row["analyst_count"] for row in rows if isinstance(row.get("analyst_count"), (int, float))]
+    reviewed_rows = [row for row in rows if row.get("isReviewed")]
+    source_linked_rows = [row for row in rows if row.get("isSourceLinked")]
+    rating_rows = [row for row in rows if row.get("recommendation")]
     return {
         "symbol": symbol,
         "sources": rows,
         "sourceCount": len(rows),
         "providerRows": len(rows),
+        "reviewedRows": len(reviewed_rows),
+        "sourceLinkedRows": len(source_linked_rows),
+        "targetRows": len(numeric_targets),
+        "ratingRows": len(rating_rows),
         "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
         "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
         "reportedAnalystRefs": sum(analyst_counts) if analyst_counts else None,
         "recommendationSummary": consensus_recommendation_summary(rows),
         "confidence": consensus_confidence(rows),
-        "status": "missing" if not rows else ("multi-provider" if len(rows) >= 2 else "single-provider"),
-        "note": "Consensus is stored by provider row. Reported analyst counts can overlap across providers and are not deduplicated.",
+        "status": consensus_status(rows),
+        "note": "Consensus is stored by provider row. Reported analyst counts can overlap across providers and are not deduplicated; rating labels are not weighted recommendations.",
     }
+
+
+def consensus_status(rows: list[dict]) -> str:
+    if not rows:
+        return "missing"
+    if any(is_reviewed_consensus_row(row) for row in rows):
+        return "reviewed-source"
+    if len(rows) >= 2:
+        return "multi-provider-row"
+    return "single-provider-row"
 
 
 def consensus_confidence(rows: list[dict]) -> str:
     if not rows:
         return "missing"
     fresh_rows = [row for row in rows if row.get("staleStatus") == "fresh"]
-    reviewed_rows = [row for row in rows if row.get("confidence") in {"reviewed", "verified"}]
+    reviewed_rows = [row for row in rows if is_reviewed_consensus_row(row)]
     if len(reviewed_rows) >= 2:
         return "higher"
     if len(fresh_rows) >= 2:
@@ -1345,14 +1449,16 @@ def consensus_recommendation_summary(rows: list[dict]) -> dict:
     known = {key: value for key, value in counts.items() if key != "unknown" and value}
     if not known:
         label = "n/a"
+    elif len(known) > 1:
+        label = "mixed source labels"
     else:
-        label = sorted(known.items(), key=lambda item: (-item[1], item[0]))[0][0]
+        label = next(iter(known))
     return {
         "label": label,
         "counts": counts,
         "sourceCount": len(rows),
         "providerRows": len(rows),
-        "method": "Simple provider-row summary. It is not analyst-count weighted or deduplicated across providers unless source data explicitly supports that.",
+        "method": "Provider-row count of raw rating labels. No majority, analyst-count weighted, or deduplicated recommendation is produced.",
     }
 
 
@@ -1399,10 +1505,7 @@ def enrich_fundamental_payload(payload: dict) -> dict:
         "targetPriceMethod",
         "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
     )
-    payload.setdefault(
-        "recommendationScale",
-        "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
-    )
+    payload["recommendationScale"] = "Yahoo/yfinance rating-label fields are not treated as a verified BUY/HOLD/SELL weighting in this app."
     record_consensus_source(payload)
     consensus = consensus_for_symbol(payload["symbol"])
     payload["consensus"] = consensus
@@ -1714,7 +1817,6 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "technicalSignal": technical_map.get(symbol),
                 "fundamentalHighlight": fundamental_highlight(fundamental),
                 "ownHistorySignal": fundamental.get("ownHistorySignal"),
-                "trendContext": compact_trend_context(fundamental),
                 "peerContext": peer_context_summary(symbol, fundamental),
                 "consensusTargetSummary": target_summary,
                 "consensusRatingSummary": rating_summary,
@@ -1747,7 +1849,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "screenerError": screener_error,
         "technicalError": technical_error,
         "sourceNotes": {
-            "consensus": "Target and recommendation fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
+            "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
             "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
             "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
@@ -1857,35 +1959,6 @@ def stock_price_summary(fundamental: dict) -> dict:
     }
 
 
-def compact_trend_context(fundamental: dict) -> dict:
-    historical = fundamental.get("historicalContext") or {}
-    price_window = historical.get("priceWindow") or {}
-    snapshot = historical.get("snapshotHistory") or {}
-    return {
-        "priceChart": price_window.get("chart"),
-        "priceWindow": {
-            "status": price_window.get("status"),
-            "observationCount": price_window.get("observationCount"),
-            "minimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
-            "source": price_window.get("source"),
-            "fetchedAt": price_window.get("fetchedAt"),
-            "confidence": price_window.get("confidence"),
-            "limitations": price_window.get("limitations"),
-        },
-        "snapshotCharts": snapshot.get("trendCharts") or [],
-        "snapshotHistory": {
-            "status": snapshot.get("status"),
-            "snapshotCount": snapshot.get("snapshotCount"),
-            "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
-            "source": "local fundamentals snapshots",
-            "confidence": "screening-grade"
-            if (snapshot.get("snapshotCount") or 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS
-            else "insufficient observations",
-        },
-        "policy": historical.get("policy"),
-    }
-
-
 def fundamental_highlight(fundamental: dict) -> dict:
     if not fundamental:
         return {
@@ -1984,6 +2057,11 @@ def consensus_target_summary(fundamental: dict, consensus: dict) -> dict:
         "targetHigh": max(target_highs) if target_highs else fundamental.get("targetHighPrice"),
         "targetUpsidePct": upside,
         "providerRows": len(target_values),
+        "sourceRows": consensus.get("sourceCount", 0),
+        "sourceLinkedRows": consensus.get("sourceLinkedRows", 0),
+        "reviewedRows": consensus.get("reviewedRows", 0),
+        "status": consensus.get("status"),
+        "confidence": consensus.get("confidence"),
         "source": fundamental.get("targetPriceSource"),
         "method": fundamental.get("targetPriceMethod"),
     }
@@ -3206,6 +3284,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             rows = rows_to_dicts(con.execute("select * from consensus_sources order by symbol, source").fetchall())
         for row in rows:
             row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+            row["sourceType"] = consensus_source_type(row)
+            row["reviewStatus"] = consensus_review_status(row)
+            row["isReviewed"] = is_reviewed_consensus_row(row)
+            row["isSourceLinked"] = is_source_linked_consensus_row(row)
         send_json(self, {"sources": rows})
 
     def handle_consensus_post(self) -> None:
@@ -3220,36 +3302,46 @@ class AppHandler(SimpleHTTPRequestHandler):
             con.execute(
                 """
                 insert into consensus_sources(
-                    symbol, source, target_mean, target_high, target_low, analyst_count,
-                    recommendation, recommendation_score, source_url, confidence, method_note,
-                    collected_at_epoch, collected_at
+                    symbol, source, source_type, review_status, target_mean, target_high, target_low, analyst_count,
+                    recommendation, recommendation_score, target_currency, as_of_date, source_url, confidence,
+                    method_note, limitation_note, collected_at_epoch, collected_at
                 )
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 on conflict(symbol, source) do update set
+                    source_type = excluded.source_type,
+                    review_status = excluded.review_status,
                     target_mean = excluded.target_mean,
                     target_high = excluded.target_high,
                     target_low = excluded.target_low,
                     analyst_count = excluded.analyst_count,
                     recommendation = excluded.recommendation,
                     recommendation_score = excluded.recommendation_score,
+                    target_currency = excluded.target_currency,
+                    as_of_date = excluded.as_of_date,
                     source_url = excluded.source_url,
                     confidence = excluded.confidence,
                     method_note = excluded.method_note,
+                    limitation_note = excluded.limitation_note,
                     collected_at_epoch = excluded.collected_at_epoch,
                     collected_at = excluded.collected_at
                 """,
                 (
                     symbol,
                     source,
+                    body.get("sourceType", "manual-source"),
+                    body.get("reviewStatus", "draft"),
                     pick_body_number(body, "targetMean"),
                     pick_body_number(body, "targetHigh"),
                     pick_body_number(body, "targetLow"),
                     pick_body_number(body, "analystCount"),
                     body.get("recommendation"),
                     pick_body_number(body, "recommendationScore"),
+                    body.get("currency", ""),
+                    body.get("asOfDate", ""),
                     body.get("sourceUrl"),
                     body.get("confidence", "manual"),
                     body.get("methodNote", "Manual consensus/source entry."),
+                    body.get("limitationNote", ""),
                     now_epoch,
                     collected_at,
                 ),
@@ -3347,7 +3439,7 @@ def source_notes() -> dict:
         },
         "yfinance": {
             "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",
-            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
+            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
         },
         "historicalContext": {
             "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes and local dated fundamentals snapshots.",

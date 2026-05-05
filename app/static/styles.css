@@ -276,6 +276,57 @@ main {
   min-width: 130px;
 }
 
+.consensus-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.consensus-fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.consensus-fieldset legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.form-field {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  min-width: 0;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+.form-span-2 {
+  grid-column: span 2;
+}
+
+.consensus-source-table {
+  margin-top: 12px;
+}
+
+.consensus-source-table table {
+  min-width: 1040px;
+}
+
 input,
 select,
 textarea {
@@ -323,40 +374,65 @@ table {
 }
 
 .fundamentals-table {
-  min-width: 1240px;
+  min-width: 1080px;
   table-layout: fixed;
 }
 
-.fund-col-company {
+.own-history-table {
+  min-width: 1480px;
+  table-layout: fixed;
+}
+
+.own-col-company {
   width: 13%;
 }
 
-.fund-col-price {
-  width: 11%;
+.own-col-signal {
+  width: 17%;
 }
 
-.fund-col-multiples {
-  width: 14%;
-}
-
-.fund-col-earnings {
-  width: 11%;
-}
-
-.fund-col-history {
+.own-col-price {
   width: 21%;
 }
 
+.own-col-snapshot {
+  width: 22%;
+}
+
+.own-col-source {
+  width: 15%;
+}
+
+.own-col-detail {
+  width: 12%;
+}
+
+.fund-col-company {
+  width: 15%;
+}
+
+.fund-col-price {
+  width: 13%;
+}
+
+.fund-col-multiples {
+  width: 18%;
+}
+
+.fund-col-earnings {
+  width: 13%;
+}
+
 .fund-col-consensus {
-  width: 14%;
+  width: 19%;
 }
 
 .fund-col-source {
-  width: 9%;
+  width: 13%;
 }
 
 .fund-col-links {
-  width: 7%;
+  width: 9%;
 }
 
 .company-cell {
@@ -859,6 +935,10 @@ tr:last-child td {
   gap: 6px;
 }
 
+.single-history-summary {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .history-summary-grid > span {
   display: grid;
   gap: 2px;
@@ -899,12 +979,20 @@ tr:last-child td {
   min-width: 190px;
 }
 
-.trend-details {
-  margin-top: 7px;
-}
-
 .compact-trend-row {
   min-width: 0;
+}
+
+#own-history .compact-trend-row {
+  max-width: 360px;
+}
+
+.own-gap-list {
+  margin-top: 2px;
+}
+
+#own-history .trend-chart-grid {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 .trend-chart-grid {
@@ -1068,6 +1156,12 @@ tr:last-child td {
   border-color: rgba(122, 167, 255, 0.6);
   background: rgba(122, 167, 255, 0.12);
   color: #bfd3ff;
+}
+
+.signal-source {
+  border-color: rgba(148, 163, 184, 0.65);
+  background: rgba(148, 163, 184, 0.12);
+  color: #d8e0ec;
 }
 
 .signal-draft {
@@ -1290,6 +1384,10 @@ tr:last-child td {
 
   .inline-form {
     grid-template-columns: 1fr;
+  }
+
+  .form-span-2 {
+    grid-column: span 1;
   }
 
   .start-intro {

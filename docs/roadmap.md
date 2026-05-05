@@ -21,10 +21,11 @@ Completed MVP pieces:
 
 - Local Python/SQLite app with static frontend.
 - Start page with disclaimer, intent, metric/source summary, and limitations.
-- Editable SQLite-backed Watchlist with inline notes, add/remove flow, price, RSI14 screener alert, technical indicators, multiples, own history with expandable trend previews, peer context status/counts, consensus target/rating, updates, and actions.
+- Editable SQLite-backed Watchlist with inline notes, add/remove flow, price, RSI14 screener alert, technical indicators, multiples, own-history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
 - Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches.
 - Published Oslo Screener `latest.csv` parsed through `/api/technical-indicators` for broader technical indicator coverage.
-- Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, manual consensus source editor, descriptive own-history context, compact price charts, local snapshot trend charts/rows, and true-quarterly-fundamental-window requirements.
+- Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, and expanded consensus/source row editor.
+- Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-fundamental-window requirements.
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and significant-event table/API.
 - Source quality tab and loading indicators.
@@ -38,7 +39,7 @@ Important current limitations:
 - Sector KPI input slots exist for NAV/fleet/P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values. Benchmark values stay missing until reviewed/trusted manual or source-linked inputs include source context.
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, and gated local snapshot charts. True quarterly fundamental statement history remains future work.
-- Consensus data is provider-row based; reported analyst refs are not deduplicated across providers.
+- Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Automated NewsWeb/event collection is not implemented.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 
@@ -155,9 +156,9 @@ Completed:
 
 - Added sampled compact price chart payloads to Yahoo/yfinance 1-year daily close history, gated by the existing 120-observation price-history minimum.
 - Added local own-multiple chart payloads from `fundamentals_snapshots`, gated by the existing 5-snapshot own-history minimum.
-- Added expandable Watchlist Trend preview rows so compact charts are available without adding another scan column.
-- Added compact price trend visuals to Fundamentals own-history cells and denser price/snapshot chart detail inside existing row details.
-- Added Benchmarks own-history trend charts behind a details control.
+- Added compact trend visuals without adding another Watchlist scan column; the Watchlist Own history cell now opens the dedicated Own History tab.
+- Added compact price trend visuals and denser price/snapshot chart detail to the Own History tab.
+- Removed repeated own-history chart blocks from Fundamentals and Benchmarks during the later Own History tab streamlining.
 - Kept chart metadata source-labeled, timestamp/freshness-aware, confidence-aware, and limitation-aware.
 - Preserved no-advice/no-verdict language, peer status labels, explicit sector index/proxy rows only, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 
@@ -166,19 +167,46 @@ Verified:
 - Ran `python3 -m py_compile app/server.py`.
 - Ran `node --check app/static/app.js`.
 - Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
-- Used the in-app browser to verify Watchlist including Trend preview, Fundamentals including chart rendering, Benchmarks including own-history chart details, Technical indicators, and the separate RSI14 screener tab.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own History chart rendering, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
-## Next Sprint
+### Own History Tab Streamlining
+
+- Added a dedicated **Own history** tab between Fundamentals and Technical indicators.
+- Moved dense own-history rendering out of the Fundamentals matrix so Fundamentals stays focused on current source fields, consensus references, source metadata, and links.
+- Removed the repeated own-history block from Benchmarks while preserving minimum-data checks that reference own-history coverage.
+- Changed the Watchlist Own history column to open the matching row in the Own history tab.
+- Split the Own History table into Company, Context signal, Price history, Local snapshots, Source/gate, and Detail columns so each row scans more cleanly.
+- Reused the existing `/api/fundamentals` payload and historical-context renderer instead of adding a new backend endpoint.
+- Kept chart and own-history language descriptive only, source-labeled, and observation-gated.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
 ### Consensus Quality
 
-- Improve consensus table/editor if current form becomes cramped.
-- Add manual override fields for values not reliable from free APIs.
-- Consider multiple consensus providers only if reliable and permitted.
-- Preserve caveats about overlapping analyst counts across providers.
+- Added consensus/source row fields for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
+- Kept Yahoo/yfinance target and rating fields labeled as `provider-row` data rather than verified consensus.
+- Expanded the Fundamentals consensus editor into grouped source, value, and quality sections.
+- Added a stored source-row table below the editor so manual/provider rows can be reviewed without crowding the Fundamentals scan table.
+- Changed Watchlist and Fundamentals wording to provider/source target rows and raw rating labels.
+- Changed the rating summary to count raw B/H/S provider rows without selecting a majority or analyst-weighted BUY/HOLD/SELL recommendation.
+- Preserved overlapping analyst-count caveats, missing-data behavior, peer statuses, Technical indicators, `/api/technical-indicators`, Own history, and the separate RSI14 screener tab.
 
-## Later Sprints
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
+- Used the in-app browser to verify Watchlist, Fundamentals including the source-row editor/table, Own history, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
+
+## Next Sprint
 
 ### NewsWeb And Event Monitoring
 
@@ -186,6 +214,8 @@ Verified:
 - Add event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, corporate action.
 - Confirm reliable/permitted NewsWeb or Euronext fetch method before automation.
 - Add daily watchlist digest.
+
+## Later Sprints
 
 ### Sharing And Deployment
 

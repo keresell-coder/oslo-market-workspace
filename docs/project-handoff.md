@@ -20,7 +20,7 @@ Local git status:
 
 ```text
 default branch: main
-current sprint branch: codex/compact-charts-and-trends
+current sprint branch: codex/consensus-quality
 ```
 
 Local app:
@@ -68,19 +68,23 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - sector
   - Oslo Screener signal
   - technical indicator signal from `latest.csv`
-  - Fundamentals target
-  - target upside
-  - source-count recommendation summary
+  - provider/source-row target
+  - target upside from available source rows
+  - raw rating-label row counts without a weighted recommendation
   - source quality, source count, and freshness
-  - expandable trend previews with source-labeled price and own-history charts
+  - Own history entry point that opens the dedicated Own History tab
   - significant-update status
 - Watchlist consensus cell opens the matching Fundamentals row for the ticker.
 - Fundamentals endpoint:
   - `/api/fundamentals`
+- Own History tab:
+  - reuses `/api/fundamentals`
+  - shows descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements
 - Consensus source infrastructure:
   - `consensus_sources` table
   - `/api/consensus`
-  - consensus source editor in Fundamentals tab
+  - consensus/source row editor and stored source-row table in Fundamentals tab
+  - row type, review status, target currency, as-of date, source URL, method note, and limitation note fields
 - Benchmark context:
   - `/api/benchmarks`
   - editable peer groups with `draft`, `reviewed`, and `trusted` status
@@ -88,7 +92,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - reviewed/source-linked sector KPI input slots
   - `/api/sector-kpi-inputs`
   - descriptive only, no valuation verdict
-  - own-history trend charts behind details controls
+  - minimum-data checks still include own-history coverage, but detailed own-history context lives in the Own History tab
 - Technical indicators:
   - `/api/technical-indicators`
   - separate Technical indicators tab
@@ -102,8 +106,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 ## Important Data Caveats
 
 - Yahoo/yfinance data is free, delayed, rate-limited, and incomplete.
-- Yahoo/yfinance target price and recommendation data is single-source by default and not verified.
-- The app must not imply analyst-count weighted BUY/HOLD/SELL consensus unless reviewed source data supports it.
+- Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
+- The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - NewsWeb automation is not implemented. Current NewsWeb use is ticker search links only.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Backend-assisted peer groups stay `draft` until reviewed.
@@ -151,27 +155,27 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
-- Added compact price chart payloads from sampled Yahoo/yfinance 1-year daily closes, gated by the existing 120-observation price-history minimum.
-- Added compact own-multiple chart payloads from local `fundamentals_snapshots`, gated by the existing 5-snapshot minimum.
-- Added Watchlist Trend preview details so charts do not clutter the scan table.
-- Added compact price charts to Fundamentals own-history cells, denser price/snapshot charts inside row details, and Benchmarks own-history charts behind a details control.
-- Kept chart metadata source-labeled, freshness-aware, confidence-aware, limitation-aware, and descriptive only.
-- Preserved peer status labels, explicit sector index/proxy peer rows, disabled valuation scores, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
+- Added explicit consensus/source row metadata for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
+- Kept Yahoo/yfinance target and rating fields labeled as provider-row data, not verified consensus.
+- Expanded the Fundamentals consensus editor into grouped source, value, and quality sections.
+- Added a source-row table below the editor so stored provider/manual rows are visible without crowding the scan table.
+- Changed Watchlist/Fundamentals copy to source-row language and raw rating labels.
+- Changed rating summaries so they count raw B/H/S provider rows but do not produce a majority or analyst-weighted BUY/HOLD/SELL recommendation.
+- Preserved overlapping analyst-count caveats, missing-data behavior, peer statuses, Technical indicators, `/api/technical-indicators`, Own history, and the separate RSI14 screener tab.
 
 ## Next Sprint Brief
 
-Next priority: Consensus Quality.
+Next priority: NewsWeb And Event Monitoring.
 
 Goal:
 
-- Improve consensus/source handling while preserving the distinction between provider rows, verified consensus, and non-advice screening context.
+- Add watchlist-first significant event monitoring only after a reliable and permitted source path is confirmed.
 
 Tasks:
 
-- Improve consensus table/editor if the current form becomes cramped.
-- Add manual override fields for values not reliable from free APIs.
-- Consider multiple consensus providers only if reliable and permitted.
-- Preserve caveats about overlapping analyst counts across providers.
+- Keep NewsWeb/Euronext collection source-aware and manual-friendly until automation is reliable.
+- Add event categories such as earnings, contracts/orders, financing/private placements, dividends, insider activity, M&A, guidance/profit warnings, and corporate actions.
+- Consider a daily watchlist digest.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat
@@ -179,10 +183,11 @@ Tasks:
 1. Start server.
 2. Open Watchlist tab.
 3. Confirm rows render and Watchlist remains scan-first.
-4. Open Fundamentals and confirm grouped scan table, compact own-history charts, metric guide, and validation panel still render.
-5. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
-6. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, own-history chart details, and sector KPI input editor still render.
-7. Open RSI14 screener and confirm the embedded dashboard is unchanged.
-8. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
-9. Run README verification commands.
-10. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.
+4. Open Fundamentals and confirm the grouped scan table uses provider/source target wording and the consensus/source row editor/table renders.
+5. Open Own History and confirm price-history context, local snapshot charts/rows, and source/gate metadata render.
+6. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
+7. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor render without a repeated own-history block.
+8. Open RSI14 screener and confirm the embedded dashboard is unchanged.
+9. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
+10. Run README verification commands.
+11. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.

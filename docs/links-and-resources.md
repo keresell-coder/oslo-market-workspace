@@ -29,7 +29,7 @@
 
 ## Codex Chats
 
-- Current sprint branch: `codex/compact-charts-and-trends`
+- Current sprint branch: `codex/consensus-quality`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -42,7 +42,9 @@
 - `DELETE /api/watchlist`
 - `GET /api/watchlist-overview`
 - `GET /api/fundamentals`
+  - also backs the dedicated Own History tab
 - `GET /api/consensus`
+  - returns provider/manual source rows with row type, review status, as-of date, target currency, source URL, method note, limitation note, freshness, and overlap caveats
 - `POST /api/consensus`
 - `GET /api/benchmarks`
 - `POST /api/sector-kpi-inputs`
@@ -59,10 +61,12 @@
 ## External Sources In Use
 
 - Yahoo Finance via `yfinance`
+- Yahoo/yfinance target and rating-label fields are stored as provider-row consensus/source rows, not verified consensus.
 - Yahoo/yfinance 1-year daily closes for sampled compact price charts, with observation count, freshness, confidence, and limitations shown in the app
 - Published RSI14/Oslo Screener Dashboard HTML
 - Published Oslo Screener `latest.csv` technical indicator output
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
+- Manual consensus/source rows for target/rating references when source URL, as-of date, method, and limitations reduce ambiguity from free provider data
 - Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
 - NewsWeb ticker search links
 - TradingView search links
@@ -72,4 +76,4 @@
 - TradingView analyst/target-price pages
 - MarketScreener consensus pages
 - NewsWeb/Euronext announcement feeds
-These should only be automated if a reliable, permitted, and stable source path is confirmed. Until then, use manual/reviewed source entries.
+These should only be automated if a reliable, permitted, and stable source path is confirmed. Until then, use manual/reviewed source entries and preserve overlapping analyst-count caveats.

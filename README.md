@@ -1,6 +1,6 @@
 # Oslo Stock web-app
 
-Local-first Oslo Bors research workspace for a personal watchlist, later shareable with friends/investment-club style users. The Watchlist is the synthesis view; deeper tabs hold source detail, peer context, fundamentals, technical indicators, and event/consensus context.
+Local-first Oslo Bors research workspace for a personal watchlist, later shareable with friends/investment-club style users. The Watchlist is the synthesis view; deeper tabs hold source detail, peer context, fundamentals, own-history context, technical indicators, and event/consensus context.
 
 The app is intentionally conservative. It must not produce buy/sell investment advice, and it must not label stocks cheap, expensive, fair, or neutral from standalone multiples. Valuation context must be relative to peers, sector, own history, source quality, and missing data.
 
@@ -37,8 +37,9 @@ Local folder:
 ## Current App
 
 - **Start**: concise intent, source/metric summary, limitations, and not-investment-advice disclaimer.
-- **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history with expandable trend previews, peer context status/counts, consensus target/rating, updates, and actions.
-- **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, manual consensus source editor, descriptive own-history context, compact price charts, local snapshot trend charts/rows, and true-quarterly-history requirements.
+- **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
+- **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, and expanded consensus/source row editor.
+- **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
 - **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. Do not edit the Oslo Screener repository unless explicitly requested.
@@ -49,7 +50,8 @@ Local folder:
 - Free data is screening-grade only: delayed, incomplete, rate-limited, and sometimes wrong.
 - Show source, timestamp/freshness, confidence, limitations, and missing data clearly.
 - Missing data stays missing. Do not infer NAV/fleet values, P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, or sector KPIs from generic sector labels.
-- Yahoo/yfinance target and recommendation data is one provider row by default, not verified consensus. Reported analyst refs may overlap across providers and are not deduplicated.
+- Yahoo/yfinance target and rating-label data is one provider row by default, not verified consensus. Reported analyst refs may overlap across providers and are not deduplicated.
+- Consensus/source rows may be `provider-row`, `manual-source`, or `manual-override`; manual rows carry review status, source URL, as-of date, currency, method note, and limitation note when known.
 - Peer statuses are local curation markers only: `missing`, `draft`, `reviewed`, `trusted`. They do not create valuation verdicts.
 - Backend-assisted peer groups stay `draft` until reviewed. Do not auto-assign a company to an unrelated existing peer group based only on sector labels.
 - Sector benchmark components are explicit: Oslo peer group, international peer group, and optional sector index/proxy. Sector index/proxy rows are never inferred automatically.
@@ -60,13 +62,13 @@ Local folder:
 ## Current Data State
 
 - Price history uses Yahoo/yfinance 1-year daily closes with observation count, range, percentile, sampled chart points, source, freshness, confidence, and limitations.
-- Fundamentals own-history uses local `fundamentals_snapshots`; Watchlist signals and compact snapshot charts require minimum observations.
-- Fundamentals table default columns are grouped: company, price/size, valuation multiples, earnings/yield, own history, consensus refs, source, and links.
+- Own-history uses local `fundamentals_snapshots`; Watchlist signals and compact snapshot charts require minimum observations.
+- Fundamentals table default columns are grouped: company, price/size, valuation multiples, earnings/yield, consensus/source refs, source, and links.
 - Fundamentals metric guide and validation panel explain fields, coverage, source quality, and missing-data caveats behind progressive disclosure below the main scan table.
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, consensus quality improvements, NewsWeb/event automation, and deployment/sharing.
+- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, NewsWeb/event automation, and deployment/sharing.
 
 ## Verification
 
@@ -80,7 +82,7 @@ curl -s "http://127.0.0.1:8765/api/fundamentals?symbols=MOWI.OL" | python3 -m js
 curl -s "http://127.0.0.1:8765/api/technical-indicators?universe=watchlist" | python3 -m json.tool
 ```
 
-Use the in-app browser for visual checks when UI changes. Specifically verify Watchlist, Fundamentals, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
+Use the in-app browser for visual checks when UI changes. Specifically verify Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
 
 After every sprint or user-visible update, also run:
 
@@ -96,16 +98,35 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Recently Completed
 
+**Own History Tab Streamlining**
+
+- Moved the dense own-history surface out of the Fundamentals matrix and Benchmark page into a dedicated **Own history** tab between Fundamentals and Technical indicators.
+- Kept the Watchlist Own history column as the entry point and changed it to open the matching row in the Own history tab.
+- Split the Own history table into separate Company, Context signal, Price history, Local snapshots, Source/gate, and Detail columns.
+- Fundamentals now focuses on current source fields, consensus refs, source metadata, and links.
+- Benchmarks now focuses on peer/sector context; minimum-data checks still show own-history coverage requirements, but the detailed own-history component lives in the dedicated tab.
+- Reused the existing `/api/fundamentals` payload and historical-context renderer, avoiding a new backend endpoint.
+
 **Compact Charts And Trends**
 
 - Added observation-gated compact price sparklines from sampled Yahoo/yfinance 1-year daily closes.
 - Added compact own-multiple sparklines from local `fundamentals_snapshots`; charts stay gated until the existing local-snapshot minimum is met.
-- Watchlist keeps its scan-first table and exposes denser chart context through expandable Trend preview rows.
-- Fundamentals shows compact price trend context in the Own history column and keeps denser price/snapshot chart detail in row details.
-- Benchmarks keeps own-multiple trend charts behind an Own history details control.
+- Watchlist keeps its scan-first table and uses the Own history column as an entry point to the dedicated tab.
+- Own history shows compact price trend context and keeps denser price/snapshot chart detail in row details.
+- Benchmarks no longer repeats the own-history chart block; minimum-data gates still reference own-history coverage.
 - Chart cards include source, freshness/timestamp, confidence, observation count/gates, and limitations through visible metadata or tooltip copy; no valuation verdict or recommendation language was added.
 - Preserved peer status labels, explicit sector index/proxy curation, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 - Verified syntax, README API checks, Watchlist/Fundamentals/Benchmarks/Technical indicators/RSI14 navigation in the in-app browser, and Safari launch.
+
+**Consensus Quality**
+
+- Added explicit consensus/source row metadata for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
+- Kept Yahoo/yfinance target and rating fields labeled as provider-row data, not verified consensus.
+- Changed Watchlist and Fundamentals wording from consensus conclusions toward provider/source rows and raw rating labels.
+- Changed rating summaries so the app counts raw B/H/S provider rows but does not produce a majority or analyst-weighted BUY/HOLD/SELL recommendation.
+- Expanded the Fundamentals consensus editor into grouped source, value, and quality sections, with a source-row table for reviewing stored rows.
+- Preserved overlapping-analyst caveats, missing-data behavior, peer status labels, Technical indicators, `/api/technical-indicators`, Own history, and the separate RSI14 screener tab.
+- Verified syntax, README API checks, in-app browser navigation for Watchlist/Fundamentals/Own history/Benchmarks/Technical indicators/RSI14 screener, and Safari launch.
 
 **Reviewed Sector KPI Inputs And Benchmark Polish**
 
@@ -127,11 +148,10 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**Consensus Quality**
+**NewsWeb And Event Monitoring**
 
-- Improve consensus table/editor if current form becomes cramped.
-- Add manual override fields for values not reliable from free APIs.
-- Consider multiple consensus providers only if reliable and permitted.
-- Preserve caveats about overlapping analyst counts across providers.
+- Keep watchlist-first filtering.
+- Confirm a reliable and permitted NewsWeb/Euronext source path before automation.
+- Add event categories and a daily watchlist digest only after source handling is clear.
 
 See `docs/roadmap.md` for the broader sprint plan.
