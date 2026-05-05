@@ -41,6 +41,12 @@ Existing Oslo Screener Dashboard:
 https://keresell-coder.github.io/oslo-screener-dashboard/
 ```
 
+Dashboard source repository:
+
+```text
+https://github.com/keresell-coder/oslo-screener-dashboard
+```
+
 The existing Oslo Screener repo/project should not be edited unless explicitly requested. This project only embeds/parses the published dashboard.
 
 Published Oslo Screener technical CSV:
@@ -98,6 +104,10 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - separate Technical indicators tab
   - Watchlist Technical column
   - rows overlapping with the RSI14 dashboard are highlighted
+- RSI14 screener dashboard:
+  - embedded from `https://keresell-coder.github.io/oslo-screener-dashboard/`
+  - refreshed to 05 May 2026 after the dashboard `gh-pages` branch lagged the current `latest.csv`
+  - source labels remain external screener labels only, not app advice
 - Significant event infrastructure:
   - `significant_events` table
   - `/api/events`
@@ -114,6 +124,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Sector index/proxy rows are optional and must be explicitly curated as peer items; they are never inferred automatically from sector labels.
 - Sector KPI values stay missing in benchmark output until reviewed/trusted manual or source-linked inputs include source context.
 - Technical BUY/SELL labels are external screener CSV signal names, not app advice.
+- The Oslo Screener CSV and the separate dashboard HTML can become stale independently. If the RSI14 tab date is old, compare `https://keresell-coder.github.io/oslo-screener/latest.csv` with `https://keresell-coder.github.io/oslo-screener-dashboard/` and check the dashboard repo default branch plus `gh-pages` deployment.
 - Compact chart lines are descriptive context only. Price charts use sampled Yahoo/yfinance daily closes and local own-multiple charts use `fundamentals_snapshots`; both stay gated when observation counts are below the configured minimums.
 
 ## Current Running Server Notes
@@ -162,6 +173,14 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Changed Watchlist/Fundamentals copy to source-row language and raw rating labels.
 - Changed rating summaries so they count raw B/H/S provider rows but do not produce a majority or analyst-weighted BUY/HOLD/SELL recommendation.
 - Preserved overlapping analyst-count caveats, missing-data behavior, peer statuses, Technical indicators, `/api/technical-indicators`, Own history, and the separate RSI14 screener tab.
+
+## Completed Maintenance
+
+- Confirmed the technical CSV was current at `generated_at=2026-05-05T08:26:03Z`, while the embedded RSI14 dashboard page was still showing 28 April 2026 data.
+- Root cause: `oslo-screener-dashboard` defaulted to an older setup branch, so scheduled workflow runs did not update the served `gh-pages` dashboard.
+- Refreshed and published the dashboard to `gh-pages`; the public page now shows **Screener data: 05 May 2026** and **Generated: 05 May 2026 18:58 UTC**.
+- Fast-forwarded the dashboard default branch to the fixed `main` workflow state so future scheduled runs should update the served Pages branch.
+- Source-news fetches during generation logged Yahoo RSS rate limits and Oslo Bors parse failures; the dashboard keeps those limitations visible.
 
 ## Next Sprint Brief
 

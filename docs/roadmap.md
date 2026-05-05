@@ -22,7 +22,7 @@ Completed MVP pieces:
 - Local Python/SQLite app with static frontend.
 - Start page with disclaimer, intent, metric/source summary, and limitations.
 - Editable SQLite-backed Watchlist with inline notes, add/remove flow, price, RSI14 screener alert, technical indicators, multiples, own-history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
-- Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches.
+- Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches; dashboard HTML was refreshed to 05 May 2026 after the Pages branch lagged the current CSV.
 - Published Oslo Screener `latest.csv` parsed through `/api/technical-indicators` for broader technical indicator coverage.
 - Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, and expanded consensus/source row editor.
 - Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-fundamental-window requirements.
@@ -42,6 +42,7 @@ Important current limitations:
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Automated NewsWeb/event collection is not implemented.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
+- The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 
 Continuation guardrails:
 
@@ -204,6 +205,22 @@ Verified:
 - Ran `node --check app/static/app.js`.
 - Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
 - Used the in-app browser to verify Watchlist, Fundamentals including the source-row editor/table, Own history, Benchmarks, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
+
+### RSI14 Screener Dashboard Refresh
+
+- Confirmed the published Oslo Screener `latest.csv` was current at `generated_at=2026-05-05T08:26:03Z`, while the separate dashboard page was still showing 28 April 2026 data.
+- Found the dashboard staleness came from `oslo-screener-dashboard`: the repository default branch was an older setup branch, so scheduled workflows were not updating the `gh-pages` branch served by GitHub Pages.
+- Generated the dashboard from the current CSV and published the refreshed site to `gh-pages`.
+- Fast-forwarded the dashboard default branch to the fixed `main` workflow state so future scheduled runs use the working deployment path.
+- Public dashboard now shows **Screener data: 05 May 2026** and **Generated: 05 May 2026 18:58 UTC**, with source screener labels BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, and 111 screened rows.
+- Generation logged Yahoo RSS rate-limit failures and Oslo Bors news parse failures for some source-news fetches; the dashboard records those source limitations while preserving fresh screener data.
+
+Verified:
+
+- Checked the public dashboard HTML for 05 May 2026 data and label counts.
+- Confirmed the GitHub Pages build for the refreshed `gh-pages` commit completed successfully.
+- Ran the README syntax/API checks.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
 ## Next Sprint

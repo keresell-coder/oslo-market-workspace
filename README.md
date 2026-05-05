@@ -42,7 +42,7 @@ Local folder:
 - **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
 - **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
-- **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. Do not edit the Oslo Screener repository unless explicitly requested.
+- **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
 ## Rules And Guardrails
@@ -127,6 +127,15 @@ After each completed task, update the relevant docs so they reflect what changed
 - Expanded the Fundamentals consensus editor into grouped source, value, and quality sections, with a source-row table for reviewing stored rows.
 - Preserved overlapping-analyst caveats, missing-data behavior, peer status labels, Technical indicators, `/api/technical-indicators`, Own history, and the separate RSI14 screener tab.
 - Verified syntax, README API checks, in-app browser navigation for Watchlist/Fundamentals/Own history/Benchmarks/Technical indicators/RSI14 screener, and Safari launch.
+
+**RSI14 Screener Dashboard Refresh**
+
+- Confirmed the published Oslo Screener `latest.csv` was current at `generated_at=2026-05-05T08:26:03Z`, while the separate dashboard HTML was still showing 28 April 2026 data.
+- Root cause: the `oslo-screener-dashboard` repository default branch was an older setup branch, so scheduled runs used stale workflow code and did not update the `gh-pages` branch served by GitHub Pages.
+- Refreshed the dashboard to **Screener data: 05 May 2026** / **Generated: 05 May 2026 18:58 UTC**, pushed the fixed dashboard branch state, and published the refreshed `gh-pages` site.
+- The refreshed dashboard shows source screener labels only: BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, across 111 screened rows.
+- Yahoo RSS and Oslo Bors news subfetches had rate-limit/source parse failures during generation; those limitations are visible in the dashboard source notes and do not change the screener data freshness.
+- Verified the public dashboard URL, GitHub Pages deployment success, README API checks, and Safari launch.
 
 **Reviewed Sector KPI Inputs And Benchmark Polish**
 

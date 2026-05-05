@@ -6,6 +6,7 @@
 - Local folder: `/Users/ke/Documents/Oslo Stock web-app`
 - Repository: https://github.com/keresell-coder/oslo-market-workspace
 - Published RSI14/Oslo Screener Dashboard: https://keresell-coder.github.io/oslo-screener-dashboard/
+- RSI14 dashboard source repo: https://github.com/keresell-coder/oslo-screener-dashboard
 - Oslo Screener source repo: https://github.com/keresell-coder/oslo-screener
 - Published Oslo Screener technical CSV: https://keresell-coder.github.io/oslo-screener/latest.csv
 - Raw GitHub fallback technical CSV: https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
@@ -70,6 +71,14 @@
 - Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
 - NewsWeb ticker search links
 - TradingView search links
+
+## RSI14 Dashboard Refresh Notes
+
+- On 05 May 2026, the published Oslo Screener `latest.csv` was current (`generated_at=2026-05-05T08:26:03Z`) but the separate dashboard HTML still showed 28 April 2026 data.
+- Cause: the `oslo-screener-dashboard` default branch was an older setup branch, and the scheduled workflow path was not updating the `gh-pages` branch served by GitHub Pages.
+- Fix applied: regenerated the dashboard from current CSV data, pushed the fixed dashboard branch state, and published the refreshed `gh-pages` site.
+- Current public dashboard after refresh: `Screener data: 05 May 2026`, `Generated: 05 May 2026 18:58 UTC`, source labels BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, 111 screened rows.
+- Generation source limitations to remember: Yahoo RSS returned rate-limit errors and Oslo Bors news parsing failed for some symbols, but the screener data itself refreshed from the current CSV.
 
 ## External Sources Considered But Not Automated
 

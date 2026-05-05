@@ -94,6 +94,7 @@ Consensus Quality is complete:
 - reported analyst refs may overlap across providers and are not deduplicated
 - Own History remains a separate tab between Fundamentals and Technical indicators
 - Technical indicators and `/api/technical-indicators` remain separate from the RSI14 screener dashboard tab
+- The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 
 ## Next Sprint Priority
 
