@@ -48,6 +48,53 @@ PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
 PRICE_CHART_SAMPLE_POINTS = 48
 SNAPSHOT_CHART_SAMPLE_POINTS = 8
+NEWSWEB_URL = "https://newsweb.oslobors.no/"
+NEWSWEB_SEARCH_URL = "https://newsweb.oslobors.no/search"
+EURONEXT_OSLO_URL = "https://www.euronext.com/en/markets/oslo"
+EURONEXT_PUBLICATION_SERVICE_URL = "https://www.euronext.com/en/corporate-services/oslo-bors-publication-service"
+EVENT_CATEGORIES = [
+    {
+        "key": "earnings",
+        "label": "Earnings",
+        "description": "Quarterly, half-year, annual results, reports, trading updates, and financial calendar items.",
+    },
+    {
+        "key": "contract-order",
+        "label": "Contract/order",
+        "description": "New contracts, frame agreements, awards, order intake, backlog, or customer wins.",
+    },
+    {
+        "key": "financing-private-placement",
+        "label": "Financing/private placement",
+        "description": "Debt financing, bond issues, equity raises, private placements, repair issues, or refinancing.",
+    },
+    {
+        "key": "dividend",
+        "label": "Dividend",
+        "description": "Dividend proposals, ex-date updates, distributions, buybacks, or capital returns.",
+    },
+    {
+        "key": "insider",
+        "label": "Insider",
+        "description": "Mandatory notification of trade, primary insider transactions, or major shareholding notices.",
+    },
+    {
+        "key": "m-a",
+        "label": "M&A",
+        "description": "Acquisitions, disposals, mergers, takeover offers, strategic alternatives, or asset sales.",
+    },
+    {
+        "key": "guidance-profit-warning",
+        "label": "Guidance/profit warning",
+        "description": "Guidance changes, profit warnings, outlook updates, or material operational revisions.",
+    },
+    {
+        "key": "corporate-action",
+        "label": "Corporate action",
+        "description": "Listings, delistings, share capital changes, name changes, ISIN changes, splits, or other actions.",
+    },
+]
+EVENT_CATEGORY_KEYS = {category["key"] for category in EVENT_CATEGORIES}
 
 INITIAL_WATCHLIST = [
     "NOD.OL",
@@ -820,6 +867,7 @@ def init_db() -> None:
         )
         ensure_peer_group_schema(con)
         ensure_consensus_schema(con)
+        ensure_significant_events_schema(con)
         ensure_sector_kpi_schema(con)
         now = utc_now()
         con.execute(
@@ -1009,6 +1057,80 @@ def ensure_sector_kpi_schema(con: sqlite3.Connection) -> None:
     )
 
 
+def ensure_significant_events_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "significant_events", "source_type", "text default 'manual-source'")
+    ensure_column(con, "significant_events", "review_status", "text default 'draft'")
+    ensure_column(con, "significant_events", "confidence", "text default 'manual'")
+    ensure_column(con, "significant_events", "limitation_note", "text default ''")
+    con.execute(
+        """
+        update significant_events
+        set source_type = 'manual-source'
+        where source_type is null or source_type = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set review_status = 'draft'
+        where review_status is null or review_status = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set confidence = case
+            when lower(coalesce(source, '')) like '%newsweb%' then 'source-linked'
+            when lower(coalesce(source, '')) like '%euronext%' then 'source-linked'
+            else 'manual'
+        end
+        where confidence is null or confidence = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'corporate-action'
+        where category in ('corporate action', 'corporate_action')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'contract-order'
+        where category in ('contract', 'order', 'contracts/orders')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'financing-private-placement'
+        where category in ('financing', 'private-placement', 'private placement')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'guidance-profit-warning'
+        where category in ('guidance', 'profit warning', 'profit-warning')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'm-a'
+        where category in ('m&a', 'ma', 'merger', 'acquisition')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'corporate-action'
+        where category is null or category = '' or category = 'update'
+        """
+    )
+
+
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict]:
     return [dict(row) for row in rows]
 
@@ -1083,7 +1205,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
         "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
-        "newswebUrl": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+        "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
     return payload
@@ -1462,6 +1584,38 @@ def consensus_recommendation_summary(rows: list[dict]) -> dict:
     }
 
 
+def normalize_event_category(category: str | None) -> str:
+    value = (category or "").strip().lower().replace("_", "-")
+    aliases = {
+        "contract": "contract-order",
+        "order": "contract-order",
+        "contracts/orders": "contract-order",
+        "contracts-orders": "contract-order",
+        "financing": "financing-private-placement",
+        "private-placement": "financing-private-placement",
+        "private placement": "financing-private-placement",
+        "corporate action": "corporate-action",
+        "guidance": "guidance-profit-warning",
+        "profit-warning": "guidance-profit-warning",
+        "profit warning": "guidance-profit-warning",
+        "m&a": "m-a",
+        "ma": "m-a",
+        "merger": "m-a",
+        "acquisition": "m-a",
+        "update": "corporate-action",
+    }
+    value = aliases.get(value, value)
+    return value if value in EVENT_CATEGORY_KEYS else "corporate-action"
+
+
+def event_category_label(category: str | None) -> str:
+    key = normalize_event_category(category)
+    for item in EVENT_CATEGORIES:
+        if item["key"] == key:
+            return item["label"]
+    return key
+
+
 def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
     with connect() as con:
         rows = con.execute(
@@ -1476,7 +1630,18 @@ def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
             """,
             (symbol, limit),
         ).fetchall()
-    return rows_to_dicts(rows)
+    return enrich_event_rows(rows_to_dicts(rows))
+
+
+def enrich_event_rows(rows: list[dict]) -> list[dict]:
+    for row in rows:
+        row["category"] = normalize_event_category(row.get("category"))
+        row["categoryLabel"] = event_category_label(row.get("category"))
+        row["sourceType"] = row.get("source_type") or row.get("sourceType") or "manual-source"
+        row["reviewStatus"] = row.get("review_status") or row.get("reviewStatus") or "draft"
+        row["sourceUrl"] = row.get("url") or ""
+        row["limitationNote"] = row.get("limitation_note") or ""
+    return rows
 
 
 def event_alert_summary(events: list[dict]) -> dict:
@@ -1495,7 +1660,94 @@ def event_alert_summary(events: list[dict]) -> dict:
         "label": latest.get("title") or "Significant update",
         "count": len(events),
         "latest": latest,
+        "category": latest.get("category"),
+        "categoryLabel": event_category_label(latest.get("category")),
         "source": "manual/significant-events table",
+    }
+
+
+def event_source_policy() -> dict:
+    return {
+        "status": "manual-source-reviewed",
+        "label": "Manual tracking; automation not enabled",
+        "checkedAt": "2026-05-06",
+        "source": "Euronext Oslo Bors / NewsWeb",
+        "sourceUrl": NEWSWEB_URL,
+        "searchUrl": NEWSWEB_SEARCH_URL,
+        "euronextOsloUrl": EURONEXT_OSLO_URL,
+        "publicationServiceUrl": EURONEXT_PUBLICATION_SERVICE_URL,
+        "confidence": "medium for manual review, low for automation",
+        "freshness": "NewsWeb is described by Euronext as updated immediately 24/7; local tracked rows update only when saved manually.",
+        "verification": "Official Euronext Oslo page identifies NewsWeb as the listed-company news site. The NewsWeb web app exposes JSON calls used by the public page, but no stable public pull API or reuse terms were confirmed.",
+        "limitation": "Do not schedule automated collection until a permitted source path is documented or explicitly licensed. Missing events stay missing.",
+        "digestStatus": "Daily watchlist digest is not enabled until source handling is confirmed.",
+    }
+
+
+def event_category_summary(rows: list[dict]) -> list[dict]:
+    counts = {category["key"]: 0 for category in EVENT_CATEGORIES}
+    for row in rows:
+        counts[normalize_event_category(row.get("category"))] = counts.get(normalize_event_category(row.get("category")), 0) + 1
+    return [{**category, "count": counts.get(category["key"], 0)} for category in EVENT_CATEGORIES]
+
+
+def event_monitoring_payload(name: str = "Core Watchlist") -> dict:
+    watched = watchlist_symbols(name)
+    with connect() as con:
+        event_rows = enrich_event_rows(
+            rows_to_dicts(
+                con.execute(
+                    """
+                    select *
+                    from significant_events
+                    where symbol in ({})
+                    order by coalesce(published_at, created_at) desc, created_at_epoch desc
+                    """.format(",".join("?" for _ in watched) or "''"),
+                    watched,
+                ).fetchall()
+            )
+        )
+        item_rows = rows_to_dicts(
+            con.execute(
+                """
+                select wi.watchlist_name, wi.symbol, wi.note, t.name, t.sector, t.industry
+                from watchlist_items wi
+                left join tickers t on t.symbol = wi.symbol
+                where wi.watchlist_name = ?
+                order by wi.symbol
+                """,
+                (name,),
+            ).fetchall()
+        )
+    events_by_symbol: dict[str, list[dict]] = {symbol: [] for symbol in watched}
+    for row in event_rows:
+        events_by_symbol.setdefault(row["symbol"], []).append(row)
+    rows = []
+    for item in item_rows:
+        symbol = item["symbol"]
+        rows.append(
+            {
+                **item,
+                "events": events_by_symbol.get(symbol, []),
+                "eventAlert": event_alert_summary(events_by_symbol.get(symbol, [])),
+                "newswebSearchUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+            }
+        )
+    missing_count = len([row for row in rows if not row["events"]])
+    return {
+        "watchlist": name,
+        "sourcePolicy": event_source_policy(),
+        "categories": EVENT_CATEGORIES,
+        "categorySummary": event_category_summary(event_rows),
+        "rows": rows,
+        "events": event_rows,
+        "coverage": {
+            "watchlistCount": len(watched),
+            "trackedEventCount": len(event_rows),
+            "symbolsWithEvents": len([row for row in rows if row["events"]]),
+            "symbolsMissingEvents": missing_count,
+            "missingDataPolicy": "No tracked row means missing local event data, not no company news.",
+        },
     }
 
 
@@ -1836,7 +2088,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "eventAlert": event_alert_summary(events),
                 "links": {
                     "yahoo": f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}",
-                    "newsweb": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+                    "newsweb": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
                     "screener": SCREENER_URL,
                 },
             }
@@ -1851,7 +2103,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "sourceNotes": {
             "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
-            "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
+            "events": "Significant events are watchlist-first manual/source-reviewed rows. Automated NewsWeb collection is not enabled until a permitted source path is documented.",
             "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
         },
     }
@@ -3000,6 +3252,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_consensus_get(parsed)
         if parsed.path == "/api/events":
             return self.handle_events_get(parsed)
+        if parsed.path == "/api/event-monitoring":
+            return self.handle_event_monitoring(parsed)
         if parsed.path == "/api/screener-signals":
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
@@ -3353,17 +3607,26 @@ class AppHandler(SimpleHTTPRequestHandler):
         symbol = qs.get("symbol", [""])[0].strip()
         with connect() as con:
             if symbol:
-                rows = rows_to_dicts(
-                    con.execute(
-                        "select * from significant_events where symbol = ? order by created_at_epoch desc",
-                        (normalize_symbol(symbol),),
-                    ).fetchall()
+                rows = enrich_event_rows(
+                    rows_to_dicts(
+                        con.execute(
+                            "select * from significant_events where symbol = ? order by created_at_epoch desc",
+                            (normalize_symbol(symbol),),
+                        ).fetchall()
+                    )
                 )
             else:
-                rows = rows_to_dicts(
-                    con.execute("select * from significant_events order by created_at_epoch desc").fetchall()
+                rows = enrich_event_rows(
+                    rows_to_dicts(
+                        con.execute("select * from significant_events order by created_at_epoch desc").fetchall()
+                    )
                 )
-        send_json(self, {"events": rows})
+        send_json(self, {"events": rows, "categories": EVENT_CATEGORIES, "sourcePolicy": event_source_policy()})
+
+    def handle_event_monitoring(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        name = qs.get("watchlist", ["Core Watchlist"])[0]
+        send_json(self, event_monitoring_payload(name))
 
     def handle_events_post(self) -> None:
         body = get_json_body(self)
@@ -3378,19 +3641,24 @@ class AppHandler(SimpleHTTPRequestHandler):
                 """
                 insert into significant_events(
                     symbol, title, category, importance, source, url, note,
-                    published_at, created_at_epoch, created_at
+                    published_at, source_type, review_status, confidence,
+                    limitation_note, created_at_epoch, created_at
                 )
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     symbol,
                     title,
-                    body.get("category", "update"),
+                    normalize_event_category(body.get("category")),
                     body.get("importance", "normal"),
                     body.get("source", "manual"),
                     body.get("url", ""),
                     body.get("note", ""),
                     body.get("publishedAt"),
+                    body.get("sourceType", "manual-source"),
+                    body.get("reviewStatus", "draft"),
+                    body.get("confidence", "manual"),
+                    body.get("limitationNote", ""),
                     now_epoch,
                     created_at,
                 ),
@@ -3454,8 +3722,15 @@ def source_notes() -> dict:
             "limitations": "Missing sector KPIs stay missing until explicit reviewed inputs exist. The app does not infer sector KPI values from yfinance sector labels.",
         },
         "newsweb": {
-            "use": "Ticker-specific search links in the MVP.",
-            "limitations": "The public site is JavaScript-driven and no stable public API/RSS feed was confirmed during setup.",
+            "url": NEWSWEB_URL,
+            "use": "Ticker-specific NewsWeb search links plus manual/source-reviewed significant-event rows for the watchlist.",
+            "verification": "Euronext describes NewsWeb as the listed-company news site updated immediately 24/7. The public NewsWeb app exposes JSON calls, but a documented public pull API/reuse permission was not confirmed.",
+            "limitations": "Automation is intentionally disabled until a stable and permitted source path is documented or licensed. Missing event rows stay missing.",
+        },
+        "euronextPublicationService": {
+            "url": EURONEXT_PUBLICATION_SERVICE_URL,
+            "use": "Reference only for source-path evaluation.",
+            "limitations": "Euronext describes EuroStockNews/API capabilities for issuer/corporate website publication services; this does not confirm a public research-app ingestion API.",
         },
         "tradingView": {
             "use": "Search links only in this MVP.",

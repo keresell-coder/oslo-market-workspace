@@ -276,7 +276,8 @@ main {
   min-width: 130px;
 }
 
-.consensus-form {
+.consensus-form,
+.event-form {
   display: grid;
   gap: 12px;
   margin-top: 12px;
@@ -325,6 +326,18 @@ main {
 
 .consensus-source-table table {
   min-width: 1040px;
+}
+
+.event-policy-card {
+  align-items: flex-start;
+}
+
+.event-table {
+  min-width: 980px;
+}
+
+.event-table td:nth-child(3) {
+  min-width: 260px;
 }
 
 input,

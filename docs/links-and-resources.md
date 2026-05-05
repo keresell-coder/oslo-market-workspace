@@ -10,6 +10,9 @@
 - Oslo Screener source repo: https://github.com/keresell-coder/oslo-screener
 - Published Oslo Screener technical CSV: https://keresell-coder.github.io/oslo-screener/latest.csv
 - Raw GitHub fallback technical CSV: https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
+- NewsWeb official site: https://newsweb.oslobors.no/
+- Euronext Oslo market page: https://www.euronext.com/en/markets/oslo
+- Euronext Publication Services / EuroStockNews: https://www.euronext.com/en/corporate-services/oslo-bors-publication-service
 - Local app default: http://127.0.0.1:8765
 - Local app alternate/debug: http://127.0.0.1:8768
 - Safari launcher: `scripts/open_in_safari.sh`
@@ -57,6 +60,7 @@
 - `GET /api/technical-indicators`
 - `GET /api/events`
 - `POST /api/events`
+- `GET /api/event-monitoring`
 - `GET /api/sources`
 
 ## External Sources In Use
@@ -69,8 +73,17 @@
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
 - Manual consensus/source rows for target/rating references when source URL, as-of date, method, and limitations reduce ambiguity from free provider data
 - Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
-- NewsWeb ticker search links
+- NewsWeb ticker search links plus manual/source-reviewed significant-event rows
 - TradingView search links
+
+## NewsWeb / Euronext Event Source Notes
+
+- Source path checked on 06 May 2026.
+- Euronext Oslo page identifies NewsWeb as the place where listed-company news on Euronext Oslo Børs marketplaces is displayed and says it is updated immediately, 24/7.
+- NewsWeb public web app exposes JSON calls used by its JavaScript frontend, but no documented public pull API or reuse permission was confirmed for scheduled research-app ingestion.
+- Euronext Publication Services / EuroStockNews describes issuer publication services and API/web-module capabilities, but that appears to be an issuer/corporate-services path rather than a confirmed public research ingestion API.
+- App behavior: Events tab and `/api/event-monitoring` are manual/source-reviewed only. Automation and daily watchlist digest stay disabled until a permitted source path is documented or licensed.
+- Event categories in use: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, corporate action.
 
 ## RSI14 Dashboard Refresh Notes
 

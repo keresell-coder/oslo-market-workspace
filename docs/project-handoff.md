@@ -115,14 +115,17 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Significant event infrastructure:
   - `significant_events` table
   - `/api/events`
-  - manual/tracked entries only for now
+  - `/api/event-monitoring`
+  - Events tab with watchlist-first rows, event categories, source-quality status, NewsWeb search links, and manual/source-reviewed entry
+  - manual/source-reviewed entries only for now; automation and daily digest are disabled until source permission is clear
 
 ## Important Data Caveats
 
 - Yahoo/yfinance data is free, delayed, rate-limited, and incomplete.
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
-- NewsWeb automation is not implemented. Current NewsWeb use is ticker search links only.
+- NewsWeb automation is not implemented. Current NewsWeb use is ticker search links plus manual/source-reviewed significant-event rows.
+- NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7, and Euronext Publication Services describes issuer publication/API capabilities. A documented public pull API/reuse permission for this research app was not confirmed, so scheduled collection and daily digest remain disabled.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Backend-assisted peer groups stay `draft` until reviewed.
 - Sector index/proxy rows are optional and must be explicitly curated as peer items; they are never inferred automatically from sector labels.
@@ -171,6 +174,16 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Added an **Events** tab with watchlist-first significant-event monitoring.
+- Added event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action.
+- Added `/api/event-monitoring` for watchlist event rows, category summary, source-policy metadata, NewsWeb search links, and missing-data coverage.
+- Extended `significant_events` with source type, review status, confidence, and limitation-note fields.
+- Kept NewsWeb/Euronext automation and daily digest disabled because no documented public pull API/reuse permission was confirmed.
+- Preserved no-advice wording, missing-data discipline, Technical indicators, `/api/technical-indicators`, Own history, Benchmarks, and the separate RSI14 screener tab.
+- Verification passed for syntax, README API checks, `/api/event-monitoring`, in-app browser navigation across Watchlist/Fundamentals/Own history/Benchmarks/Events/Technical indicators/RSI14 screener, browser console errors, and Safari launch.
+
+## Completed Previous Sprint
+
 - Added explicit consensus/source row metadata for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
 - Kept Yahoo/yfinance target and rating fields labeled as provider-row data, not verified consensus.
 - Expanded the Fundamentals consensus editor into grouped source, value, and quality sections.
@@ -196,17 +209,17 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: NewsWeb And Event Monitoring.
+Next priority: permitted NewsWeb automation and event digest.
 
 Goal:
 
-- Add watchlist-first significant event monitoring only after a reliable and permitted source path is confirmed.
+- Enable automated collection only after a reliable and permitted source path is documented or licensed.
 
 Tasks:
 
-- Keep NewsWeb/Euronext collection source-aware and manual-friendly until automation is reliable.
-- Add event categories such as earnings, contracts/orders, financing/private placements, dividends, insider activity, M&A, guidance/profit warnings, and corporate actions.
-- Consider a daily watchlist digest.
+- Keep NewsWeb/Euronext collection source-aware and manual-friendly until automation permission is clear.
+- Map NewsWeb/Euronext categories into the existing event taxonomy.
+- Consider a daily watchlist digest after source handling is clear.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat
@@ -218,7 +231,8 @@ Tasks:
 5. Open Own History and confirm price-history context, local snapshot charts/rows, and source/gate metadata render.
 6. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
 7. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor render without a repeated own-history block.
-8. Open RSI14 screener and confirm the embedded dashboard is unchanged.
-9. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
-10. Run README verification commands.
-11. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.
+8. Open Events and confirm source-policy status, category summary, watchlist rows, NewsWeb links, and manual editor render.
+9. Open RSI14 screener and confirm the embedded dashboard is unchanged.
+10. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
+11. Run README verification commands.
+12. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.

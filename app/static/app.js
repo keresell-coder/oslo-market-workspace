@@ -285,6 +285,7 @@ function activateTab(tabName, options = {}) {
   if (tabName === "own-history") loadOwnHistory(false);
   if (tabName === "technical") loadTechnicalIndicators(false);
   if (tabName === "benchmarks") loadBenchmarkOptions();
+  if (tabName === "events") loadEventMonitoring(false);
   if (tabName === "sources") loadSources();
 }
 
@@ -329,7 +330,7 @@ async function loadWatchlist() {
           <td>${renderPeerContext(row)}</td>
           <td>${renderConsensusTargetCell(row)}</td>
           <td>${renderConsensusRatingCell(row)}</td>
-          <td>${renderEventCell(row.eventAlert)}</td>
+          <td>${renderEventCell(row.eventAlert, row.symbol)}</td>
           <td>${renderActionsCell(row)}</td>
         </tr>
       `;
@@ -364,7 +365,7 @@ async function handleWatchlistTableClick(event) {
     await api(`/api/watchlist?watchlist=Core%20Watchlist&symbol=${encodeURIComponent(removeButton.dataset.remove)}`, {
       method: "DELETE",
     });
-    invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks");
+    invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks", "events");
     await loadWatchlist();
     return;
   }
@@ -390,6 +391,12 @@ async function handleWatchlistTableClick(event) {
   const technicalButton = event.target.closest("[data-open-technical]");
   if (technicalButton) {
     await openTechnicalForSymbol(technicalButton.dataset.openTechnical);
+    return;
+  }
+
+  const eventsButton = event.target.closest("[data-open-events]");
+  if (eventsButton) {
+    await openEventsForSymbol(eventsButton.dataset.openEvents);
   }
 }
 
@@ -847,6 +854,20 @@ async function openTechnicalForSymbol(symbol) {
   target.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+async function openEventsForSymbol(symbol) {
+  activateTab("events", { load: false });
+  await loadEventMonitoring(false);
+  const select = document.getElementById("event-symbol");
+  if (select) select.value = symbol;
+  const target = Array.from(document.querySelectorAll("[data-event-symbol]")).find(
+    (row) => row.dataset.eventSymbol === symbol,
+  );
+  if (!target) return;
+  document.querySelectorAll(".row-focus").forEach((row) => row.classList.remove("row-focus"));
+  target.classList.add("row-focus");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 async function openBenchmarkForSymbol(symbol) {
   activateTab("benchmarks", { load: false });
   await loadBenchmarkOptions();
@@ -864,17 +885,23 @@ function recommendationClass(label) {
   return "";
 }
 
-function renderEventCell(alert) {
+function renderEventCell(alert, symbol = "") {
   if (!alert || alert.count === 0) {
-    return `<span class="muted">No significant updates tracked</span>`;
+    return `
+      <button class="summary-button" data-open-events="${escapeHtml(symbol)}">
+        <span class="signal-badge signal-draft">missing</span>
+        <strong>No tracked event rows</strong>
+        <span class="muted">Missing local data; open Events for source links</span>
+      </button>
+    `;
   }
   const klass = alert.level === "high" ? "signal-sell" : "signal-neutral";
   return `
-    <div class="signal-cell">
+    <button class="summary-button" data-open-events="${escapeHtml(alert.latest?.symbol || "")}">
       <span class="signal-badge ${klass}">${escapeHtml(alert.level || "update")}</span>
       <strong>${escapeHtml(alert.label || "Significant update")}</strong>
-      <span class="muted">${escapeHtml(alert.count)} tracked update(s)</span>
-    </div>
+      <span class="muted">${escapeHtml(alert.categoryLabel || "category n/a")}; ${escapeHtml(alert.count)} tracked update(s)</span>
+    </button>
   `;
 }
 
@@ -2155,6 +2182,186 @@ async function saveSectorKpiInputs(event) {
   }
 }
 
+function renderEventSourcePolicy(policy = {}) {
+  return `
+    <div class="alert-card calm event-policy-card">
+      <div>
+        <strong>${escapeHtml(policy.label || "Manual event tracking")}</strong>
+        <span>${escapeHtml(policy.verification || "Source path under review.")}</span>
+        <span>${escapeHtml(policy.limitation || "Automation remains disabled until source handling is confirmed.")}</span>
+      </div>
+      <div class="alert-list">
+        <span class="alert-chip signal-neutral"><strong>Source</strong><span>${escapeHtml(policy.source || "NewsWeb")}</span></span>
+        <span class="alert-chip signal-draft"><strong>Digest</strong><span>${escapeHtml(policy.digestStatus || "not enabled")}</span></span>
+        ${policy.sourceUrl ? `<a class="alert-chip" href="${escapeHtml(policy.sourceUrl)}" target="_blank" rel="noreferrer"><strong>Open</strong><span>NewsWeb</span></a>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+function renderEventSummary(data) {
+  const coverage = data.coverage || {};
+  const categories = data.categorySummary || [];
+  return `
+    <div class="alert-card calm">
+      <div>
+        <strong>${escapeHtml(coverage.trackedEventCount ?? 0)} tracked event row${coverage.trackedEventCount === 1 ? "" : "s"} across ${escapeHtml(coverage.watchlistCount ?? 0)} watchlist symbols</strong>
+        <span>${escapeHtml(coverage.symbolsWithEvents ?? 0)} symbols have local rows; ${escapeHtml(coverage.symbolsMissingEvents ?? 0)} have missing local event data.</span>
+        <span>${escapeHtml(coverage.missingDataPolicy || "Missing rows stay missing.")}</span>
+      </div>
+      <div class="alert-list">
+        ${categories
+          .filter((item) => item.count)
+          .map((item) => `<span class="alert-chip"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.count)}</span></span>`)
+          .join("") || `<span class="alert-chip signal-draft"><strong>Categories</strong><span>No tracked rows yet</span></span>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderEventRows(rows) {
+  return `
+    <table class="event-table">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Event status</th>
+          <th>Latest tracked event</th>
+          <th>Source quality</th>
+          <th>Source links</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          rows
+            .map((row) => {
+              const latest = row.events?.[0] || {};
+              const alert = row.eventAlert || {};
+              const klass = alert.level === "high" ? "signal-sell" : alert.count ? "signal-neutral" : "signal-draft";
+              return `
+                <tr data-event-symbol="${escapeHtml(row.symbol)}">
+                  <td>
+                    <strong>${escapeHtml(row.symbol)}</strong><br>
+                    <span class="muted">${escapeHtml(row.name || "")}</span><br>
+                    <span class="muted">${escapeHtml(row.sector || "")}</span>
+                  </td>
+                  <td>
+                    <div class="signal-cell">
+                      <span class="signal-badge ${klass}">${escapeHtml(alert.level || "missing")}</span>
+                      <strong>${escapeHtml(alert.count ? `${alert.count} tracked update(s)` : "No local rows")}</strong>
+                      <span class="muted">Missing does not mean no company news.</span>
+                    </div>
+                  </td>
+                  <td>${renderLatestEvent(latest)}</td>
+                  <td>${renderEventQuality(latest)}</td>
+                  <td>
+                    <div class="link-stack">
+                      <a class="link" href="${escapeHtml(row.newswebSearchUrl || "#")}" target="_blank" rel="noreferrer">NewsWeb search</a>
+                      ${latest.sourceUrl ? `<a class="link" href="${escapeHtml(latest.sourceUrl)}" target="_blank" rel="noreferrer">Event source</a>` : `<span class="muted">event source link missing</span>`}
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join("") || `<tr><td colspan="5">No watchlist rows loaded.</td></tr>`
+        }
+      </tbody>
+    </table>
+  `;
+}
+
+function renderLatestEvent(event) {
+  if (!event.title) {
+    return `
+      <div class="signal-cell">
+        <span class="signal-badge signal-draft">missing</span>
+        <strong>No tracked event row</strong>
+        <span class="muted">Add a source-reviewed row when a significant NewsWeb/Euronext item is found.</span>
+      </div>
+    `;
+  }
+  return `
+    <div class="signal-cell">
+      <span class="signal-badge signal-source">${escapeHtml(event.categoryLabel || "category n/a")}</span>
+      <strong>${escapeHtml(event.title)}</strong>
+      <span class="muted">${escapeHtml(event.published_at || event.created_at || "date n/a")}</span>
+      <span class="muted">${escapeHtml(event.note || "No event note stored.")}</span>
+    </div>
+  `;
+}
+
+function renderEventQuality(event) {
+  if (!event.title) {
+    return `<span class="muted">No source row stored.</span>`;
+  }
+  return `
+    <div class="signal-cell">
+      <span class="tag">${escapeHtml(event.reviewStatus || "draft")}</span>
+      <span class="muted">${escapeHtml(event.source || "source n/a")}; ${escapeHtml(event.sourceType || "manual-source")}</span>
+      <span class="muted">${escapeHtml(event.confidence || "manual confidence")}</span>
+      <span class="muted">${escapeHtml(event.limitationNote || "Limitations not stated.")}</span>
+    </div>
+  `;
+}
+
+function populateEventEditor(data) {
+  const symbolSelect = document.getElementById("event-symbol");
+  const categorySelect = document.getElementById("event-category");
+  if (symbolSelect) {
+    symbolSelect.innerHTML = (data.rows || [])
+      .map((row) => `<option value="${escapeHtml(row.symbol)}">${escapeHtml(row.symbol)} ${escapeHtml(row.name || "")}</option>`)
+      .join("");
+  }
+  if (categorySelect) {
+    categorySelect.innerHTML = (data.categories || [])
+      .map((item) => `<option value="${escapeHtml(item.key)}">${escapeHtml(item.label)}</option>`)
+      .join("");
+  }
+}
+
+async function loadEventMonitoring(refresh = false) {
+  document.getElementById("event-table").innerHTML = renderLoadingPanel(refresh ? "Refreshing events" : "Loading events");
+  const data = await api("/api/event-monitoring");
+  document.getElementById("event-source-policy").innerHTML = renderEventSourcePolicy(data.sourcePolicy || {});
+  document.getElementById("event-summary").innerHTML = renderEventSummary(data);
+  document.getElementById("event-table").innerHTML = renderEventRows(data.rows || []);
+  populateEventEditor(data);
+  markLoaded("events");
+}
+
+async function saveEvent(event) {
+  event.preventDefault();
+  const status = document.getElementById("event-editor-status");
+  if (status) status.textContent = "Saving...";
+  const body = {
+    symbol: document.getElementById("event-symbol").value,
+    title: document.getElementById("event-title").value,
+    category: document.getElementById("event-category").value,
+    importance: document.getElementById("event-importance").value,
+    publishedAt: document.getElementById("event-published-at").value,
+    source: document.getElementById("event-source").value,
+    sourceType: document.getElementById("event-source-type").value,
+    reviewStatus: document.getElementById("event-review-status").value,
+    confidence: document.getElementById("event-confidence").value,
+    url: document.getElementById("event-url").value,
+    note: document.getElementById("event-note").value,
+    limitationNote: document.getElementById("event-limitations").value,
+  };
+  try {
+    await api("/api/events", { method: "POST", body: JSON.stringify(body) });
+    if (status) status.textContent = "Saved. Watchlist updates use local tracked rows only.";
+    document.getElementById("event-title").value = "";
+    document.getElementById("event-url").value = "";
+    document.getElementById("event-note").value = "";
+    document.getElementById("event-limitations").value = "";
+    invalidateLoadedTabs("events");
+    await loadEventMonitoring(false);
+    await loadWatchlist();
+  } catch (error) {
+    if (status) status.textContent = `Could not save event: ${error.message}`;
+  }
+}
+
 async function loadSources() {
   const data = await api("/api/sources");
   document.getElementById("sources-content").innerHTML = Object.entries(data)
@@ -2208,7 +2415,7 @@ async function boot() {
         body: JSON.stringify({ watchlist: "Core Watchlist", symbol, note }),
       });
       event.target.reset();
-      invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks");
+      invalidateLoadedTabs("fundamentals", "own-history", "technical", "benchmarks", "events");
       await loadWatchlist();
     });
   });
@@ -2258,6 +2465,11 @@ async function boot() {
   document.getElementById("technical-universe").addEventListener("change", async () => {
     invalidateLoadedTabs("technical");
     await withLoading("Loading technical indicators", null, () => loadTechnicalIndicators(false));
+  });
+  document.getElementById("event-form").addEventListener("submit", saveEvent);
+  document.getElementById("refresh-events").addEventListener("click", async (event) => {
+    invalidateLoadedTabs("events");
+    await withLoading("Refreshing events", event.currentTarget, () => loadEventMonitoring(true));
   });
   document.getElementById("reload-sources").addEventListener("click", async (event) => {
     await withLoading("Reloading sources", event.currentTarget, loadSources);
