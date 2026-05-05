@@ -181,9 +181,9 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed Maintenance
 
-- Confirmed the technical CSV was current at `generated_at=2026-05-05T08:26:03Z`, while the embedded RSI14 dashboard page was still showing 28 April 2026 data.
+- Confirmed the technical CSV was current while the embedded RSI14 dashboard page was still showing 28 April 2026 data.
 - Root cause: `oslo-screener-dashboard` defaulted to an older setup branch, so scheduled workflow runs did not update the served `gh-pages` dashboard.
-- Refreshed and published the dashboard to `gh-pages`; the public page now shows **Screener data: 05 May 2026** and **Generated: 05 May 2026 18:58 UTC**.
+- Refreshed and published the dashboard to `gh-pages`; the final verified public page shows **Screener data: 05 May 2026**, **Source generated: 05 May 2026 19:59 UTC**, and **Generated: 05 May 2026 20:02 UTC**.
 - Fast-forwarded the dashboard default branch to the fixed `main` workflow state so future scheduled runs should update the served Pages branch.
 - Source-news fetches during generation logged Yahoo RSS rate limits and Oslo Bors parse failures; the dashboard keeps those limitations visible.
 
@@ -192,7 +192,7 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Updated `oslo-screener` workflow reliability: concurrency, timeouts, `latest.csv` verification, safer bot push flow, optional dashboard dispatch trigger, and `.DS_Store` cleanup.
 - Updated `oslo-screener-dashboard` workflow reliability: default branch set to `main`, later primary schedule plus backup schedule, concurrency, HTML verification, explicit `Pillow` dependency, and source freshness display.
 - Published regenerated dashboard content to `gh-pages`.
-- Verification passed for screener compile/tests, dashboard compile/generation, generated HTML checks, GitHub branch state, web-app API checks, and Safari launch.
+- Verification passed for screener compile/tests, dashboard compile/generation, generated HTML checks, manual GitHub Actions dispatches for both workflows, GitHub branch state, web-app API checks, and Safari launch.
 
 ## Next Sprint Brief
 

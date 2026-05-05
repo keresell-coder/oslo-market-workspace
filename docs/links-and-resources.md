@@ -74,10 +74,10 @@
 
 ## RSI14 Dashboard Refresh Notes
 
-- On 05 May 2026, the published Oslo Screener `latest.csv` was current (`generated_at=2026-05-05T08:26:03Z`) but the separate dashboard HTML still showed 28 April 2026 data.
+- On 05 May 2026, the published Oslo Screener `latest.csv` was current but the separate dashboard HTML still showed 28 April 2026 data.
 - Cause: the `oslo-screener-dashboard` default branch was an older setup branch, and the scheduled workflow path was not updating the `gh-pages` branch served by GitHub Pages.
 - Fix applied: regenerated the dashboard from current CSV data, pushed the fixed dashboard branch state, and published the refreshed `gh-pages` site.
-- Current public dashboard after refresh: `Screener data: 05 May 2026`, `Generated: 05 May 2026 18:58 UTC`, source labels BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, 111 screened rows.
+- Current public dashboard after the final reliability verification: `Screener data: 05 May 2026`, `Source generated: 05 May 2026 19:59 UTC`, `Generated: 05 May 2026 20:02 UTC`, source labels BUY 1, SELL 4, BUY-watch 8, SELL-watch 11, 111 screened rows.
 - Generation source limitations to remember: Yahoo RSS returned rate-limit errors and Oslo Bors news parsing failed for some symbols, but the screener data itself refreshed from the current CSV.
 
 ## Oslo Screener Reliability Notes

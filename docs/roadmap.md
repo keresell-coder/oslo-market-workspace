@@ -210,11 +210,11 @@ Verified:
 
 ### RSI14 Screener Dashboard Refresh
 
-- Confirmed the published Oslo Screener `latest.csv` was current at `generated_at=2026-05-05T08:26:03Z`, while the separate dashboard page was still showing 28 April 2026 data.
+- Confirmed the published Oslo Screener `latest.csv` was current while the separate dashboard page was still showing 28 April 2026 data.
 - Found the dashboard staleness came from `oslo-screener-dashboard`: the repository default branch was an older setup branch, so scheduled workflows were not updating the `gh-pages` branch served by GitHub Pages.
 - Generated the dashboard from the current CSV and published the refreshed site to `gh-pages`.
 - Fast-forwarded the dashboard default branch to the fixed `main` workflow state so future scheduled runs use the working deployment path.
-- Public dashboard now shows **Screener data: 05 May 2026** and **Generated: 05 May 2026 18:58 UTC**, with source screener labels BUY 2, SELL 4, BUY-watch 4, SELL-watch 11, and 111 screened rows.
+- Public dashboard was refreshed to **Screener data: 05 May 2026**.
 - Generation logged Yahoo RSS rate-limit failures and Oslo Bors news parse failures for some source-news fetches; the dashboard records those source limitations while preserving fresh screener data.
 
 Verified:
@@ -240,11 +240,13 @@ Verified:
   - publishes source `generated_at` freshness in the dashboard header and source-quality block
   - keeps source-news failures visible without blocking fresh screener data
 - Published the regenerated dashboard to `gh-pages` so the embedded RSI14 tab has the freshness display immediately.
+- Final manual GitHub workflow verification produced `latest.csv` with `generated_at=2026-05-05T19:59:52Z`; the follow-up dashboard run published `Source generated: 05 May 2026 19:59 UTC`, `Generated: 05 May 2026 20:02 UTC`, source labels BUY 1, SELL 4, BUY-watch 8, SELL-watch 11, and 111 screened rows.
 
 Verified:
 
 - `oslo-screener`: Python compile and `pytest` suite, 23 tests passing.
 - `oslo-screener-dashboard`: Python compile, local dashboard generation, icon generation, generated HTML checks, and public Pages deployment.
+- Manual GitHub Actions dispatches for `Daily Screener` and `Daily Dashboard` completed successfully after the rebase-handling fix.
 - GitHub API shows both `oslo-screener` and `oslo-screener-dashboard` default branch as `main`.
 - Web-app README API checks, RSI14 parser refresh, and Safari launch.
 
