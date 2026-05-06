@@ -16,6 +16,8 @@
 - Local app default: http://127.0.0.1:8765
 - Local app alternate/debug: http://127.0.0.1:8768
 - Safari launcher: `scripts/open_in_safari.sh`
+- SQLite backup script: `scripts/backup_database.sh`
+- SQLite restore script: `scripts/restore_database.sh`
 - Sharing/deployment notes: `docs/deployment-sharing.md`
 - Runtime config example: `.env.example`
 
@@ -27,6 +29,8 @@
 - `docs/project-handoff.md`
 - `docs/links-and-resources.md`
 - `scripts/open_in_safari.sh`
+- `scripts/backup_database.sh`
+- `scripts/restore_database.sh`
 - `.env.example`
 - `.github/workflows/ci.yml`
 - `app/server.py`
@@ -72,11 +76,24 @@
 - `OSLO_APP_HOST`: bind host, default `127.0.0.1`.
 - `OSLO_APP_PORT`: bind port, default `8765`.
 - `OSLO_APP_DB_PATH`: optional SQLite database path.
+- `OSLO_APP_BACKUP_DIR`: optional backup directory for SQLite backup/restore scripts.
 - `OSLO_APP_REQUIRE_AUTH`: set to `1` for Basic Auth.
 - `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
 - `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE`: explicit override for non-local unauthenticated binds.
 
 Non-local bind hosts are refused by default unless Basic Auth credentials are configured or the explicit unauthenticated override is set.
+
+## Sharing / Deployment References
+
+- SQLite online backup API: https://www.sqlite.org/backup.html
+- Caddy automatic HTTPS: https://caddyserver.com/docs/automatic-https
+- Caddy reverse proxy directive: https://caddyserver.com/docs/caddyfile/directives/reverse_proxy
+- Tailscale Serve: https://tailscale.com/docs/features/tailscale-serve
+- Hetzner cloud pricing docs: https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/
+- Render persistent disks: https://render.com/docs/disks
+- Fly.io volumes: https://fly.io/docs/volumes/
+
+Current decision as of 06 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. No external deployment has been performed.
 
 ## External Sources In Use
 

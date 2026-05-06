@@ -43,7 +43,7 @@ Important current limitations:
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, and strict yfinance quarterly statement tables when dated quarter-end rows are returned. Primary-source filing verification remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
-- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; external sharing still needs HTTPS/reverse-proxy review, backups, and deployment-target decisions.
+- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore scripts, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist are documented, but no external deployment has been performed.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -334,24 +334,54 @@ Verified:
 - Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
+### Sharing And Deployment Follow-Up
+
+- Decided the practical path for broader sharing without deploying externally:
+  local/private use remains the default; Tailscale/LAN is suitable only for a
+  small trusted pilot; any external sharing should use a single EU VPS with the
+  app bound to localhost behind an HTTPS reverse proxy.
+- Added `scripts/backup_database.sh` and `scripts/restore_database.sh` for the
+  SQLite runtime database. Backups use SQLite's online backup path, verify with
+  `PRAGMA integrity_check`, write timestamped `.sqlite3` files, and write
+  `.sha256` checksums.
+- Added `backups/` to `.gitignore` and documented `OSLO_APP_BACKUP_DIR`.
+- Expanded `docs/deployment-sharing.md` with backup cadence, retention target,
+  restore workflow, hosted database path expectations, target comparison,
+  HTTPS/reverse-proxy expectations, and a production access-control checklist.
+- Preserved quarterly statement history as screening-grade until primary
+  company-report verification is added.
+- Preserved optional sector index/proxy rows as explicit reviewed curation only.
+- Kept the current NewsWeb daily digest on demand; scheduled NewsWeb automation
+  remains separately scoped.
+- Added no recommendation logic and no standalone multiple verdict labels.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, watchlist technical indicators, and event monitoring.
+- Ran `scripts/backup_database.sh` and verified it produced an ignored timestamped SQLite backup plus checksum.
+- Verified the checksum and restored the backup to a temporary database path without touching the live database.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
 ## Next Sprint
 
-### Sharing And Deployment
+### Primary Verification And Sharing Readiness
 
 - Keep quarterly statement history screening-grade until primary company-report verification is added.
-- Decide database backup/restore workflow before any broader sharing.
-- Choose a deployment target and document HTTPS/reverse-proxy expectations.
+- Add primary company-report verification before treating quarterly statement history as anything beyond screening-grade context.
+- Run a restore drill against a copied database and decide the off-host backup destination before any real external deployment.
+- If external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while keeping local defaults unchanged.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.
-- Continue deployment/sharing prep without adding recommendation logic.
+- Continue without adding recommendation logic.
 
 ## Later Sprints
 
 ### Sharing And Deployment
 
-- Decide database path and backup strategy.
-- Add concrete deployment-target documentation.
-- Add HTTPS/reverse-proxy guidance and production access-control checklist.
+- Execute external deployment only if explicitly scoped.
+- Consider managed/off-host backup automation after the restore drill.
 
 ## Deferred
 

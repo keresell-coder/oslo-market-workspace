@@ -33,10 +33,20 @@ The default run is local-only and unauthenticated. Runtime settings can be confi
 - `OSLO_APP_HOST`: bind host, default `127.0.0.1`.
 - `OSLO_APP_PORT`: bind port, default `8765`.
 - `OSLO_APP_DB_PATH`: optional SQLite database path.
+- `OSLO_APP_BACKUP_DIR`: optional backup destination for database backup/restore scripts.
 - `OSLO_APP_REQUIRE_AUTH`: set to `1` to require Basic Auth.
 - `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
 
 If `OSLO_APP_HOST` is set to a non-local bind host such as `0.0.0.0`, the server refuses to start unless Basic Auth credentials are configured or `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1` is set intentionally. See `docs/deployment-sharing.md` and `.env.example`.
+
+SQLite backup/restore utilities:
+
+```bash
+scripts/backup_database.sh
+scripts/restore_database.sh backups/sqlite/<backup>.sqlite3
+```
+
+The backup script uses SQLite's online backup path, writes timestamped backups under `backups/sqlite/` by default, and writes a `.sha256` checksum. The restore script verifies the selected backup, creates a pre-restore backup of the current database, and replaces the configured database path. Stop the app before restoring.
 
 Repository: `keresell-coder/oslo-market-workspace`
 
@@ -57,7 +67,7 @@ Local folder:
 - **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
-- **Sharing prep**: environment-based host/port/database configuration, an optional Basic Auth gate, and a CI syntax-check workflow.
+- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore scripts, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, a production access-control checklist, and a CI syntax-check workflow.
 
 ## Rules And Guardrails
 
@@ -83,7 +93,7 @@ Local folder:
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: primary-source filing verification for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, and deployment/sharing.
+- Remaining major gaps: primary-source filing verification for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, restore-drill/off-host backup review, and any actual external deployment.
 
 ## Verification
 
@@ -113,6 +123,14 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Sharing And Deployment Follow-Up**
+
+- Decided the next practical sharing path: keep local/private use as default; use Tailscale/LAN only for a small trusted pilot; use a single EU VPS with the app bound to localhost, HTTPS reverse proxy, persistent SQLite path, and off-host backups for any later external sharing.
+- Added `scripts/backup_database.sh` and `scripts/restore_database.sh` using SQLite online backup plus `PRAGMA integrity_check`, timestamped backup files, and SHA-256 checksum files.
+- Documented backup cadence, retention target, restore workflow, hosted database path expectations, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist in `docs/deployment-sharing.md`.
+- Preserved quarterly statement history as screening-grade only, kept optional sector index/proxy curation explicit/reviewed, kept the NewsWeb daily digest on demand, preserved `/api/technical-indicators` and the separate RSI14 screener tab, and added no recommendation logic.
+- Verified script syntax, backend/frontend syntax, README API checks, backup creation/checksum validation, restore to a temporary database path, and Safari launch.
 
 **Sharing Prep Follow-Up**
 
@@ -221,12 +239,13 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**Sharing And Deployment Follow-Up**
+**Primary Verification And Sharing Readiness**
 
-- Continue sharing/deployment prep: backup strategy, deployment target choice, and HTTPS/reverse-proxy notes.
 - Extend quarterly statement review toward primary company reports before using the data beyond screening context.
+- Do a restore drill against a copied database and decide the off-host backup destination before any real external deployment.
+- If external sharing is explicitly scoped, implement service-manager/reverse-proxy config for the chosen single-host target without changing the local default.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible failure states.
-- Continue deployment/sharing prep without adding recommendation logic.
+- Continue without adding recommendation logic.
 
 See `docs/roadmap.md` for the broader sprint plan.

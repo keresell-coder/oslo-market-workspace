@@ -73,7 +73,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - environment variables configure bind host, port, SQLite path, and optional Basic Auth
   - default run remains local-only at `127.0.0.1:8765`
   - non-local unauthenticated binds are refused unless explicitly overridden
-  - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails
+  - `scripts/backup_database.sh` and `scripts/restore_database.sh` provide SQLite backup/restore utilities with integrity checks
+  - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails, backup workflow, target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist
   - GitHub Actions CI checks backend compile and frontend syntax
 - Watchlist overview endpoint:
   - `/api/watchlist-overview`
@@ -132,7 +133,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
-- Basic Auth is a sharing-prep gate, not a full production security model. Broader sharing still needs HTTPS/reverse-proxy review, backups, and deployment-target decisions.
+- Basic Auth is a sharing-prep gate, not a full production security model. Backup/restore, HTTPS/reverse-proxy expectations, target comparison, and an access-control checklist are now documented, but actual external deployment still needs explicit scoping and a tested off-host backup destination.
 - NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers `api3.oslo.oslobors.no` via `urls.json`, and ticker queries return issuer announcements from `/v1/newsreader/customQuery`.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Backend-assisted peer groups stay `draft` until reviewed.
@@ -182,6 +183,15 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Decided the practical sharing path without deploying externally: local/private remains default, Tailscale/LAN is only for a small trusted pilot, and any later external sharing should use a single EU VPS with the app bound to localhost behind an HTTPS reverse proxy.
+- Added `scripts/backup_database.sh` and `scripts/restore_database.sh` for SQLite online backups, integrity checks, timestamped backup files, checksum files, and pre-restore safety backups.
+- Added `backups/` to `.gitignore` and documented `OSLO_APP_BACKUP_DIR`.
+- Expanded `docs/deployment-sharing.md` with backup cadence, retention target, restore workflow, hosted database path expectations, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist.
+- Preserved quarterly statement screening-grade wording, explicit sector index/proxy curation, the current on-demand NewsWeb digest, `/api/technical-indicators`, the separate RSI14 screener tab, and no-recommendation behavior.
+- Verification passed for script syntax, backend/frontend syntax, README API checks, backup creation/checksum validation, restore to a temporary database path, and Safari launch.
+
+## Completed Previous Sprint
+
 - Added environment-based runtime settings for bind host, port, SQLite database path, and optional Basic Auth.
 - Kept default local behavior unchanged at `127.0.0.1:8765` with no auth prompt.
 - Added a startup guard that refuses non-local unauthenticated binds unless an explicit override is set.
@@ -189,7 +199,7 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Preserved quarterly statement screening-grade wording, explicit sector index/proxy curation, the current on-demand NewsWeb digest, `/api/technical-indicators`, the separate RSI14 screener tab, and no-recommendation behavior.
 - Verification passed for syntax, README API checks, optional Basic Auth on a temporary local port, non-local unauthenticated startup refusal, in-app browser navigation, and Safari launch.
 
-## Completed Previous Sprint
+## Completed Earlier Sprint
 
 - Confirmed yfinance quarterly income statement, balance sheet, and cash-flow tables return dated quarter-end statement columns for Oslo examples including MOWI, NOD, and FRO.
 - Added strict quarterly statement parsing for explicit yfinance row labels only; missing periods and fields stay missing, and current yfinance summary fields are not used as statement-history proxies.
@@ -206,7 +216,7 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 - Verification passed for syntax, README API checks, `/api/event-monitoring?refresh=1` returning an 8-row 24-hour digest across 5 watchlist symbols during live verification, in-app browser navigation, and Safari launch.
 
-## Completed Earlier Sprint
+## Completed Prior Sprint
 
 - Added explicit consensus/source row metadata for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
 - Kept Yahoo/yfinance target and rating fields labeled as provider-row data, not verified consensus.
@@ -233,17 +243,17 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: sharing/deployment follow-up.
+Next priority: primary verification and sharing readiness.
 
 Goal:
 
-- Decide database backup/restore workflow and deployment-target expectations while keeping quarterly statement history screening-grade until primary company-report verification is added.
+- Add primary company-report verification before using quarterly statement history beyond screening context, and do a restore drill/off-host-backup decision before any actual external deployment.
 
 Tasks:
 
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states.
-- Document HTTPS/reverse-proxy expectations before external sharing.
+- If external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while preserving local defaults.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat
