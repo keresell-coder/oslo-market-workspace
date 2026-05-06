@@ -33,7 +33,7 @@
 
 ## Codex Chats
 
-- Current sprint branch: `codex/consensus-quality`
+- Current sprint branch: `codex/newsweb-daily-digest`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -73,7 +73,7 @@
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
 - Manual consensus/source rows for target/rating references when source URL, as-of date, method, and limitations reduce ambiguity from free provider data
 - Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
-- NewsWeb ticker search links plus on-demand NewsWeb rows and manual/source-reviewed significant-event rows
+- NewsWeb ticker search links, on-demand NewsWeb rows, on-demand 24-hour daily digest rows, and manual/source-reviewed significant-event rows
 - TradingView search links
 
 ## NewsWeb / Euronext Event Source Notes
@@ -82,7 +82,9 @@
 - Euronext Oslo page identifies NewsWeb as the place where listed-company news on Euronext Oslo Børs marketplaces is displayed and says it is updated immediately, 24/7.
 - NewsWeb public web app exposes JSON calls used by its JavaScript frontend. Its `urls.json` points to `https://api3.oslo.oslobors.no`, and ticker queries use `/v1/newsreader/customQuery`.
 - Euronext Publication Services / EuroStockNews describes issuer publication services and API/web-module capabilities, but that appears to be an issuer/corporate-services path rather than a confirmed public research ingestion API.
-- App behavior: News/Events tab and `/api/event-monitoring` fetch NewsWeb rows on demand with a 15-minute cache and merge them with manual/source-reviewed rows. Daily watchlist digest remains a later sprint with deduplication and rate-limit handling still needed.
+- App behavior: News/Events tab and `/api/event-monitoring` fetch NewsWeb rows on demand with a 15-minute cache, merge them with manual/source-reviewed rows, and expose a 24-hour watchlist digest grouped by symbol and event category.
+- Digest behavior: duplicate/correction handling uses same client announcement IDs when present plus same-day title fingerprints for repeated issuer messages and same-title announcements. It is heuristic and keeps dedupe counts visible.
+- Fetch status behavior: each watchlist symbol carries fresh, stale, old, error, or stale-after-error metadata with timestamps, confidence, limitations, and direct NewsWeb links.
 - Event categories in use: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, corporate action.
 
 ## RSI14 Dashboard Refresh Notes
@@ -106,5 +108,5 @@
 
 - TradingView analyst/target-price pages
 - MarketScreener consensus pages
-- Scheduled NewsWeb/Euronext announcement digest
-This should use conservative rate limits, deduplication, source links, and error/freshness reporting. Preserve overlapping analyst-count caveats for consensus data.
+- Scheduled NewsWeb/Euronext announcement automation
+The current digest is on-demand. Any scheduled automation should reuse the same conservative source path, keep deduplication/source links/error/freshness reporting visible, and preserve overlapping analyst-count caveats for consensus data.

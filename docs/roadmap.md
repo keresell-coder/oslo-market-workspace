@@ -27,7 +27,7 @@ Completed MVP pieces:
 - Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, and expanded consensus/source row editor.
 - Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-fundamental-window requirements.
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
-- Manual consensus/source table and watchlist-first significant-event table/API with event categories and source-quality metadata.
+- Manual consensus/source table and watchlist-first significant-event table/API with event categories, source-quality metadata, and an on-demand 24-hour NewsWeb daily digest grouped by watchlist symbol/category.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
 
@@ -40,7 +40,7 @@ Important current limitations:
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, and gated local snapshot charts. True quarterly fundamental statement history remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
-- Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows.
+- Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -250,14 +250,12 @@ Verified:
 - GitHub API shows both `oslo-screener` and `oslo-screener-dashboard` default branch as `main`.
 - Web-app README API checks, RSI14 parser refresh, and Safari launch.
 
-## Next Sprint
-
 ### NewsWeb And Event Monitoring
 
 - Keep watchlist-first filtering.
 - Add event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, corporate action.
 - Confirm reliable/permitted NewsWeb or Euronext fetch method before automation.
-- Add daily watchlist digest only after source handling is clear.
+- Leave daily watchlist digest for the next sprint after source handling is clear.
 
 Completed:
 
@@ -266,7 +264,7 @@ Completed:
 - Added source type, review status, confidence, and limitation-note fields to `significant_events`.
 - Added on-demand NewsWeb pulls from the `api3.oslo.oslobors.no/v1/newsreader/customQuery` endpoint discovered through the official NewsWeb frontend `urls.json`.
 - Watchlist Updates now uses NewsWeb rows plus manual rows; `/api/event-monitoring?refresh=1` returned 60 NewsWeb rows across 12 watchlist symbols during verification.
-- Kept daily digest as a later sprint with conservative rate-limit and deduplication work still needed.
+- Kept daily digest out of this sprint; it was completed in the follow-up NewsWeb Daily Digest sprint.
 - Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 
 Verified:
@@ -277,6 +275,33 @@ Verified:
 - Checked `/api/event-monitoring?refresh=1` for watchlist rows, source status, source mix, and the full event category set.
 - Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
+
+### NewsWeb Daily Digest
+
+- Added an on-demand 24-hour watchlist digest to `/api/event-monitoring` using the existing NewsWeb ticker endpoint path and local 15-minute cache.
+- Grouped digest rows by watchlist symbol and existing event category taxonomy.
+- Added heuristic deduplication for same client announcement IDs, correction rows, repeated issuer messages, and same-day same-title fingerprints. The digest keeps dedupe counts visible rather than implying perfect deduplication.
+- Added per-symbol NewsWeb fetch status metadata for fresh, stale, old, error, and stale-after-error states.
+- Added the News/Events UI digest section with source announcement links, timestamps, freshness, confidence, limitations, missing-data wording, and no-advice wording.
+- Preserved the detailed News/Events table, manual significant-event editor, Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, watchlist technical indicators, and event monitoring.
+- Checked `/api/event-monitoring?refresh=1`; the live 24-hour digest returned 8 rows across 5 watchlist symbols with 0 fetch errors during verification.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events including the daily digest, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
+
+## Next Sprint
+
+### Quarterly History And Sharing Prep
+
+- Add true quarterly fundamental statement history when a reliable source path is confirmed.
+- Keep optional sector index/proxy curation explicit and reviewed.
+- Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.
+- Continue deployment/sharing prep without adding recommendation logic.
 
 ## Later Sprints
 

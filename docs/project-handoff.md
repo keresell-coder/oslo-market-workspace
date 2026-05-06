@@ -20,7 +20,7 @@ Local git status:
 
 ```text
 default branch: main
-current sprint branch: codex/consensus-quality
+current sprint branch: codex/newsweb-daily-digest
 ```
 
 Local app:
@@ -116,15 +116,15 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - `significant_events` table
   - `/api/events`
   - `/api/event-monitoring`
-  - News/Events tab with watchlist-first NewsWeb rows, event categories, source-quality status, source links, and manual/source-reviewed entry
-  - NewsWeb rows are fetched on demand from the `api3.oslo.oslobors.no` endpoint used by the official NewsWeb frontend; daily digest automation remains a later sprint
+  - News/Events tab with watchlist-first NewsWeb rows, a 24-hour on-demand daily digest grouped by symbol/category, event categories, source-quality status, source links, per-symbol fetch status, and manual/source-reviewed entry
+  - NewsWeb rows are fetched on demand from the `api3.oslo.oslobors.no` endpoint used by the official NewsWeb frontend; scheduled digest automation remains separate
 
 ## Important Data Caveats
 
 - Yahoo/yfinance data is free, delayed, rate-limited, and incomplete.
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
-- Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links plus on-demand NewsWeb rows and manual/source-reviewed significant-event rows.
+- Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
 - NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers `api3.oslo.oslobors.no` via `urls.json`, and ticker queries return issuer announcements from `/v1/newsreader/customQuery`.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Backend-assisted peer groups stay `draft` until reviewed.
@@ -174,16 +174,26 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Added a conservative on-demand 24-hour NewsWeb watchlist digest to `/api/event-monitoring`.
+- Grouped digest rows by watchlist symbol and event category.
+- Added heuristic duplicate/correction grouping for same client announcement IDs, corrections, repeated issuer messages, and same-day title fingerprints.
+- Added per-symbol NewsWeb fetch status for fresh, stale, old, error, and stale-after-error cases.
+- Kept source links, timestamps, freshness, confidence, limitations, missing-data wording, and no-advice wording visible in the digest and News/Events table.
+- Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
+- Verification passed for syntax, README API checks, `/api/event-monitoring?refresh=1` returning an 8-row 24-hour digest across 5 watchlist symbols during live verification, in-app browser navigation, and Safari launch.
+
+## Completed Previous Sprint
+
 - Renamed the tab to **News/Events** and added watchlist-first significant-event monitoring.
 - Added event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action.
 - Added `/api/event-monitoring` for watchlist event rows, category summary, source-policy metadata, NewsWeb source links, and missing-data coverage.
 - Extended `significant_events` with source type, review status, confidence, and limitation-note fields.
 - Added on-demand NewsWeb pulls from `api3.oslo.oslobors.no/v1/newsreader/customQuery`; Watchlist Updates now uses NewsWeb rows plus manual rows.
-- Kept daily digest disabled until the next sprint adds deduplication, conservative rate limits, and digest presentation.
+- Kept daily digest disabled in that sprint; it was completed in the follow-up NewsWeb Daily Digest sprint.
 - Preserved no-advice wording, missing-data discipline, Technical indicators, `/api/technical-indicators`, Own history, Benchmarks, and the separate RSI14 screener tab.
 - Verification passed for syntax, README API checks, `/api/event-monitoring?refresh=1` returning 60 NewsWeb rows across 12 watchlist symbols, in-app browser navigation across Watchlist/Fundamentals/Own history/Benchmarks/News/Events/Technical indicators/RSI14 screener, browser console errors, and Safari launch.
 
-## Completed Previous Sprint
+## Completed Earlier Sprint
 
 - Added explicit consensus/source row metadata for row type, review status, target currency, as-of date, source URL, method note, and limitation note.
 - Kept Yahoo/yfinance target and rating fields labeled as provider-row data, not verified consensus.
@@ -210,18 +220,16 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: NewsWeb daily digest.
+Next priority: quarterly history and sharing prep.
 
 Goal:
 
-- Build a conservative watchlist digest from the on-demand NewsWeb source path.
+- Add true quarterly fundamental statement history when a reliable source path is confirmed, while keeping sharing/deployment prep conservative.
 
 Tasks:
 
-- Add daily digest grouping by symbol and event category.
-- Deduplicate Norwegian/English duplicates, corrections, repeated issuer messages, and same-title announcements.
-- Add a stale/error state for symbols where NewsWeb fetch fails.
-- Keep NewsWeb source links, timestamps, freshness, confidence, limitations, and no-advice wording visible.
+- Keep optional sector index/proxy curation explicit and reviewed.
+- Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat
@@ -233,7 +241,7 @@ Tasks:
 5. Open Own History and confirm price-history context, local snapshot charts/rows, and source/gate metadata render.
 6. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
 7. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor render without a repeated own-history block.
-8. Open News/Events and confirm source-policy status, category summary, watchlist rows, NewsWeb source links, and manual editor render.
+8. Open News/Events and confirm source-policy status, daily digest grouped by symbol/category, per-symbol NewsWeb fetch status, source links, watchlist rows, and manual editor render.
 9. Open RSI14 screener and confirm the embedded dashboard is unchanged.
 10. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
 11. Run README verification commands.

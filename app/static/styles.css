@@ -340,6 +340,74 @@ main {
   min-width: 260px;
 }
 
+.daily-digest {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.daily-digest-head,
+.digest-symbol-head,
+.digest-category-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.daily-digest h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.digest-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.digest-symbol {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.digest-category,
+.digest-event,
+.digest-empty {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.digest-category {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.digest-event {
+  padding: 8px;
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.digest-event strong,
+.digest-symbol strong {
+  overflow-wrap: anywhere;
+}
+
+.digest-links {
+  padding-top: 4px;
+}
+
 input,
 select,
 textarea {

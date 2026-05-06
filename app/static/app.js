@@ -2201,6 +2201,7 @@ function renderEventSourcePolicy(policy = {}) {
 
 function renderEventSummary(data) {
   const coverage = data.coverage || {};
+  const digest = data.dailyDigest || {};
   const categories = data.categorySummary || [];
   const sourceMix = coverage.sourceMix || {};
   return `
@@ -2209,6 +2210,7 @@ function renderEventSummary(data) {
         <strong>${escapeHtml(coverage.trackedEventCount ?? 0)} NewsWeb/manual row${coverage.trackedEventCount === 1 ? "" : "s"} across ${escapeHtml(coverage.watchlistCount ?? 0)} watchlist symbols</strong>
         <span>${escapeHtml(coverage.symbolsWithEvents ?? 0)} symbols have rows; ${escapeHtml(coverage.symbolsMissingEvents ?? 0)} have no rows from the on-demand lookup.</span>
         <span>${escapeHtml(sourceMix.newswebRows ?? 0)} NewsWeb row(s); ${escapeHtml(sourceMix.manualRows ?? 0)} manual row(s).</span>
+        <span>Daily digest: ${escapeHtml(digest.digestEventCount ?? 0)} row(s), ${escapeHtml(digest.deduplicatedCount ?? 0)} duplicate/correction row(s) collapsed, ${escapeHtml(digest.symbolsWithFetchErrors ?? 0)} symbol fetch error(s).</span>
         <span>${escapeHtml(coverage.missingDataPolicy || "Missing rows stay missing.")}</span>
       </div>
       <div class="alert-list">
@@ -2217,6 +2219,107 @@ function renderEventSummary(data) {
           .map((item) => `<span class="alert-chip"><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.count)}</span></span>`)
           .join("") || `<span class="alert-chip signal-draft"><strong>Categories</strong><span>No tracked rows yet</span></span>`}
       </div>
+    </div>
+  `;
+}
+
+function fetchStatusClass(status) {
+  if (["error", "stale-error"].includes(status)) return "signal-sell";
+  if (["stale", "old"].includes(status)) return "signal-draft";
+  if (status === "fresh") return "signal-source";
+  return "signal-neutral";
+}
+
+function renderNewswebFetchStatus(fetch = {}) {
+  const status = fetch.status || "not-fetched";
+  return `
+    <div class="signal-cell">
+      <span class="signal-badge ${fetchStatusClass(status)}">${escapeHtml(fetch.label || status)}</span>
+      <span class="muted">${escapeHtml(fetch.fetchedAt ? `Fetched ${fetch.fetchedAt}` : "Fetch timestamp missing")}</span>
+      ${fetch.attemptedAt && fetch.attemptedAt !== fetch.fetchedAt ? `<span class="muted">Last attempt ${escapeHtml(fetch.attemptedAt)}</span>` : ""}
+      ${fetch.error ? `<span class="muted">Error: ${escapeHtml(fetch.error)}</span>` : ""}
+      <span class="muted">${escapeHtml(fetch.limitation || "Fetch status unavailable; verify directly in NewsWeb.")}</span>
+    </div>
+  `;
+}
+
+function renderDailyDigest(digest = {}) {
+  const symbols = digest.symbols || [];
+  return `
+    <section class="daily-digest">
+      <div class="daily-digest-head">
+        <div>
+          <h3>${escapeHtml(digest.label || "Daily watchlist digest")}</h3>
+          <p class="muted">${escapeHtml(digest.lookbackHours || 24)}h lookback from ${escapeHtml(digest.cutoffAt || "cutoff n/a")} to ${escapeHtml(digest.generatedAt || "generated time n/a")}.</p>
+          <p class="muted">${escapeHtml(digest.noAdvice || "Descriptive issuer-announcement grouping only; not investment advice.")}</p>
+        </div>
+        <div class="alert-list">
+          <span class="alert-chip signal-source"><strong>Digest rows</strong><span>${escapeHtml(digest.digestEventCount ?? 0)}</span></span>
+          <span class="alert-chip signal-draft"><strong>Deduped</strong><span>${escapeHtml(digest.deduplicatedCount ?? 0)}</span></span>
+          <span class="alert-chip ${digest.symbolsWithFetchErrors ? "signal-sell" : "signal-neutral"}"><strong>Fetch errors</strong><span>${escapeHtml(digest.symbolsWithFetchErrors ?? 0)}</span></span>
+        </div>
+      </div>
+      <div class="digest-grid">
+        ${
+          symbols
+            .map((row) => renderDigestSymbol(row))
+            .join("") || `<div class="digest-symbol"><strong>No watchlist symbols loaded.</strong></div>`
+        }
+      </div>
+      <p class="muted">${escapeHtml(digest.freshness || "Each symbol carries its own fetch status.")} ${escapeHtml(digest.limitation || "Missing data stays missing.")}</p>
+    </section>
+  `;
+}
+
+function renderDigestSymbol(row = {}) {
+  const fetch = row.fetchStatus || {};
+  const status = fetch.status || "not-fetched";
+  const categories = row.categories || [];
+  return `
+    <article class="digest-symbol" data-digest-symbol="${escapeHtml(row.symbol || "")}">
+      <div class="digest-symbol-head">
+        <div>
+          <strong>${escapeHtml(row.symbol || "symbol n/a")}</strong>
+          <span class="muted">${escapeHtml(row.eventCount ?? 0)} digest row(s); ${escapeHtml(row.deduplicatedCount ?? 0)} collapsed.</span>
+        </div>
+        <span class="signal-badge ${fetchStatusClass(status)}">${escapeHtml(fetch.label || status)}</span>
+      </div>
+      ${
+        categories.length
+          ? categories.map((category) => renderDigestCategory(category)).join("")
+          : `<div class="digest-empty">
+              <strong>No digest rows in the lookback window</strong>
+              <span class="muted">${escapeHtml(fetch.error || "Missing rows remain missing; use the NewsWeb link for a direct issuer check.")}</span>
+            </div>`
+      }
+      <div class="link-stack digest-links">
+        <a class="link" href="${escapeHtml(row.newswebSearchUrl || "#")}" target="_blank" rel="noreferrer">NewsWeb search</a>
+        <span class="muted">${escapeHtml(row.confidence || "official-source metadata; heuristic grouping")}</span>
+      </div>
+    </article>
+  `;
+}
+
+function renderDigestCategory(category = {}) {
+  return `
+    <div class="digest-category">
+      <div class="digest-category-title">
+        <span class="signal-badge signal-source">${escapeHtml(category.label || "Category")}</span>
+        <span class="muted">${escapeHtml(category.count ?? 0)} row(s)</span>
+      </div>
+      ${(category.rows || []).map((event) => renderDigestEvent(event)).join("")}
+    </div>
+  `;
+}
+
+function renderDigestEvent(event = {}) {
+  return `
+    <div class="digest-event">
+      <strong>${escapeHtml(event.title || "NewsWeb announcement")}</strong>
+      <span class="muted">${escapeHtml(event.published_at || "published timestamp missing")}</span>
+      <span class="muted">${escapeHtml(event.confidence || "official-source")}; ${escapeHtml(event.limitationNote || "Verify material details in the source announcement.")}</span>
+      ${event.digestDedupeNote ? `<span class="muted">${escapeHtml(event.digestDedupeNote)}</span>` : ""}
+      ${event.sourceUrl ? `<a class="link" href="${escapeHtml(event.sourceUrl)}" target="_blank" rel="noreferrer">Source announcement</a>` : `<span class="muted">source link missing</span>`}
     </div>
   `;
 }
@@ -2251,11 +2354,11 @@ function renderEventRows(rows) {
                     <div class="signal-cell">
                       <span class="signal-badge ${klass}">${escapeHtml(alert.level || "missing")}</span>
                       <strong>${escapeHtml(alert.count ? `${alert.count} tracked update(s)` : "No rows found")}</strong>
-                      <span class="muted">Fetched on demand from NewsWeb when available.</span>
+                      <span class="muted">Fetched on demand from NewsWeb when available; daily digest uses the same source path.</span>
                     </div>
                   </td>
                   <td>${renderLatestEvent(latest)}</td>
-                  <td>${renderEventQuality(latest)}</td>
+                  <td>${renderEventQuality(latest)}${renderNewswebFetchStatus(row.newswebFetch || {})}</td>
                   <td>
                     <div class="link-stack">
                       <a class="link" href="${escapeHtml(row.newswebSearchUrl || "#")}" target="_blank" rel="noreferrer">NewsWeb search</a>
@@ -2325,7 +2428,7 @@ async function loadEventMonitoring(refresh = false) {
   document.getElementById("event-table").innerHTML = renderLoadingPanel(refresh ? "Refreshing NewsWeb" : "Loading News/Events");
   const data = await api(`/api/event-monitoring?refresh=${refresh ? "1" : "0"}`);
   document.getElementById("event-source-policy").innerHTML = renderEventSourcePolicy(data.sourcePolicy || {});
-  document.getElementById("event-summary").innerHTML = `${renderEventSummary(data)}${renderEventErrors(data.errors || [])}`;
+  document.getElementById("event-summary").innerHTML = `${renderEventSummary(data)}${renderDailyDigest(data.dailyDigest || {})}${renderEventErrors(data.errors || [])}`;
   document.getElementById("event-table").innerHTML = renderEventRows(data.rows || []);
   populateEventEditor(data);
   markLoaded("events");

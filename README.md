@@ -42,7 +42,7 @@ Local folder:
 - **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
 - **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
-- **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, source-path status, category taxonomy, source links, freshness, confidence, and missing-data caveats. Daily digest remains a later sprint.
+- **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
@@ -69,7 +69,7 @@ Local folder:
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, daily NewsWeb/event digest with conservative rate limits, and deployment/sharing.
+- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, and deployment/sharing.
 
 ## Verification
 
@@ -99,6 +99,16 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**NewsWeb Daily Digest**
+
+- Added an on-demand 24-hour watchlist digest to `/api/event-monitoring`, built from the existing NewsWeb ticker fetch path with local cache reuse and conservative per-symbol calls.
+- Grouped digest rows by watchlist symbol and existing event taxonomy.
+- Added heuristic duplicate/correction grouping using same client announcement IDs where present plus same-day title fingerprints for repeated issuer messages and same-title rows.
+- Added per-symbol NewsWeb fetch states for fresh, stale, old, error, and stale-after-error cases; fetch errors remain visible in the digest and detailed News/Events table.
+- Kept source links, timestamps, freshness, confidence, limitations, missing-data wording, and no-advice language visible.
+- Preserved Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
+- Verified syntax, README API checks, `/api/event-monitoring?refresh=1` returning a daily digest with 8 rows across 5 watchlist symbols during the live check, in-app browser navigation across the main tabs, and Safari launch.
 
 **Own History Tab Streamlining**
 
@@ -178,11 +188,11 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**NewsWeb Daily Digest**
+**Quarterly History And Sharing Prep**
 
-- Build a conservative daily watchlist digest using the NewsWeb on-demand source path.
-- Add deduplication across English/Norwegian duplicates, corrections, and repeated issuer messages.
-- Keep source links, timestamps, freshness, confidence, and limitations visible.
-- Keep output descriptive and non-advisory.
+- Add true quarterly fundamental statement history when a reliable source path is confirmed.
+- Keep optional sector index/proxy curation explicit and reviewed.
+- Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible failure states.
+- Continue deployment/sharing prep without adding recommendation logic.
 
 See `docs/roadmap.md` for the broader sprint plan.

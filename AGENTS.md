@@ -36,7 +36,7 @@ If a stale local server holds the port, stop the old Python process or run a tem
 
 ## Current Architecture
 
-- `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, compact price/own-history chart payloads, screener parsing, consensus/event APIs, and watchlist-first event monitoring metadata.
+- `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, compact price/own-history chart payloads, screener parsing, consensus/event APIs, and watchlist-first event monitoring/daily digest metadata.
 - `app/static/index.html`: single-page app shell.
 - `app/static/app.js`: frontend data loading and rendering; Own History reuses `/api/fundamentals` rather than a separate backend endpoint.
 - `app/static/styles.css`: UI styling.
@@ -95,17 +95,17 @@ Consensus Quality is complete:
 - reported analyst refs may overlap across providers and are not deduplicated
 - Own History remains a separate tab between Fundamentals and Technical indicators
 - Technical indicators and `/api/technical-indicators` remain separate from the RSI14 screener dashboard tab
-- News/Events tab and `/api/event-monitoring` use on-demand NewsWeb rows from the official frontend's `api3.oslo.oslobors.no` endpoint plus manual/source-reviewed rows; daily digest remains planned
+- News/Events tab and `/api/event-monitoring` use on-demand NewsWeb rows from the official frontend's `api3.oslo.oslobors.no` endpoint plus manual/source-reviewed rows
+- NewsWeb Daily Digest is complete as an on-demand 24-hour watchlist digest grouped by symbol/category with per-symbol fetch status and heuristic duplicate/correction grouping
 - Event categories are earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
 
 ## Next Sprint Priority
 
-NewsWeb Daily Digest:
+Quarterly History And Sharing Prep:
 
-- keep watchlist-first filtering
-- use the existing on-demand NewsWeb source path with conservative rate limits
-- deduplicate Norwegian/English duplicates, corrections, repeated issuer messages, and same-title announcements
-- group digest rows by symbol and existing event taxonomy
+- add true quarterly fundamental statement history only after a reliable source path is confirmed
+- keep optional sector index/proxy curation explicit and reviewed
+- consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states
 - keep all output descriptive and non-advisory
