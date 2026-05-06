@@ -73,16 +73,16 @@
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
 - Manual consensus/source rows for target/rating references when source URL, as-of date, method, and limitations reduce ambiguity from free provider data
 - Local `fundamentals_snapshots` for own-multiple trend charts, gated by minimum observation count
-- NewsWeb ticker search links plus manual/source-reviewed significant-event rows
+- NewsWeb ticker search links plus on-demand NewsWeb rows and manual/source-reviewed significant-event rows
 - TradingView search links
 
 ## NewsWeb / Euronext Event Source Notes
 
 - Source path checked on 06 May 2026.
 - Euronext Oslo page identifies NewsWeb as the place where listed-company news on Euronext Oslo Børs marketplaces is displayed and says it is updated immediately, 24/7.
-- NewsWeb public web app exposes JSON calls used by its JavaScript frontend, but no documented public pull API or reuse permission was confirmed for scheduled research-app ingestion.
+- NewsWeb public web app exposes JSON calls used by its JavaScript frontend. Its `urls.json` points to `https://api3.oslo.oslobors.no`, and ticker queries use `/v1/newsreader/customQuery`.
 - Euronext Publication Services / EuroStockNews describes issuer publication services and API/web-module capabilities, but that appears to be an issuer/corporate-services path rather than a confirmed public research ingestion API.
-- App behavior: Events tab and `/api/event-monitoring` are manual/source-reviewed only. Automation and daily watchlist digest stay disabled until a permitted source path is documented or licensed.
+- App behavior: News/Events tab and `/api/event-monitoring` fetch NewsWeb rows on demand with a 15-minute cache and merge them with manual/source-reviewed rows. Daily watchlist digest remains a later sprint with deduplication and rate-limit handling still needed.
 - Event categories in use: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, corporate action.
 
 ## RSI14 Dashboard Refresh Notes
@@ -106,5 +106,5 @@
 
 - TradingView analyst/target-price pages
 - MarketScreener consensus pages
-- NewsWeb/Euronext announcement feeds
-These should only be automated if a reliable, permitted, and stable source path is confirmed. Until then, use manual/reviewed source entries and preserve overlapping analyst-count caveats.
+- Scheduled NewsWeb/Euronext announcement digest
+This should use conservative rate limits, deduplication, source links, and error/freshness reporting. Preserve overlapping analyst-count caveats for consensus data.

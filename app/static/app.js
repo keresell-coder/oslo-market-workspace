@@ -890,8 +890,8 @@ function renderEventCell(alert, symbol = "") {
     return `
       <button class="summary-button" data-open-events="${escapeHtml(symbol)}">
         <span class="signal-badge signal-draft">missing</span>
-        <strong>No tracked event rows</strong>
-        <span class="muted">Missing local data; open Events for source links</span>
+        <strong>No NewsWeb rows found</strong>
+        <span class="muted">Open News/Events for source links</span>
       </button>
     `;
   }
@@ -2202,11 +2202,13 @@ function renderEventSourcePolicy(policy = {}) {
 function renderEventSummary(data) {
   const coverage = data.coverage || {};
   const categories = data.categorySummary || [];
+  const sourceMix = coverage.sourceMix || {};
   return `
     <div class="alert-card calm">
       <div>
-        <strong>${escapeHtml(coverage.trackedEventCount ?? 0)} tracked event row${coverage.trackedEventCount === 1 ? "" : "s"} across ${escapeHtml(coverage.watchlistCount ?? 0)} watchlist symbols</strong>
-        <span>${escapeHtml(coverage.symbolsWithEvents ?? 0)} symbols have local rows; ${escapeHtml(coverage.symbolsMissingEvents ?? 0)} have missing local event data.</span>
+        <strong>${escapeHtml(coverage.trackedEventCount ?? 0)} NewsWeb/manual row${coverage.trackedEventCount === 1 ? "" : "s"} across ${escapeHtml(coverage.watchlistCount ?? 0)} watchlist symbols</strong>
+        <span>${escapeHtml(coverage.symbolsWithEvents ?? 0)} symbols have rows; ${escapeHtml(coverage.symbolsMissingEvents ?? 0)} have no rows from the on-demand lookup.</span>
+        <span>${escapeHtml(sourceMix.newswebRows ?? 0)} NewsWeb row(s); ${escapeHtml(sourceMix.manualRows ?? 0)} manual row(s).</span>
         <span>${escapeHtml(coverage.missingDataPolicy || "Missing rows stay missing.")}</span>
       </div>
       <div class="alert-list">
@@ -2225,8 +2227,8 @@ function renderEventRows(rows) {
       <thead>
         <tr>
           <th>Company</th>
-          <th>Event status</th>
-          <th>Latest tracked event</th>
+          <th>News/event status</th>
+          <th>Latest NewsWeb/manual row</th>
           <th>Source quality</th>
           <th>Source links</th>
         </tr>
@@ -2248,8 +2250,8 @@ function renderEventRows(rows) {
                   <td>
                     <div class="signal-cell">
                       <span class="signal-badge ${klass}">${escapeHtml(alert.level || "missing")}</span>
-                      <strong>${escapeHtml(alert.count ? `${alert.count} tracked update(s)` : "No local rows")}</strong>
-                      <span class="muted">Missing does not mean no company news.</span>
+                      <strong>${escapeHtml(alert.count ? `${alert.count} tracked update(s)` : "No rows found")}</strong>
+                      <span class="muted">Fetched on demand from NewsWeb when available.</span>
                     </div>
                   </td>
                   <td>${renderLatestEvent(latest)}</td>
@@ -2275,8 +2277,8 @@ function renderLatestEvent(event) {
     return `
       <div class="signal-cell">
         <span class="signal-badge signal-draft">missing</span>
-        <strong>No tracked event row</strong>
-        <span class="muted">Add a source-reviewed row when a significant NewsWeb/Euronext item is found.</span>
+        <strong>No NewsWeb/manual row found</strong>
+        <span class="muted">Open the NewsWeb search link for a direct issuer check.</span>
       </div>
     `;
   }
@@ -2320,13 +2322,18 @@ function populateEventEditor(data) {
 }
 
 async function loadEventMonitoring(refresh = false) {
-  document.getElementById("event-table").innerHTML = renderLoadingPanel(refresh ? "Refreshing events" : "Loading events");
-  const data = await api("/api/event-monitoring");
+  document.getElementById("event-table").innerHTML = renderLoadingPanel(refresh ? "Refreshing NewsWeb" : "Loading News/Events");
+  const data = await api(`/api/event-monitoring?refresh=${refresh ? "1" : "0"}`);
   document.getElementById("event-source-policy").innerHTML = renderEventSourcePolicy(data.sourcePolicy || {});
-  document.getElementById("event-summary").innerHTML = renderEventSummary(data);
+  document.getElementById("event-summary").innerHTML = `${renderEventSummary(data)}${renderEventErrors(data.errors || [])}`;
   document.getElementById("event-table").innerHTML = renderEventRows(data.rows || []);
   populateEventEditor(data);
   markLoaded("events");
+}
+
+function renderEventErrors(errors) {
+  if (!errors.length) return "";
+  return `<div class="error-box">${errors.map((error) => escapeHtml(error)).join("<br>")}</div>`;
 }
 
 async function saveEvent(event) {

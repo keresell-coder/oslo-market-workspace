@@ -42,7 +42,7 @@ Local folder:
 - **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
 - **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
-- **Events**: watchlist-first significant-event monitoring with manual/source-reviewed rows, source-path status, NewsWeb search links, category taxonomy, and missing-data caveats. Automation and daily digest remain disabled until a permitted NewsWeb/Euronext source path is documented.
+- **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, source-path status, category taxonomy, source links, freshness, confidence, and missing-data caveats. Daily digest remains a later sprint.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
 
@@ -69,7 +69,7 @@ Local folder:
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, permitted NewsWeb/event automation with digest, and deployment/sharing.
+- Remaining major gaps: true quarterly fundamental statement history, optional sector index/proxy curation, daily NewsWeb/event digest with conservative rate limits, and deployment/sharing.
 
 ## Verification
 
@@ -84,7 +84,7 @@ curl -s "http://127.0.0.1:8765/api/technical-indicators?universe=watchlist" | py
 curl -s "http://127.0.0.1:8765/api/event-monitoring" | python3 -m json.tool
 ```
 
-Use the in-app browser for visual checks when UI changes. Specifically verify Watchlist, Fundamentals, Own history, Benchmarks, Events, Technical indicators, and the separate RSI14 screener tab.
+Use the in-app browser for visual checks when UI changes. Specifically verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
 
 After every sprint or user-visible update, also run:
 
@@ -132,12 +132,13 @@ After each completed task, update the relevant docs so they reflect what changed
 
 **NewsWeb And Event Monitoring**
 
-- Added an **Events** tab with watchlist-first rows, NewsWeb search links, source-quality status, category summary, and a manual significant-event editor.
+- Renamed the tab to **News/Events** and added watchlist-first NewsWeb on-demand rows, source-quality status, category summary, source links, and a manual significant-event editor.
 - Added event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action.
 - Extended significant-event rows with source type, review status, confidence, and limitation-note metadata.
-- Confirmed the official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7, and Euronext Publication Services describes issuer publication/API capabilities. A documented public pull API/reuse permission for this research app was not confirmed, so automation and a daily digest remain disabled.
+- Added on-demand NewsWeb pulls from the same `api3.oslo.oslobors.no` endpoint discovered by the official NewsWeb frontend; Watchlist Updates now uses NewsWeb rows plus manual rows.
+- Confirmed the official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. Scheduled digest automation remains separate and should use conservative rate limits.
 - Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
-- Verified syntax, README API checks, new `/api/event-monitoring`, in-app browser navigation for Watchlist/Fundamentals/Own history/Benchmarks/Events/Technical indicators/RSI14 screener, and Safari launch.
+- Verified syntax, README API checks, `/api/event-monitoring` returning 60 NewsWeb rows across 12 watchlist symbols, in-app browser navigation for Watchlist/Fundamentals/Own history/Benchmarks/News/Events/Technical indicators/RSI14 screener, and Safari launch.
 
 **RSI14 Screener Dashboard Refresh**
 
@@ -177,10 +178,11 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**NewsWeb And Event Monitoring**
+**NewsWeb Daily Digest**
 
-- Keep watchlist-first manual/source-reviewed monitoring until a permitted automated source path is documented.
-- Confirm NewsWeb/Euronext terms or licensing for any scheduled pull collection before enabling automation.
-- Add daily watchlist digest only after source handling is clear.
+- Build a conservative daily watchlist digest using the NewsWeb on-demand source path.
+- Add deduplication across English/Norwegian duplicates, corrections, and repeated issuer messages.
+- Keep source links, timestamps, freshness, confidence, and limitations visible.
+- Keep output descriptive and non-advisory.
 
 See `docs/roadmap.md` for the broader sprint plan.

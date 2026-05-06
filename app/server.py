@@ -50,8 +50,11 @@ PRICE_CHART_SAMPLE_POINTS = 48
 SNAPSHOT_CHART_SAMPLE_POINTS = 8
 NEWSWEB_URL = "https://newsweb.oslobors.no/"
 NEWSWEB_SEARCH_URL = "https://newsweb.oslobors.no/search"
+NEWSWEB_API_BASE = "https://api3.oslo.oslobors.no/v1/newsreader"
 EURONEXT_OSLO_URL = "https://www.euronext.com/en/markets/oslo"
 EURONEXT_PUBLICATION_SERVICE_URL = "https://www.euronext.com/en/corporate-services/oslo-bors-publication-service"
+NEWSWEB_CACHE_TTL_SECONDS = 60 * 15
+NEWSWEB_CACHE: dict[str, dict] = {}
 EVENT_CATEGORIES = [
     {
         "key": "earnings",
@@ -1616,7 +1619,172 @@ def event_category_label(category: str | None) -> str:
     return key
 
 
-def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
+def event_time_epoch(row: dict) -> int:
+    for key in ("created_at_epoch", "publishedAtEpoch", "published_at_epoch"):
+        value = row.get(key)
+        if isinstance(value, (int, float)) and math.isfinite(value):
+            return int(value)
+    for key in ("published_at", "created_at", "publishedTime"):
+        value = row.get(key)
+        if not value:
+            continue
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return int(parsed.timestamp())
+        except ValueError:
+            continue
+    return 0
+
+
+def sort_event_rows(rows: list[dict]) -> list[dict]:
+    importance_rank = {"high": 0, "medium": 1, "normal": 2}
+    return sorted(
+        rows,
+        key=lambda row: (
+            -event_time_epoch(row),
+            importance_rank.get(str(row.get("importance") or "normal").lower(), 2),
+        ),
+    )
+
+
+def newsweb_symbol(symbol: str) -> str:
+    return normalize_symbol(symbol).replace(".OL", "")
+
+
+def newsweb_message_url(message: dict) -> str:
+    message_id = message.get("messageId") or message.get("id")
+    if message_id:
+        return f"{NEWSWEB_URL}message/{urllib.parse.quote(str(message_id))}"
+    client_id = message.get("clientAnnouncementId")
+    if client_id:
+        return f"{NEWSWEB_URL}announcement/{urllib.parse.quote(str(client_id))}"
+    return f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(str(message.get('issuerSign') or ''))}"
+
+
+def newsweb_category_text(message: dict) -> str:
+    categories = message.get("category") or []
+    parts = []
+    for category in categories:
+        if isinstance(category, dict):
+            parts.extend([category.get("category_en") or "", category.get("category_no") or ""])
+    return " ".join(part for part in parts if part)
+
+
+def classify_newsweb_category(message: dict) -> str:
+    text = " ".join(
+        [
+            str(message.get("title") or ""),
+            newsweb_category_text(message),
+        ]
+    ).lower()
+    if any(token in text for token in ["manager", "primary insider", "meldepliktig handel", "flagging", "major shareholding"]):
+        return "insider"
+    if any(token in text for token in ["dividend", "ex date", "eks.dato", "distribution", "buyback"]):
+        return "dividend"
+    if any(token in text for token in ["private placement", "repair issue", "share issue", "bond", "prospectus", "financing", "refinancing", "interest adjustment", "renteregulering"]):
+        return "financing-private-placement"
+    if any(token in text for token in ["contract", "order", "award", "agreement", "frame agreement"]):
+        return "contract-order"
+    if any(token in text for token in ["acquisition", "merger", "takeover", "offer", "disposal", "divest", "m&a"]):
+        return "m-a"
+    if any(token in text for token in ["profit warning", "guidance", "outlook", "trading update"]):
+        return "guidance-profit-warning"
+    if any(token in text for token in ["annual financial report", "half year", "quarter", "q1", "q2", "q3", "q4", "results", "financial calendar", "rapport"]):
+        return "earnings"
+    return "corporate-action"
+
+
+def classify_newsweb_importance(message: dict, category: str) -> str:
+    text = " ".join([str(message.get("title") or ""), newsweb_category_text(message)]).lower()
+    if "inside information" in text or "innsideinformasjon" in text:
+        return "high"
+    if category in {"guidance-profit-warning", "m-a", "financing-private-placement"}:
+        return "medium"
+    if category in {"earnings", "contract-order", "dividend", "insider"}:
+        return "medium"
+    return "normal"
+
+
+def parse_newsweb_published_epoch(value: str | None) -> int:
+    if not value:
+        return 0
+    try:
+        return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
+    except ValueError:
+        return 0
+
+
+def newsweb_event_from_message(symbol: str, message: dict, fetched_at: str) -> dict:
+    category = classify_newsweb_category(message)
+    published_at = message.get("publishedTime") or ""
+    return {
+        "id": f"newsweb-{message.get('messageId') or message.get('id') or message.get('clientAnnouncementId')}",
+        "symbol": normalize_symbol(symbol),
+        "title": message.get("title") or "NewsWeb announcement",
+        "category": category,
+        "categoryLabel": event_category_label(category),
+        "importance": classify_newsweb_importance(message, category),
+        "source": "NewsWeb",
+        "sourceType": "newsweb-live",
+        "reviewStatus": "source-pulled",
+        "confidence": "official-source",
+        "url": newsweb_message_url(message),
+        "sourceUrl": newsweb_message_url(message),
+        "note": newsweb_category_text(message) or "NewsWeb announcement.",
+        "published_at": published_at,
+        "publishedAtEpoch": parse_newsweb_published_epoch(published_at),
+        "created_at_epoch": parse_newsweb_published_epoch(published_at),
+        "created_at": fetched_at,
+        "issuerName": message.get("issuerName") or "",
+        "issuerSign": message.get("issuerSign") or newsweb_symbol(symbol),
+        "newswebCategory": newsweb_category_text(message),
+        "limitationNote": "Fetched on demand from the NewsWeb endpoint used by the official public NewsWeb app. Treat as screening-grade event context and verify material details in the source announcement.",
+    }
+
+
+def fetch_newsweb_symbol_events(symbol: str, refresh: bool = False, limit: int = 5) -> tuple[list[dict], str | None]:
+    if requests is None:
+        return [], "requests is required for NewsWeb event fetches"
+    normalized = normalize_symbol(symbol)
+    now_epoch = int(time.time())
+    cached = NEWSWEB_CACHE.get(normalized)
+    if cached and not refresh and now_epoch - cached["fetched_at_epoch"] < NEWSWEB_CACHE_TTL_SECONDS:
+        return cached["events"][:limit], cached.get("error")
+    fetched_at = utc_now()
+    base_symbol = newsweb_symbol(normalized)
+    try:
+        response = requests.post(
+            f"{NEWSWEB_API_BASE}/customQuery?action=&symbol={urllib.parse.quote(base_symbol)}",
+            json={"action": "", "symbol": base_symbol},
+            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            timeout=8,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        messages = payload.get("data", {}).get("messages", [])
+        events = [newsweb_event_from_message(normalized, message, fetched_at) for message in messages[:limit]]
+        events = sort_event_rows(enrich_event_rows(events))
+        NEWSWEB_CACHE[normalized] = {"fetched_at_epoch": now_epoch, "events": events, "error": None}
+        return events[:limit], None
+    except Exception as exc:
+        error = f"NewsWeb fetch failed for {normalized}: {exc}"
+        NEWSWEB_CACHE[normalized] = {"fetched_at_epoch": now_epoch, "events": [], "error": error}
+        return [], error
+
+
+def newsweb_events_for_symbols(symbols: list[str], refresh: bool = False, limit_per_symbol: int = 5) -> tuple[dict[str, list[dict]], list[str]]:
+    by_symbol: dict[str, list[dict]] = {}
+    errors: list[str] = []
+    for symbol in symbols:
+        normalized = normalize_symbol(symbol)
+        events, error = fetch_newsweb_symbol_events(normalized, refresh=refresh, limit=limit_per_symbol)
+        by_symbol[normalized] = events
+        if error:
+            errors.append(error)
+    return by_symbol, errors
+
+
+def significant_events_for_symbol(symbol: str, limit: int = 3, include_newsweb: bool = False, refresh_newsweb: bool = False) -> list[dict]:
     with connect() as con:
         rows = con.execute(
             """
@@ -1630,7 +1798,11 @@ def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
             """,
             (symbol, limit),
         ).fetchall()
-    return enrich_event_rows(rows_to_dicts(rows))
+    events = enrich_event_rows(rows_to_dicts(rows))
+    if include_newsweb:
+        newsweb_events, _error = fetch_newsweb_symbol_events(symbol, refresh=refresh_newsweb, limit=limit)
+        events.extend(newsweb_events)
+    return sort_event_rows(events)[:limit]
 
 
 def enrich_event_rows(rows: list[dict]) -> list[dict]:
@@ -1640,7 +1812,7 @@ def enrich_event_rows(rows: list[dict]) -> list[dict]:
         row["sourceType"] = row.get("source_type") or row.get("sourceType") or "manual-source"
         row["reviewStatus"] = row.get("review_status") or row.get("reviewStatus") or "draft"
         row["sourceUrl"] = row.get("url") or ""
-        row["limitationNote"] = row.get("limitation_note") or ""
+        row["limitationNote"] = row.get("limitation_note") or row.get("limitationNote") or ""
     return rows
 
 
@@ -1648,10 +1820,10 @@ def event_alert_summary(events: list[dict]) -> dict:
     if not events:
         return {
             "level": "none",
-            "label": "No tracked significant updates",
+            "label": "No NewsWeb/manual updates found",
             "count": 0,
             "latest": None,
-            "source": "manual/significant-events table",
+            "source": "NewsWeb on-demand plus manual significant-events table",
         }
     high = [event for event in events if event.get("importance") == "high"]
     latest = events[0]
@@ -1662,25 +1834,26 @@ def event_alert_summary(events: list[dict]) -> dict:
         "latest": latest,
         "category": latest.get("category"),
         "categoryLabel": event_category_label(latest.get("category")),
-        "source": "manual/significant-events table",
+        "source": "NewsWeb on-demand plus manual significant-events table",
     }
 
 
 def event_source_policy() -> dict:
     return {
-        "status": "manual-source-reviewed",
-        "label": "Manual tracking; automation not enabled",
+        "status": "newsweb-on-demand",
+        "label": "NewsWeb on-demand plus manual review",
         "checkedAt": "2026-05-06",
         "source": "Euronext Oslo Bors / NewsWeb",
         "sourceUrl": NEWSWEB_URL,
+        "apiBase": NEWSWEB_API_BASE,
         "searchUrl": NEWSWEB_SEARCH_URL,
         "euronextOsloUrl": EURONEXT_OSLO_URL,
         "publicationServiceUrl": EURONEXT_PUBLICATION_SERVICE_URL,
-        "confidence": "medium for manual review, low for automation",
-        "freshness": "NewsWeb is described by Euronext as updated immediately 24/7; local tracked rows update only when saved manually.",
-        "verification": "Official Euronext Oslo page identifies NewsWeb as the listed-company news site. The NewsWeb web app exposes JSON calls used by the public page, but no stable public pull API or reuse terms were confirmed.",
-        "limitation": "Do not schedule automated collection until a permitted source path is documented or explicitly licensed. Missing events stay missing.",
-        "digestStatus": "Daily watchlist digest is not enabled until source handling is confirmed.",
+        "confidence": "medium-high for on-demand official-source rows; verify details in each announcement",
+        "freshness": "Fetched on demand from the NewsWeb endpoint used by the official public NewsWeb app; cached locally for 15 minutes.",
+        "verification": "The official NewsWeb frontend discovers api3.oslo.oslobors.no via its own urls.json and ticker queries return issuer announcements from /v1/newsreader/customQuery.",
+        "limitation": "On-demand fetches show announcement metadata and source links. Scheduled automation/digest still needs explicit reuse and rate-limit handling before being enabled.",
+        "digestStatus": "Daily watchlist digest is not enabled yet; next sprint should add it using this on-demand source path with conservative rate limits.",
     }
 
 
@@ -1691,10 +1864,10 @@ def event_category_summary(rows: list[dict]) -> list[dict]:
     return [{**category, "count": counts.get(category["key"], 0)} for category in EVENT_CATEGORIES]
 
 
-def event_monitoring_payload(name: str = "Core Watchlist") -> dict:
+def event_monitoring_payload(name: str = "Core Watchlist", refresh_newsweb: bool = False) -> dict:
     watched = watchlist_symbols(name)
     with connect() as con:
-        event_rows = enrich_event_rows(
+        manual_event_rows = enrich_event_rows(
             rows_to_dicts(
                 con.execute(
                     """
@@ -1719,17 +1892,20 @@ def event_monitoring_payload(name: str = "Core Watchlist") -> dict:
                 (name,),
             ).fetchall()
         )
+    newsweb_by_symbol, newsweb_errors = newsweb_events_for_symbols(watched, refresh=refresh_newsweb)
+    event_rows = manual_event_rows + [event for events in newsweb_by_symbol.values() for event in events]
     events_by_symbol: dict[str, list[dict]] = {symbol: [] for symbol in watched}
-    for row in event_rows:
+    for row in sort_event_rows(event_rows):
         events_by_symbol.setdefault(row["symbol"], []).append(row)
     rows = []
     for item in item_rows:
         symbol = item["symbol"]
+        symbol_events = sort_event_rows(events_by_symbol.get(symbol, []))[:5]
         rows.append(
             {
                 **item,
-                "events": events_by_symbol.get(symbol, []),
-                "eventAlert": event_alert_summary(events_by_symbol.get(symbol, [])),
+                "events": symbol_events,
+                "eventAlert": event_alert_summary(symbol_events),
                 "newswebSearchUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
             }
         )
@@ -1740,13 +1916,18 @@ def event_monitoring_payload(name: str = "Core Watchlist") -> dict:
         "categories": EVENT_CATEGORIES,
         "categorySummary": event_category_summary(event_rows),
         "rows": rows,
-        "events": event_rows,
+        "events": sort_event_rows(event_rows),
+        "errors": newsweb_errors,
         "coverage": {
             "watchlistCount": len(watched),
             "trackedEventCount": len(event_rows),
             "symbolsWithEvents": len([row for row in rows if row["events"]]),
             "symbolsMissingEvents": missing_count,
-            "missingDataPolicy": "No tracked row means missing local event data, not no company news.",
+            "missingDataPolicy": "No row means no NewsWeb/manual row was found during the on-demand lookup; verify the issuer directly if needed.",
+            "sourceMix": {
+                "newswebRows": len([row for row in event_rows if row.get("sourceType") == "newsweb-live"]),
+                "manualRows": len([row for row in event_rows if row.get("sourceType") != "newsweb-live"]),
+            },
         },
     }
 
@@ -2054,7 +2235,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
             errors.append({"symbol": symbol, "error": str(exc)})
 
         consensus = consensus_for_symbol(symbol)
-        events = significant_events_for_symbol(symbol)
+        events = significant_events_for_symbol(symbol, include_newsweb=True)
         price_summary = stock_price_summary(fundamental)
         target_summary = consensus_target_summary(fundamental, consensus)
         rating_summary = consensus_rating_summary(consensus)
@@ -2103,7 +2284,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "sourceNotes": {
             "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
-            "events": "Significant events are watchlist-first manual/source-reviewed rows. Automated NewsWeb collection is not enabled until a permitted source path is documented.",
+            "events": "News/events are watchlist-first NewsWeb on-demand rows plus manual/source-reviewed rows. Scheduled digest automation remains a later step.",
             "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
         },
     }
@@ -3626,7 +3807,8 @@ class AppHandler(SimpleHTTPRequestHandler):
     def handle_event_monitoring(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         name = qs.get("watchlist", ["Core Watchlist"])[0]
-        send_json(self, event_monitoring_payload(name))
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        send_json(self, event_monitoring_payload(name, refresh_newsweb=refresh))
 
     def handle_events_post(self) -> None:
         body = get_json_body(self)
@@ -3723,9 +3905,9 @@ def source_notes() -> dict:
         },
         "newsweb": {
             "url": NEWSWEB_URL,
-            "use": "Ticker-specific NewsWeb search links plus manual/source-reviewed significant-event rows for the watchlist.",
-            "verification": "Euronext describes NewsWeb as the listed-company news site updated immediately 24/7. The public NewsWeb app exposes JSON calls, but a documented public pull API/reuse permission was not confirmed.",
-            "limitations": "Automation is intentionally disabled until a stable and permitted source path is documented or licensed. Missing event rows stay missing.",
+            "use": "Ticker-specific NewsWeb search links plus on-demand NewsWeb announcement rows for the watchlist.",
+            "verification": "Euronext describes NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers api3.oslo.oslobors.no via urls.json and ticker queries return issuer announcements from /v1/newsreader/customQuery.",
+            "limitations": "On-demand event rows are screening-grade metadata with source links. Scheduled digest automation still needs conservative rate limits and reuse review.",
         },
         "euronextPublicationService": {
             "url": EURONEXT_PUBLICATION_SERVICE_URL,

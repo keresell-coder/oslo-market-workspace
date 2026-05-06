@@ -40,7 +40,7 @@ Important current limitations:
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, and gated local snapshot charts. True quarterly fundamental statement history remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
-- Automated NewsWeb/event collection is not implemented. Event monitoring is manual/source-reviewed until a permitted source path is documented.
+- Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -261,11 +261,12 @@ Verified:
 
 Completed:
 
-- Added an **Events** tab with watchlist-first rows, source-path status, category counts, NewsWeb search links, and a manual significant-event editor.
+- Renamed the tab to **News/Events** and added watchlist-first rows, source-path status, category counts, NewsWeb source links, and a manual significant-event editor.
 - Added `/api/event-monitoring` and expanded `/api/events` with category definitions plus source-policy metadata.
 - Added source type, review status, confidence, and limitation-note fields to `significant_events`.
-- Confirmed the official Euronext Oslo page presents NewsWeb as the listed-company news site updated immediately 24/7. Also confirmed Euronext Publication Services describes issuer publication/API capabilities, but no documented public pull API or reuse permission for app automation was confirmed.
-- Kept automation and daily digest disabled; missing event rows remain missing rather than being interpreted as no company news.
+- Added on-demand NewsWeb pulls from the `api3.oslo.oslobors.no/v1/newsreader/customQuery` endpoint discovered through the official NewsWeb frontend `urls.json`.
+- Watchlist Updates now uses NewsWeb rows plus manual rows; `/api/event-monitoring?refresh=1` returned 60 NewsWeb rows across 12 watchlist symbols during verification.
+- Kept daily digest as a later sprint with conservative rate-limit and deduplication work still needed.
 - Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 
 Verified:
@@ -273,8 +274,8 @@ Verified:
 - Ran `python3 -m py_compile app/server.py`.
 - Ran `node --check app/static/app.js`.
 - Ran the README API checks for Watchlist, MOWI fundamentals, and watchlist technical indicators.
-- Checked `/api/event-monitoring` for watchlist rows, source status, and the full event category set.
-- Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, Events, Technical indicators, and the separate RSI14 screener tab.
+- Checked `/api/event-monitoring?refresh=1` for watchlist rows, source status, source mix, and the full event category set.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
 ## Later Sprints

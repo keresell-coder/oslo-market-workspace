@@ -27,7 +27,7 @@
       <button class="tab" data-tab="own-history">Own history</button>
       <button class="tab" data-tab="technical">Technical indicators</button>
       <button class="tab" data-tab="benchmarks">Benchmarks</button>
-      <button class="tab" data-tab="events">Events</button>
+      <button class="tab" data-tab="events">News/Events</button>
       <button class="tab" data-tab="dashboard">RSI14 screener</button>
       <button class="tab" data-tab="sources">Sources</button>
     </nav>
@@ -59,11 +59,11 @@
             </article>
             <article class="start-card">
               <h3>Data sources</h3>
-              <p>Yahoo Finance through yfinance, the published RSI14 screener dashboard, local consensus/source entries, local significant-event entries, and manually seeded peer groups.</p>
+              <p>Yahoo Finance through yfinance, the published RSI14 screener dashboard, NewsWeb on-demand announcement rows, local consensus/source entries, local significant-event entries, and manually seeded peer groups.</p>
             </article>
             <article class="start-card">
               <h3>Current limits</h3>
-              <p>Peer groups use local curation status, sector benchmark components are explicit but still need reviewed KPI inputs, NewsWeb collection is manual, and target/rating methodology is not verified across providers.</p>
+              <p>Peer groups use local curation status, sector benchmark components are explicit but still need reviewed KPI inputs, NewsWeb is fetched on demand, and target/rating methodology is not verified across providers.</p>
             </article>
           </section>
         </div>
@@ -254,11 +254,11 @@
       <section id="events" class="panel">
         <div class="section-head">
           <div>
-            <h2>Event Monitoring</h2>
-            <p class="muted">Watchlist-first significant updates. Rows are manual/source-reviewed until a permitted NewsWeb/Euronext automation path is confirmed.</p>
+            <h2>News/Events</h2>
+            <p class="muted">Watchlist-first NewsWeb announcements plus manual significant-event rows. Source links, freshness, confidence, and limitations stay visible.</p>
           </div>
           <div class="actions">
-            <button id="refresh-events" class="secondary">Refresh events</button>
+            <button id="refresh-events" class="secondary">Refresh NewsWeb</button>
           </div>
         </div>
         <div id="event-source-policy" class="alert-panel"></div>

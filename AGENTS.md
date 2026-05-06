@@ -95,17 +95,17 @@ Consensus Quality is complete:
 - reported analyst refs may overlap across providers and are not deduplicated
 - Own History remains a separate tab between Fundamentals and Technical indicators
 - Technical indicators and `/api/technical-indicators` remain separate from the RSI14 screener dashboard tab
-- Events tab and `/api/event-monitoring` are manual/source-reviewed only; NewsWeb/Euronext automation and daily digest remain disabled until a permitted source path is documented
+- News/Events tab and `/api/event-monitoring` use on-demand NewsWeb rows from the official frontend's `api3.oslo.oslobors.no` endpoint plus manual/source-reviewed rows; daily digest remains planned
 - Event categories are earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
 
 ## Next Sprint Priority
 
-Permitted NewsWeb Automation And Event Digest:
+NewsWeb Daily Digest:
 
 - keep watchlist-first filtering
-- confirm documented or licensed NewsWeb/Euronext source handling before scheduled collection
-- map NewsWeb/Euronext categories into the existing event taxonomy
-- add a daily digest only after source path is clear
+- use the existing on-demand NewsWeb source path with conservative rate limits
+- deduplicate Norwegian/English duplicates, corrections, repeated issuer messages, and same-title announcements
+- group digest rows by symbol and existing event taxonomy
 - keep all output descriptive and non-advisory
