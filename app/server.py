@@ -113,6 +113,14 @@ EVENT_CATEGORIES = [
 ]
 EVENT_CATEGORY_KEYS = {category["key"] for category in EVENT_CATEGORIES}
 
+QUARTERLY_REVIEW_STATUSES = {
+    "unverified": "Not primary verified",
+    "needs-review": "Source located; review needed",
+    "reviewed-match": "Primary report matched",
+    "reviewed-difference": "Primary report differs",
+    "not-found": "Primary source not found",
+}
+
 INITIAL_WATCHLIST = [
     "NOD.OL",
     "LINK.OL",
@@ -988,12 +996,27 @@ def init_db() -> None:
                 updated_at text not null,
                 primary key (symbol, kpi_key)
             );
+
+            create table if not exists quarterly_statement_reviews (
+                symbol text not null,
+                period_end text not null,
+                review_status text default 'unverified',
+                source_name text default '',
+                source_url text default '',
+                report_period text default '',
+                reviewer_note text default '',
+                limitation_note text default '',
+                reviewed_at text default '',
+                updated_at text not null,
+                primary key (symbol, period_end)
+            );
             """
         )
         ensure_peer_group_schema(con)
         ensure_consensus_schema(con)
         ensure_significant_events_schema(con)
         ensure_sector_kpi_schema(con)
+        ensure_quarterly_statement_review_schema(con)
         now = utc_now()
         con.execute(
             "insert or ignore into watchlists(name, created_at) values (?, ?)",
@@ -1253,6 +1276,32 @@ def ensure_significant_events_schema(con: sqlite3.Connection) -> None:
         set category = 'corporate-action'
         where category is null or category = '' or category = 'update'
         """
+    )
+
+
+def ensure_quarterly_statement_review_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "quarterly_statement_reviews", "review_status", "text default 'unverified'")
+    ensure_column(con, "quarterly_statement_reviews", "source_name", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "source_url", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "report_period", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "reviewer_note", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "limitation_note", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "reviewed_at", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "updated_at", "text")
+    con.execute(
+        """
+        update quarterly_statement_reviews
+        set review_status = 'unverified'
+        where review_status is null or review_status = ''
+        """
+    )
+    con.execute(
+        """
+        update quarterly_statement_reviews
+        set updated_at = ?
+        where updated_at is null or updated_at = ''
+        """,
+        (utc_now(),),
     )
 
 
@@ -1733,6 +1782,165 @@ def fetch_yfinance_quarterly_statements_missing(currency: str) -> dict:
         ),
         "errors": [],
     }
+
+
+def normalize_quarterly_review_status(value: str | None) -> str:
+    raw = (value or "").strip().lower()
+    return raw if raw in QUARTERLY_REVIEW_STATUSES else "unverified"
+
+
+def quarterly_review_row(row: dict | sqlite3.Row | None) -> dict:
+    if not row:
+        return {
+            "reviewStatus": "unverified",
+            "reviewStatusLabel": QUARTERLY_REVIEW_STATUSES["unverified"],
+            "isPrimaryReviewed": False,
+            "isSourceLinked": False,
+            "sourceName": "",
+            "sourceUrl": "",
+            "reportPeriod": "",
+            "reviewerNote": "",
+            "limitationNote": "No primary company-report review stored for this period.",
+            "reviewedAt": "",
+            "updatedAt": "",
+        }
+    data = dict(row)
+    status = normalize_quarterly_review_status(data.get("review_status"))
+    source_url = data.get("source_url") or ""
+    source_name = data.get("source_name") or ""
+    return {
+        "symbol": data.get("symbol"),
+        "periodEnd": data.get("period_end"),
+        "reviewStatus": status,
+        "reviewStatusLabel": QUARTERLY_REVIEW_STATUSES[status],
+        "isPrimaryReviewed": status == "reviewed-match",
+        "isSourceLinked": bool(source_url),
+        "sourceName": source_name,
+        "sourceUrl": source_url,
+        "reportPeriod": data.get("report_period") or "",
+        "reviewerNote": data.get("reviewer_note") or "",
+        "limitationNote": data.get("limitation_note") or "",
+        "reviewedAt": data.get("reviewed_at") or "",
+        "updatedAt": data.get("updated_at") or "",
+    }
+
+
+def quarterly_statement_review_policy() -> dict:
+    return {
+        "sourcePath": (
+            "Manual/source-linked review against company quarterly or annual reports, stock-exchange report PDFs, "
+            "or company investor-relations report tables."
+        ),
+        "statuses": [
+            {"key": key, "label": label}
+            for key, label in QUARTERLY_REVIEW_STATUSES.items()
+        ],
+        "requirement": (
+            "Each yfinance quarterly period stays unverified until a reviewer records a matching primary report "
+            "source URL and review status. Missing yfinance fields stay missing; primary reviews do not backfill "
+            "or infer values."
+        ),
+        "limitations": (
+            "This is a review tracker, not automated filing extraction. Differences between provider-normalized "
+            "rows and company-reported rows must be documented manually before the row is treated as source-reviewed."
+        ),
+        "policy": (
+            "Primary-report review supports source quality only. It does not create valuation verdicts, "
+            "recommendations, or standalone multiple labels."
+        ),
+    }
+
+
+def quarterly_statement_reviews_for_symbols(symbols: list[str]) -> dict[str, dict[str, dict]]:
+    clean_symbols = sorted({normalize_symbol(symbol) for symbol in symbols if symbol})
+    if not clean_symbols:
+        return {}
+    placeholders = ",".join("?" for _ in clean_symbols)
+    with connect() as con:
+        rows = rows_to_dicts(
+            con.execute(
+                f"""
+                select *
+                from quarterly_statement_reviews
+                where symbol in ({placeholders})
+                order by symbol, period_end desc
+                """,
+                clean_symbols,
+            ).fetchall()
+        )
+    reviews: dict[str, dict[str, dict]] = {symbol: {} for symbol in clean_symbols}
+    for row in rows:
+        reviews.setdefault(row["symbol"], {})[row["period_end"]] = quarterly_review_row(row)
+    return reviews
+
+
+def apply_quarterly_statement_reviews(rows: list[dict]) -> list[dict]:
+    reviews_by_symbol = quarterly_statement_reviews_for_symbols([row.get("symbol", "") for row in rows])
+    for row in rows:
+        symbol = row.get("symbol")
+        context = row.get("historicalContext") or {}
+        history = context.get("quarterlyStatementHistory") or row.get("quarterlyStatements") or {}
+        symbol_reviews = reviews_by_symbol.get(symbol, {})
+        periods = history.get("periods") or []
+        period_review_rows = []
+        reviewed_count = 0
+        source_linked_count = 0
+        difference_count = 0
+        for period in periods:
+            review = symbol_reviews.get(period.get("periodEnd")) or quarterly_review_row(None)
+            period["primaryReportReview"] = review
+            period_review_rows.append(
+                {
+                    "periodEnd": period.get("periodEnd"),
+                    "label": period.get("label"),
+                    **review,
+                }
+            )
+            if review.get("isPrimaryReviewed"):
+                reviewed_count += 1
+            if review.get("isSourceLinked"):
+                source_linked_count += 1
+            if review.get("reviewStatus") == "reviewed-difference":
+                difference_count += 1
+        total_periods = len(periods)
+        if not total_periods:
+            status = "missing-yfinance-periods"
+            label = "No yfinance statement periods"
+        elif difference_count:
+            status = "reviewed-with-differences"
+            label = "Primary review found differences"
+        elif reviewed_count == total_periods:
+            status = "reviewed-all-matched"
+            label = "All periods primary reviewed"
+        elif reviewed_count:
+            status = "partially-reviewed"
+            label = "Some periods primary reviewed"
+        else:
+            status = "not-started"
+            label = "Not primary verified"
+        history["primaryReportVerification"] = {
+            "status": status,
+            "label": label,
+            "periodCount": total_periods,
+            "reviewedMatchCount": reviewed_count,
+            "sourceLinkedCount": source_linked_count,
+            "differenceCount": difference_count,
+            "reviews": period_review_rows,
+            "policy": quarterly_statement_review_policy(),
+        }
+        history["primaryReportConfidence"] = (
+            "source-reviewed rows exist for matched periods"
+            if reviewed_count
+            else "not primary verified"
+        )
+        history["limitations"] = (
+            f"{history.get('limitations') or ''} Primary company-report review is tracked separately; "
+            "unreviewed periods remain screening-grade yfinance rows."
+        ).strip()
+        context["quarterlyStatementHistory"] = history
+        row["historicalContext"] = context
+        row["quarterlyStatements"] = history
+    return rows
 
 
 def pick_number(info: dict, *keys: str) -> float | None:
@@ -4095,6 +4303,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_consensus_get(parsed)
         if parsed.path == "/api/events":
             return self.handle_events_get(parsed)
+        if parsed.path == "/api/quarterly-statement-reviews":
+            return self.handle_quarterly_statement_reviews_get(parsed)
         if parsed.path == "/api/event-monitoring":
             return self.handle_event_monitoring(parsed)
         if parsed.path == "/api/screener-signals":
@@ -4125,6 +4335,8 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_consensus_post()
         if parsed.path == "/api/events":
             return self.handle_events_post()
+        if parsed.path == "/api/quarterly-statement-reviews":
+            return self.handle_quarterly_statement_reviews_post()
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
     def do_DELETE(self) -> None:
@@ -4241,6 +4453,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 rows.append(cached_fundamental(symbol, refresh=refresh))
             except Exception as exc:
                 errors.append({"symbol": symbol, "error": str(exc)})
+        rows = apply_quarterly_statement_reviews(rows)
         send_json(
             self,
             {
@@ -4470,6 +4683,104 @@ class AppHandler(SimpleHTTPRequestHandler):
                 )
         send_json(self, {"events": rows, "categories": EVENT_CATEGORIES, "sourcePolicy": event_source_policy()})
 
+    def handle_quarterly_statement_reviews_get(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = normalize_symbol(qs.get("symbol", [""])[0]) if qs.get("symbol") else ""
+        with connect() as con:
+            if symbol:
+                rows = rows_to_dicts(
+                    con.execute(
+                        """
+                        select *
+                        from quarterly_statement_reviews
+                        where symbol = ?
+                        order by period_end desc
+                        """,
+                        (symbol,),
+                    ).fetchall()
+                )
+            else:
+                rows = rows_to_dicts(
+                    con.execute(
+                        """
+                        select *
+                        from quarterly_statement_reviews
+                        order by symbol, period_end desc
+                        """
+                    ).fetchall()
+                )
+        send_json(
+            self,
+            {
+                "reviews": [quarterly_review_row(row) for row in rows],
+                "policy": quarterly_statement_review_policy(),
+            },
+        )
+
+    def handle_quarterly_statement_reviews_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        period_end = (body.get("periodEnd") or body.get("period_end") or "").strip()
+        if not symbol or not period_end:
+            return send_json(self, {"error": "symbol and periodEnd are required"}, HTTPStatus.BAD_REQUEST)
+        status = normalize_quarterly_review_status(body.get("reviewStatus") or body.get("review_status"))
+        if status == "unverified":
+            return send_json(
+                self,
+                {"error": "reviewStatus must be a reviewed/needs-review/not-found status for stored rows"},
+                HTTPStatus.BAD_REQUEST,
+            )
+        source_url = (body.get("sourceUrl") or body.get("source_url") or "").strip()
+        if status == "reviewed-match" and not source_url:
+            return send_json(
+                self,
+                {"error": "reviewed-match requires a sourceUrl pointing to the primary report"},
+                HTTPStatus.BAD_REQUEST,
+            )
+        now = utc_now()
+        with connect() as con:
+            con.execute(
+                """
+                insert into quarterly_statement_reviews(
+                    symbol, period_end, review_status, source_name, source_url, report_period,
+                    reviewer_note, limitation_note, reviewed_at, updated_at
+                )
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(symbol, period_end) do update set
+                    review_status = excluded.review_status,
+                    source_name = excluded.source_name,
+                    source_url = excluded.source_url,
+                    report_period = excluded.report_period,
+                    reviewer_note = excluded.reviewer_note,
+                    limitation_note = excluded.limitation_note,
+                    reviewed_at = excluded.reviewed_at,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    symbol,
+                    period_end,
+                    status,
+                    (body.get("sourceName") or body.get("source_name") or "").strip(),
+                    source_url,
+                    (body.get("reportPeriod") or body.get("report_period") or "").strip(),
+                    (body.get("reviewerNote") or body.get("reviewer_note") or "").strip(),
+                    (body.get("limitationNote") or body.get("limitation_note") or "").strip(),
+                    (body.get("reviewedAt") or body.get("reviewed_at") or now).strip(),
+                    now,
+                ),
+            )
+        reviews = quarterly_statement_reviews_for_symbols([symbol]).get(symbol, {})
+        send_json(
+            self,
+            {
+                "ok": True,
+                "symbol": symbol,
+                "periodEnd": period_end,
+                "review": reviews.get(period_end) or quarterly_review_row(None),
+                "policy": quarterly_statement_review_policy(),
+            },
+        )
+
     def handle_event_monitoring(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         name = qs.get("watchlist", ["Core Watchlist"])[0]
@@ -4563,8 +4874,8 @@ def source_notes() -> dict:
         },
         "quarterlyStatements": {
             "use": "True quarterly statement history is read from yfinance quarterly income statement, balance sheet, and cash-flow tables when they contain dated quarter-end columns.",
-            "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields.",
-            "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing and should be verified against company reports before serious use.",
+            "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields. Primary company-report review is tracked separately per symbol and period through /api/quarterly-statement-reviews.",
+            "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing. Unreviewed periods remain screening-grade until checked against company reports; source-reviewed periods still do not create recommendation or valuation verdict logic.",
         },
         "sharingConfig": {
             "use": "Environment variables can set host, port, database path, and optional Basic Auth for a future shared run.",
@@ -4661,6 +4972,7 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
     quarterly_coverage = []
     for row in rows:
         history = ((row.get("historicalContext") or {}).get("quarterlyStatementHistory")) or row.get("quarterlyStatements") or {}
+        primary_review = history.get("primaryReportVerification") or {}
         quarterly_coverage.append(
             {
                 "symbol": row.get("symbol"),
@@ -4669,6 +4981,9 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
                 "latestPeriodEnd": history.get("latestPeriodEnd"),
                 "presentFields": history.get("presentFields") or [],
                 "source": history.get("source") or "Yahoo Finance via yfinance quarterly statement tables",
+                "primaryReviewStatus": primary_review.get("status") or "not-started",
+                "primaryReviewedMatchCount": primary_review.get("reviewedMatchCount") or 0,
+                "primarySourceLinkedCount": primary_review.get("sourceLinkedCount") or 0,
             }
         )
 

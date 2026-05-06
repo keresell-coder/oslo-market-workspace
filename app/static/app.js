@@ -681,7 +681,7 @@ function renderOwnHistoryDetailCell(row) {
       <summary>Full detail</summary>
       ${renderPriceHistoryDetails(priceWindow)}
       ${renderSnapshotHistoryDetails(snapshot)}
-      ${renderQuarterlyStatementHistory(quarterly)}
+      ${renderQuarterlyStatementHistory(quarterly, row.symbol)}
       ${plan.label ? renderQuarterlyFundamentalPlan(plan) : ""}
       <p class="muted">${escapeHtml(context.watchlistSignal?.detail || "Needs more dated observations before stronger own-history context is shown.")}</p>
       <p class="muted">${escapeHtml(context.policy || "Descriptive context only.")}</p>
@@ -815,6 +815,85 @@ function renderQuarterlyFundamentalPlan(plan) {
   `;
 }
 
+function primaryReportReviewBadge(review = {}) {
+  const status = review.reviewStatus || "unverified";
+  const label = review.reviewStatusLabel || "Not primary verified";
+  const klass = status === "reviewed-match" ? "met" : status === "reviewed-difference" ? "missing" : "tag";
+  return `<span class="${klass}">${escapeHtml(label)}</span>`;
+}
+
+function renderPrimaryReportReviewSummary(verification = {}) {
+  const policy = verification.policy || {};
+  const status = verification.status || "not-started";
+  const klass = status === "reviewed-all-matched" ? "met" : status === "reviewed-with-differences" ? "missing" : "tag";
+  return `
+    <div class="method-card validation-note">
+      <strong>Primary report verification</strong>
+      <span class="${klass}">${escapeHtml(verification.label || "Not primary verified")}</span>
+      <span>${escapeHtml(verification.reviewedMatchCount ?? 0)} / ${escapeHtml(verification.periodCount ?? 0)} period(s) matched to primary company reports; ${escapeHtml(verification.sourceLinkedCount ?? 0)} source-linked review row(s).</span>
+      <span>${escapeHtml(policy.requirement || "Unreviewed yfinance statement periods remain screening-grade.")}</span>
+      <span>${escapeHtml(policy.policy || "Primary review supports source quality only; it does not create recommendations.")}</span>
+    </div>
+  `;
+}
+
+function renderQuarterlyReviewForm(history, symbol) {
+  const periods = history.periods || [];
+  const statuses = history.primaryReportVerification?.policy?.statuses || [
+    { key: "needs-review", label: "Source located; review needed" },
+    { key: "reviewed-match", label: "Primary report matched" },
+    { key: "reviewed-difference", label: "Primary report differs" },
+    { key: "not-found", label: "Primary source not found" },
+  ];
+  if (!periods.length) {
+    return `<p class="muted">Primary review can be stored after a dated yfinance quarterly period is present.</p>`;
+  }
+  return `
+    <form class="quarterly-review-form" data-quarterly-review-form>
+      <input type="hidden" name="symbol" value="${escapeHtml(symbol || "")}">
+      <div class="form-grid review-form-grid">
+        <label>
+          <span>Period</span>
+          <select name="periodEnd">
+            ${periods.map((period) => `<option value="${escapeHtml(period.periodEnd || "")}">${escapeHtml(period.label || period.periodEnd || "period n/a")}</option>`).join("")}
+          </select>
+        </label>
+        <label>
+          <span>Review status</span>
+          <select name="reviewStatus">
+            ${statuses
+              .filter((status) => status.key !== "unverified")
+              .map((status) => `<option value="${escapeHtml(status.key)}">${escapeHtml(status.label)}</option>`)
+              .join("")}
+          </select>
+        </label>
+        <label>
+          <span>Source name</span>
+          <input name="sourceName" placeholder="Company Q report / annual report">
+        </label>
+        <label>
+          <span>Source URL</span>
+          <input name="sourceUrl" placeholder="https://...">
+        </label>
+        <label>
+          <span>Report period</span>
+          <input name="reportPeriod" placeholder="Q4 2025">
+        </label>
+        <label>
+          <span>Review note</span>
+          <input name="reviewerNote" placeholder="Rows checked, mapping caveats">
+        </label>
+      </div>
+      <label>
+        <span>Limitation note</span>
+        <textarea name="limitationNote" rows="2" placeholder="Document provider-normalized row differences or missing source rows."></textarea>
+      </label>
+      <button type="submit" class="secondary-button">Save primary review</button>
+      <span class="form-status muted" data-quarterly-review-status></span>
+    </form>
+  `;
+}
+
 function statementValue(v, unit = "", currency = "") {
   if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
   if (unit === "per share") return metricValue(v, "");
@@ -822,7 +901,7 @@ function statementValue(v, unit = "", currency = "") {
   return metricValue(v, unit);
 }
 
-function renderQuarterlyStatementHistory(history) {
+function renderQuarterlyStatementHistory(history, symbol) {
   const fields = history.fields || [];
   const fieldsByKey = Object.fromEntries(fields.map((field) => [field.key, field]));
   const displayFields = [
@@ -842,6 +921,7 @@ function renderQuarterlyStatementHistory(history) {
         <td>${escapeHtml(period.label || period.periodEnd || "quarter n/a")}</td>
         <td>${escapeHtml(period.periodEnd || "date n/a")}</td>
         ${displayFields.map((field) => `<td class="number">${statementValue(period.values?.[field.key], field.unit, history.currency)}</td>`).join("")}
+        <td>${primaryReportReviewBadge(period.primaryReportReview)}</td>
       </tr>
     `)
     .join("");
@@ -860,6 +940,7 @@ function renderQuarterlyStatementHistory(history) {
     .map((item) => `${item.sourcePath}: ${item.status || "missing"} (${item.periodCount || 0} periods)`)
     .join("; ");
   const errorText = (history.errors || []).join("; ");
+  const primaryReview = history.primaryReportVerification || {};
   if (!periods.length) {
     return `
       <div class="history-subsection">
@@ -870,6 +951,7 @@ function renderQuarterlyStatementHistory(history) {
         </div>
         <p class="muted">${escapeHtml(history.sourcePath || "Quarterly statement source path n/a")}</p>
         <p class="muted">${escapeHtml(history.limitations || "Missing quarterly statement data stays missing.")}</p>
+        ${renderPrimaryReportReviewSummary(primaryReview)}
         ${errorText ? `<p class="muted">${escapeHtml(errorText)}</p>` : ""}
       </div>
     `;
@@ -888,11 +970,13 @@ function renderQuarterlyStatementHistory(history) {
               <th>Quarter</th>
               <th>Period end</th>
               ${displayFields.map((field) => `<th class="number">${escapeHtml(field.label)}</th>`).join("")}
+              <th>Primary review</th>
             </tr>
           </thead>
           <tbody>${periodRows}</tbody>
         </table>
       </div>
+      ${renderPrimaryReportReviewSummary(primaryReview)}
       <p class="muted">${escapeHtml(history.source || "Yahoo Finance via yfinance quarterly statement tables")}; fetched ${escapeHtml(shortDate(history.fetchedAt))}; statement currency ${escapeHtml(history.currency || "not supplied")}; ${escapeHtml(history.limitations || "")}</p>
       ${statementStatus ? `<p class="muted">${escapeHtml(statementStatus)}</p>` : ""}
       <details class="compact-details">
@@ -904,6 +988,10 @@ function renderQuarterlyStatementHistory(history) {
           </table>
         </div>
         ${errorText ? `<p class="muted">${escapeHtml(errorText)}</p>` : ""}
+      </details>
+      <details class="compact-details">
+        <summary>Record primary report review</summary>
+        ${renderQuarterlyReviewForm(history, symbol)}
       </details>
     </div>
   `;
@@ -1436,12 +1524,14 @@ function renderOwnHistorySourceCell(row) {
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
   const quarterly = context.quarterlyStatementHistory || {};
+  const primaryReview = quarterly.primaryReportVerification || {};
   return `
     <div class="fund-cell">
       <span class="tag">${escapeHtml(row.cacheStatus || "cache n/a")}</span>
       <span class="metric-line"><span>Price closes</span><b>${escapeHtml(priceWindow.observationCount ?? 0)}</b></span>
       <span class="metric-line"><span>Local snapshots</span><b>${escapeHtml(snapshot.snapshotCount ?? 0)}</b></span>
       <span class="metric-line"><span>Quarterly statements</span><b>${escapeHtml(quarterly.periodCount ?? 0)}</b></span>
+      <span class="metric-line"><span>Primary reviewed</span><b>${escapeHtml(primaryReview.reviewedMatchCount ?? 0)} / ${escapeHtml(primaryReview.periodCount ?? 0)}</b></span>
       <span class="muted">${escapeHtml(priceWindow.source || row.source || "source n/a")}</span>
       <span class="muted">Fetched ${escapeHtml(shortDate(priceWindow.fetchedAt || row.fetchedAt))}</span>
       <details class="compact-details">
@@ -2606,6 +2696,25 @@ async function handleBenchmarkContentSubmit(event) {
   }
 }
 
+async function handleOwnHistoryTableSubmit(event) {
+  if (!event.target.matches(".quarterly-review-form")) return;
+  event.preventDefault();
+  const form = event.target;
+  const status = form.querySelector("[data-quarterly-review-status]");
+  const data = Object.fromEntries(new FormData(form).entries());
+  try {
+    await api("/api/quarterly-statement-reviews", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (status) status.textContent = "Saved primary review row.";
+    invalidateLoadedTabs("own-history", "fundamentals");
+    await loadOwnHistory(false);
+  } catch (error) {
+    if (status) status.textContent = `Could not save review: ${error.message}`;
+  }
+}
+
 async function boot() {
   setupTabs();
   document.querySelectorAll("[data-start-watchlist]").forEach((button) => {
@@ -2613,6 +2722,7 @@ async function boot() {
   });
   document.getElementById("watchlist-table").addEventListener("click", handleWatchlistTableClick);
   document.getElementById("watchlist-table").addEventListener("submit", handleWatchlistTableSubmit);
+  document.getElementById("own-history-table").addEventListener("submit", handleOwnHistoryTableSubmit);
   document.getElementById("benchmark-content").addEventListener("click", handleBenchmarkContentClick);
   document.getElementById("benchmark-content").addEventListener("submit", handleBenchmarkContentSubmit);
   document.getElementById("add-watchlist-form").addEventListener("submit", async (event) => {

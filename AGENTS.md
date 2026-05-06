@@ -47,6 +47,8 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `docs/deployment-sharing.md`: sharing-prep runtime settings, authentication guardrails, database backup/restore workflow, deployment target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist.
 - `scripts/backup_database.sh`: SQLite online backup utility with integrity check and checksum output.
 - `scripts/restore_database.sh`: SQLite restore utility with backup verification and pre-restore safety backup.
+- `scripts/drill_restore_database.sh`: non-destructive restore drill utility that restores a fresh backup to a scratch database.
+- `docs/primary-report-verification.md`: manual/source-linked review workflow for quarterly statement periods.
 - `.github/workflows/ci.yml`: syntax checks for server and frontend.
 
 ## Documentation Discipline
@@ -105,14 +107,16 @@ Consensus Quality is complete:
 - Event categories are earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
-- Sharing prep has environment-based host/port/database settings, optional Basic Auth, SQLite backup/restore scripts, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist; default local use is unchanged, non-local unauthenticated binds are refused unless explicitly overridden, and no external deployment has been performed.
+- Sharing prep has environment-based host/port/database settings, optional Basic Auth, SQLite backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist; default local use is unchanged, non-local unauthenticated binds are refused unless explicitly overridden, and no external deployment has been performed.
+- Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 
 ## Next Sprint Priority
 
 Primary Verification And Sharing Readiness:
 
 - keep quarterly statement history screening-grade until primary company-report verification is added
-- run a restore drill against a copied database and decide the off-host backup destination before any real external deployment
+- choose the real mounted off-host backup destination and set `OSLO_APP_BACKUP_MIRROR_DIR` before any real external deployment
+- if quarterly statement verification should go beyond review tracking, add a separate reviewed primary-report value-entry path; do not scrape or infer values by default
 - if external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while keeping local defaults unchanged
 - keep optional sector index/proxy curation explicit and reviewed
 - consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states

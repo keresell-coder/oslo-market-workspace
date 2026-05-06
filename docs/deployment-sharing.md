@@ -22,6 +22,8 @@ The server reads these environment variables:
 - `OSLO_APP_HOST`: bind host. Default `127.0.0.1`.
 - `OSLO_APP_PORT`: bind port. Default `8765`.
 - `OSLO_APP_DB_PATH`: optional SQLite database path. Relative paths resolve from the project root.
+- `OSLO_APP_BACKUP_DIR`: optional local backup directory for SQLite backup/restore scripts.
+- `OSLO_APP_BACKUP_MIRROR_DIR`: optional mirror directory for backup files and checksums.
 - `OSLO_APP_REQUIRE_AUTH`: set to `1` to require Basic Auth.
 - `OSLO_APP_AUTH_USERNAME`: Basic Auth username.
 - `OSLO_APP_AUTH_PASSWORD`: Basic Auth password.
@@ -100,6 +102,7 @@ The repository now includes:
 ```bash
 scripts/backup_database.sh
 scripts/restore_database.sh
+scripts/drill_restore_database.sh
 ```
 
 Default backup location:
@@ -121,6 +124,22 @@ Use `OSLO_APP_DB_PATH` when backing up a non-default database path:
 
 ```bash
 OSLO_APP_DB_PATH=/var/lib/oslo-stock/oslo_workspace.sqlite3 scripts/backup_database.sh
+```
+
+Off-host backup decision for the next private-sharing step:
+
+- Keep the local backup destination as `backups/sqlite/` for quick restores.
+- Set `OSLO_APP_BACKUP_MIRROR_DIR` to a mounted encrypted cloud folder, removable
+  disk, or other off-host path before any external sharing.
+- Do not commit backups or mirror-path credentials to git.
+- Treat VPS/provider snapshots as secondary convenience copies, not the only
+  backup.
+
+Example mirror run:
+
+```bash
+OSLO_APP_BACKUP_MIRROR_DIR="$HOME/Library/CloudStorage/Encrypted Oslo Backups" \
+  scripts/backup_database.sh
 ```
 
 Minimum backup cadence before broader sharing:
@@ -166,6 +185,19 @@ chosen backup is lost unless manually re-entered.
 The restore script verifies the selected backup with `PRAGMA integrity_check`
 and writes a pre-restore backup of the current database before replacement.
 
+### Restore Drill
+
+Run a restore drill before any external sharing and after backup-script changes:
+
+```bash
+scripts/drill_restore_database.sh
+```
+
+The drill creates a fresh backup, validates its checksum when present, restores
+to a scratch database path, runs `PRAGMA integrity_check`, compares restored
+table names against the live database, and deletes the scratch file. It does not
+replace the live database.
+
 ## HTTPS And Reverse Proxy Expectations
 
 For external sharing, do not expose the Python server directly. Keep the app
@@ -209,7 +241,7 @@ Before external sharing:
 - SSH uses keys; password SSH login is disabled where practical.
 - `OSLO_APP_DB_PATH` points to persistent storage outside the git checkout.
 - Backup and restore have been tested on a copy.
-- Off-host backup copy exists.
+- `OSLO_APP_BACKUP_MIRROR_DIR` points to a mounted off-host/encrypted backup destination and a mirror copy exists.
 - Source/freshness/confidence/limitation and missing-data language remains
   visible.
 - Quarterly statement history remains screening-grade until primary

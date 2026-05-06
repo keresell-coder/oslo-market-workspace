@@ -18,7 +18,9 @@
 - Safari launcher: `scripts/open_in_safari.sh`
 - SQLite backup script: `scripts/backup_database.sh`
 - SQLite restore script: `scripts/restore_database.sh`
+- SQLite restore drill script: `scripts/drill_restore_database.sh`
 - Sharing/deployment notes: `docs/deployment-sharing.md`
+- Primary report verification notes: `docs/primary-report-verification.md`
 - Runtime config example: `.env.example`
 
 ## Main Local Files
@@ -31,6 +33,7 @@
 - `scripts/open_in_safari.sh`
 - `scripts/backup_database.sh`
 - `scripts/restore_database.sh`
+- `scripts/drill_restore_database.sh`
 - `.env.example`
 - `.github/workflows/ci.yml`
 - `app/server.py`
@@ -69,6 +72,8 @@
 - `GET /api/events`
 - `POST /api/events`
 - `GET /api/event-monitoring`
+- `GET /api/quarterly-statement-reviews`
+- `POST /api/quarterly-statement-reviews`
 - `GET /api/sources`
 
 ## Runtime Configuration
@@ -77,6 +82,7 @@
 - `OSLO_APP_PORT`: bind port, default `8765`.
 - `OSLO_APP_DB_PATH`: optional SQLite database path.
 - `OSLO_APP_BACKUP_DIR`: optional backup directory for SQLite backup/restore scripts.
+- `OSLO_APP_BACKUP_MIRROR_DIR`: optional backup mirror directory for backup files and checksums.
 - `OSLO_APP_REQUIRE_AUTH`: set to `1` for Basic Auth.
 - `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
 - `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE`: explicit override for non-local unauthenticated binds.
@@ -101,6 +107,7 @@ Current decision as of 06 May 2026: keep local/private use as default; Tailscale
 - Yahoo/yfinance target and rating-label fields are stored as provider-row consensus/source rows, not verified consensus.
 - Yahoo/yfinance 1-year daily closes for sampled compact price charts, with observation count, freshness, confidence, and limitations shown in the app
 - Yahoo/yfinance quarterly income statement, balance sheet, and cash-flow tables for true quarterly statement history when dated quarter-end columns are returned; missing statement rows stay missing and current summary fields are not used as proxies
+- Manual/source-linked primary company-report review rows for quarterly statement periods, stored separately from yfinance values; reviews do not backfill missing statement data
 - Published RSI14/Oslo Screener Dashboard HTML
 - Published Oslo Screener `latest.csv` technical indicator output
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output

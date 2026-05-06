@@ -40,10 +40,10 @@ Important current limitations:
 - Sector benchmark components are modeled, but optional sector index/proxy rows are only present when explicitly added.
 - Sector KPI input slots exist for NAV/fleet/P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values. Benchmark values stay missing until reviewed/trusted manual or source-linked inputs include source context.
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
-- Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, and strict yfinance quarterly statement tables when dated quarter-end rows are returned. Primary-source filing verification remains future work.
+- Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, strict yfinance quarterly statement tables when dated quarter-end rows are returned, and manual/source-linked primary company-report review tracking per statement period. Primary-report value entry/import remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
-- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore scripts, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist are documented, but no external deployment has been performed.
+- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist are documented, but no external deployment has been performed.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -364,13 +364,51 @@ Verified:
 - Verified the checksum and restored the backup to a temporary database path without touching the live database.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
-## Next Sprint
-
 ### Primary Verification And Sharing Readiness
 
-- Keep quarterly statement history screening-grade until primary company-report verification is added.
-- Add primary company-report verification before treating quarterly statement history as anything beyond screening-grade context.
-- Run a restore drill against a copied database and decide the off-host backup destination before any real external deployment.
+- Added a manual/source-linked primary company-report review tracker for
+  quarterly statement periods.
+- Added `quarterly_statement_reviews` storage and
+  `/api/quarterly-statement-reviews` for reading and saving per-symbol,
+  per-period review rows.
+- Own history now shows primary-review counts in the Source/gate column,
+  per-period primary-review status in Quarterly statement history, and a compact
+  form for recording source-linked primary report review rows.
+- Kept yfinance quarterly statement rows screening-grade by default. Unreviewed
+  periods remain not-primary-verified, missing rows stay missing, primary
+  reviews do not backfill statement values, and no recommendation logic or
+  standalone multiple verdict labels were added.
+- Added `docs/primary-report-verification.md` with review statuses, source
+  requirements, API examples, and no-verdict guardrails.
+- Added `scripts/drill_restore_database.sh` for non-destructive restore drills.
+- Added optional `OSLO_APP_BACKUP_MIRROR_DIR` support to
+  `scripts/backup_database.sh` and documented the off-host backup decision:
+  choose a mounted encrypted/off-host mirror path before any real external
+  deployment.
+- Preserved explicit optional sector index/proxy curation, the on-demand
+  NewsWeb daily digest, `/api/technical-indicators`, and the separate RSI14
+  screener tab.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran shell syntax checks for backup, restore, restore-drill, Safari, and push scripts.
+- Ran the README API checks for Watchlist, MOWI fundamentals, watchlist technical indicators, and event monitoring.
+- Checked `/api/quarterly-statement-reviews?symbol=MOWI.OL`.
+- Ran `scripts/drill_restore_database.sh` and verified it restored a fresh backup to a scratch database without touching the live database.
+- Verified `OSLO_APP_BACKUP_MIRROR_DIR` by writing a temporary mirror copy outside the repo and deleting the test mirror.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history including the primary-review UI, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
+- Checked browser console errors.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
+## Next Sprint
+
+### Sharing Readiness Follow-Up
+
+- Keep quarterly statement history screening-grade until reviewed primary-report values are explicitly added.
+- Choose the real mounted off-host backup destination and set `OSLO_APP_BACKUP_MIRROR_DIR` before any real external deployment.
+- If quarterly statement verification should go beyond review tracking, add a separate reviewed primary-report value-entry path; do not scrape or infer values by default.
 - If external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while keeping local defaults unchanged.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.

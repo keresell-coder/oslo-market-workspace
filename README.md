@@ -34,6 +34,7 @@ The default run is local-only and unauthenticated. Runtime settings can be confi
 - `OSLO_APP_PORT`: bind port, default `8765`.
 - `OSLO_APP_DB_PATH`: optional SQLite database path.
 - `OSLO_APP_BACKUP_DIR`: optional backup destination for database backup/restore scripts.
+- `OSLO_APP_BACKUP_MIRROR_DIR`: optional mirror destination for backup files and checksums.
 - `OSLO_APP_REQUIRE_AUTH`: set to `1` to require Basic Auth.
 - `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
 
@@ -43,6 +44,7 @@ SQLite backup/restore utilities:
 
 ```bash
 scripts/backup_database.sh
+scripts/drill_restore_database.sh
 scripts/restore_database.sh backups/sqlite/<backup>.sqlite3
 ```
 
@@ -61,13 +63,13 @@ Local folder:
 - **Start**: concise intent, source/metric summary, limitations, and not-investment-advice disclaimer.
 - **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, and expanded consensus/source row editor.
-- **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, source/freshness/confidence metadata, and missing-data gates.
+- **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, primary-report review tracking, source/freshness/confidence metadata, and missing-data gates.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
 - **Benchmarks**: editable peer groups with curation status, role labels, peer notes, sector benchmark components, minimum-data checks, and reviewed manual/source-linked sector KPI input slots; peer metric tables are shown before supporting checklist and sector details.
 - **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
-- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore scripts, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, a production access-control checklist, and a CI syntax-check workflow.
+- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore/drill scripts, optional backup mirroring, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, a production access-control checklist, and a CI syntax-check workflow.
 
 ## Rules And Guardrails
 
@@ -86,14 +88,14 @@ Local folder:
 ## Current Data State
 
 - Price history uses Yahoo/yfinance 1-year daily closes with observation count, range, percentile, sampled chart points, source, freshness, confidence, and limitations.
-- Quarterly statement history uses yfinance quarterly income statement, balance sheet, and cash-flow tables only when they return dated quarter-end columns; values are not inferred from current summary fields, and missing rows stay missing.
+- Quarterly statement history uses yfinance quarterly income statement, balance sheet, and cash-flow tables only when they return dated quarter-end columns; values are not inferred from current summary fields, missing rows stay missing, and each period stays not-primary-verified until a source-linked company-report review row is stored.
 - Own-history uses local `fundamentals_snapshots`; Watchlist signals and compact snapshot charts require minimum observations.
 - Fundamentals table default columns are grouped: company, price/size, valuation multiples, earnings/yield, consensus/source refs, source, and links.
 - Fundamentals metric guide and validation panel explain fields, coverage, source quality, and missing-data caveats behind progressive disclosure below the main scan table.
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: primary-source filing verification for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, restore-drill/off-host backup review, and any actual external deployment.
+- Remaining major gaps: primary-source value entry/import for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, selecting the real mounted off-host backup destination, and any actual external deployment.
 
 ## Verification
 
@@ -123,6 +125,15 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Primary Verification And Sharing Readiness**
+
+- Added manual/source-linked primary company-report review tracking for quarterly statement periods through `/api/quarterly-statement-reviews`.
+- Own history now shows primary-review counts, per-period primary-review status, and a source-review form inside quarterly statement detail.
+- Kept yfinance quarterly statement rows screening-grade by default; unreviewed periods stay not-primary-verified, missing rows stay missing, and primary reviews do not backfill values or create recommendation logic.
+- Added `docs/primary-report-verification.md` with review statuses, API examples, source requirements, and no-verdict guardrails.
+- Added `scripts/drill_restore_database.sh` and optional `OSLO_APP_BACKUP_MIRROR_DIR` backup mirroring so restore drills and off-host backup copies are repeatable before sharing.
+- Verified backend/frontend/script syntax, README API checks, `/api/quarterly-statement-reviews?symbol=MOWI.OL`, non-mutating POST validation, restore drill, temporary backup-mirror copy, in-app browser navigation including Own history primary-review UI, browser console errors, and Safari launch.
 
 **Sharing And Deployment Follow-Up**
 
@@ -241,8 +252,8 @@ After each completed task, update the relevant docs so they reflect what changed
 
 **Primary Verification And Sharing Readiness**
 
-- Extend quarterly statement review toward primary company reports before using the data beyond screening context.
-- Do a restore drill against a copied database and decide the off-host backup destination before any real external deployment.
+- Choose the real mounted off-host backup destination and set `OSLO_APP_BACKUP_MIRROR_DIR` before any real external deployment.
+- If quarterly statement verification should go beyond review tracking, add a separate reviewed primary-report value-entry path; do not scrape or infer values by default.
 - If external sharing is explicitly scoped, implement service-manager/reverse-proxy config for the chosen single-host target without changing the local default.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible failure states.

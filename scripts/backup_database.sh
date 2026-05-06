@@ -4,6 +4,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DB_PATH="${OSLO_APP_DB_PATH:-app/data/oslo_workspace.sqlite3}"
 BACKUP_DIR="${OSLO_APP_BACKUP_DIR:-$PROJECT_DIR/backups/sqlite}"
+MIRROR_DIR="${OSLO_APP_BACKUP_MIRROR_DIR:-}"
 
 if [[ "$DB_PATH" != /* ]]; then
   DB_PATH="$PROJECT_DIR/$DB_PATH"
@@ -11,6 +12,10 @@ fi
 
 if [[ "$BACKUP_DIR" != /* ]]; then
   BACKUP_DIR="$PROJECT_DIR/$BACKUP_DIR"
+fi
+
+if [[ -n "$MIRROR_DIR" && "$MIRROR_DIR" != /* ]]; then
+  MIRROR_DIR="$PROJECT_DIR/$MIRROR_DIR"
 fi
 
 if [[ ! -f "$DB_PATH" ]]; then
@@ -49,3 +54,9 @@ shasum -a 256 "$OUT" > "$OUT.sha256"
 
 echo "Backup written: $OUT"
 echo "Checksum written: $OUT.sha256"
+
+if [[ -n "$MIRROR_DIR" ]]; then
+  mkdir -p "$MIRROR_DIR"
+  cp "$OUT" "$OUT.sha256" "$MIRROR_DIR/"
+  echo "Mirror copy written: $MIRROR_DIR/$(basename "$OUT")"
+fi
