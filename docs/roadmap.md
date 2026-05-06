@@ -44,6 +44,7 @@ Important current limitations:
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
 - Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist are documented, but no external deployment has been performed.
+- Go-live assessment: the app can go live soon as a controlled, authenticated public MVP. It is not ready today for public access, and free/open data remains screening-grade rather than fully guaranteed/authoritative.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -402,24 +403,53 @@ Verified:
 - Checked browser console errors.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
+### Go-Live Readiness Reframe
+
+- Clarified the next product direction: make the dashboard/application
+  available on other devices through a public HTTPS address before adding more
+  feature breadth.
+- Added `docs/go-live-readiness.md` with a controlled public MVP plan, public
+  access architecture, data-quality boundary, interactive refresh expectations,
+  and sprint count.
+- Set the go-live estimate at 2 sprints minimum and 3 sprints recommended:
+  Public Access Foundation, Data Refresh And Source-Quality Readiness, and Beta
+  Release Hardening.
+- Preserved the rule that "accurate, reliable, credible, and validated" means
+  visible source/freshness/confidence/limitations plus manual/source-linked
+  review paths, not guaranteed correctness from free/open provider data.
+
 ## Next Sprint
 
-### Sharing Readiness Follow-Up
+### Public Access Foundation
 
+- Choose domain/subdomain and the single-host deployment target.
+- Provision the host and configure the Python app as a service bound to localhost.
+- Configure HTTPS reverse proxy and Basic Auth or stronger upstream access control.
+- Set persistent hosted `OSLO_APP_DB_PATH`.
+- Set real hosted `OSLO_APP_BACKUP_MIRROR_DIR`.
+- Run backup, mirror copy, and restore drill on the host.
+- Run README API checks against the hosted URL.
+- Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and RSI14 screener from another device.
 - Keep quarterly statement history screening-grade until reviewed primary-report values are explicitly added.
-- Choose the real mounted off-host backup destination and set `OSLO_APP_BACKUP_MIRROR_DIR` before any real external deployment.
-- If quarterly statement verification should go beyond review tracking, add a separate reviewed primary-report value-entry path; do not scrape or infer values by default.
-- If external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while keeping local defaults unchanged.
 - Keep optional sector index/proxy curation explicit and reviewed.
-- Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.
 - Continue without adding recommendation logic.
 
 ## Later Sprints
 
-### Sharing And Deployment
+### Data Refresh And Source-Quality Readiness
 
-- Execute external deployment only if explicitly scoped.
-- Consider managed/off-host backup automation after the restore drill.
+- Review every tab's refresh control, last-successful refresh, source failures,
+  stale states, and confidence/limitation wording.
+- Add a short operator refresh/review checklist for MVP use.
+- Keep scheduled NewsWeb automation separate unless explicitly scoped.
+
+### Beta Release Hardening
+
+- Run complete hosted smoke test from another device.
+- Check mobile/tablet table usability and detail panels.
+- Document beta operating routine and rollback/restore steps.
+- Create a known-good pre-beta off-host backup.
+- Pause broad feature work while the MVP is used for feedback.
 
 ## Deferred
 

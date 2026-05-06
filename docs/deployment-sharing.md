@@ -1,7 +1,9 @@
 # Deployment And Sharing Prep
 
 This document records the current sharing decision as of 06 May 2026. It is
-prep work only; it does not deploy the app externally.
+prep work only; it does not deploy the app externally. The next go-live target
+is a controlled public MVP with HTTPS and authentication, not public
+unauthenticated access.
 
 The default app run is local-only:
 
@@ -55,6 +57,30 @@ Practical target comparison:
 
 Provider prices and product limits change. Re-check current vendor docs before
 spending money or moving the database.
+
+## Public MVP Readiness
+
+The app is close to a public MVP, but not live-ready today. Before giving users
+a public address, complete:
+
+- domain/subdomain decision
+- single-host deployment target
+- HTTPS reverse proxy
+- Basic Auth or stronger access control
+- app service bound to localhost
+- persistent hosted SQLite path
+- real off-host backup mirror path
+- hosted backup and restore drill
+- hosted README API checks
+- cross-device browser verification
+
+Recommended sprint count from the current state:
+
+- 2 sprints minimum for a controlled public MVP.
+- 3 sprints recommended to include hosted smoke testing and beta operating
+  documentation before relying on it.
+
+See `docs/go-live-readiness.md`.
 
 ## Sharing Guardrails
 

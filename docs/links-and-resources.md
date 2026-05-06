@@ -20,6 +20,7 @@
 - SQLite restore script: `scripts/restore_database.sh`
 - SQLite restore drill script: `scripts/drill_restore_database.sh`
 - Sharing/deployment notes: `docs/deployment-sharing.md`
+- Go-live readiness notes: `docs/go-live-readiness.md`
 - Primary report verification notes: `docs/primary-report-verification.md`
 - Runtime config example: `.env.example`
 
@@ -30,6 +31,7 @@
 - `docs/roadmap.md`
 - `docs/project-handoff.md`
 - `docs/links-and-resources.md`
+- `docs/go-live-readiness.md`
 - `scripts/open_in_safari.sh`
 - `scripts/backup_database.sh`
 - `scripts/restore_database.sh`

@@ -45,6 +45,7 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `docs/project-handoff.md`: continuation context for new Codex chats.
 - `docs/links-and-resources.md`: important links and source notes.
 - `docs/deployment-sharing.md`: sharing-prep runtime settings, authentication guardrails, database backup/restore workflow, deployment target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist.
+- `docs/go-live-readiness.md`: public MVP readiness plan, sprint count, public-address architecture, and data-quality boundary.
 - `scripts/backup_database.sh`: SQLite online backup utility with integrity check and checksum output.
 - `scripts/restore_database.sh`: SQLite restore utility with backup verification and pre-restore safety backup.
 - `scripts/drill_restore_database.sh`: non-destructive restore drill utility that restores a fresh backup to a scratch database.
@@ -108,16 +109,17 @@ Consensus Quality is complete:
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
 - Sharing prep has environment-based host/port/database settings, optional Basic Auth, SQLite backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist; default local use is unchanged, non-local unauthenticated binds are refused unless explicitly overridden, and no external deployment has been performed.
+- Go-live direction: controlled public MVP at a public HTTPS address, behind authentication, on one hosted app instance with persistent SQLite and off-host backups. Estimated from current state: 2 sprints minimum, 3 sprints recommended.
 - Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 
 ## Next Sprint Priority
 
-Primary Verification And Sharing Readiness:
+Public Access Foundation:
 
-- keep quarterly statement history screening-grade until primary company-report verification is added
-- choose the real mounted off-host backup destination and set `OSLO_APP_BACKUP_MIRROR_DIR` before any real external deployment
-- if quarterly statement verification should go beyond review tracking, add a separate reviewed primary-report value-entry path; do not scrape or infer values by default
-- if external sharing is explicitly scoped, add service-manager/reverse-proxy config for the chosen single-host target while keeping local defaults unchanged
+- choose domain/subdomain and single-host deployment target
+- configure Python app service bound to localhost behind HTTPS reverse proxy
+- configure Basic Auth or stronger upstream access control
+- set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`
+- run hosted backup, mirror copy, restore drill, README API checks, and external-device tab verification
 - keep optional sector index/proxy curation explicit and reviewed
-- consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states
 - keep all output descriptive and non-advisory
