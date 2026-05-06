@@ -674,12 +674,14 @@ function renderOwnHistoryDetailCell(row) {
   const context = row.historicalContext || {};
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
+  const quarterly = context.quarterlyStatementHistory || {};
   const plan = context.quarterlyFundamentalPlan || {};
   return `
     <details class="history-details">
       <summary>Full detail</summary>
       ${renderPriceHistoryDetails(priceWindow)}
       ${renderSnapshotHistoryDetails(snapshot)}
+      ${renderQuarterlyStatementHistory(quarterly)}
       ${plan.label ? renderQuarterlyFundamentalPlan(plan) : ""}
       <p class="muted">${escapeHtml(context.watchlistSignal?.detail || "Needs more dated observations before stronger own-history context is shown.")}</p>
       <p class="muted">${escapeHtml(context.policy || "Descriptive context only.")}</p>
@@ -808,6 +810,101 @@ function renderQuarterlyFundamentalPlan(plan) {
       <strong>${escapeHtml(plan.label || "Quarterly fundamental windows")}</strong>
       <span>${escapeHtml(plan.requirement || "")}</span>
       <span>${escapeHtml(plan.currentProxy || "")}</span>
+      ${plan.sourcePath ? `<span>${escapeHtml(plan.sourcePath)}</span>` : ""}
+    </div>
+  `;
+}
+
+function statementValue(v, unit = "", currency = "") {
+  if (v === null || v === undefined || Number.isNaN(v)) return "n/a";
+  if (unit === "per share") return metricValue(v, "");
+  if (unit === "currency") return `${compact(v)} ${currency || ""}`.trim();
+  return metricValue(v, unit);
+}
+
+function renderQuarterlyStatementHistory(history) {
+  const fields = history.fields || [];
+  const fieldsByKey = Object.fromEntries(fields.map((field) => [field.key, field]));
+  const displayFields = [
+    "totalRevenue",
+    "ebit",
+    "ebitda",
+    "netIncome",
+    "dilutedEps",
+    "commonEquity",
+    "netDebt",
+    "freeCashFlow",
+  ].map((key) => fieldsByKey[key]).filter(Boolean);
+  const periods = history.periods || [];
+  const periodRows = periods
+    .map((period) => `
+      <tr>
+        <td>${escapeHtml(period.label || period.periodEnd || "quarter n/a")}</td>
+        <td>${escapeHtml(period.periodEnd || "date n/a")}</td>
+        ${displayFields.map((field) => `<td class="number">${statementValue(period.values?.[field.key], field.unit, history.currency)}</td>`).join("")}
+      </tr>
+    `)
+    .join("");
+  const coverageRows = fields
+    .filter((field) => (history.coverageByField?.[field.key] || 0) > 0)
+    .map((field) => `
+      <tr>
+        <td>${escapeHtml(field.label)}</td>
+        <td>${escapeHtml(field.statement)}</td>
+        <td class="number">${escapeHtml(history.coverageByField?.[field.key] || 0)}</td>
+        <td>${escapeHtml(history.sourceRowsByField?.[field.key] || (field.sourceRows || []).join(", ") || "source row n/a")}</td>
+      </tr>
+    `)
+    .join("");
+  const statementStatus = Object.values(history.statementCoverage || {})
+    .map((item) => `${item.sourcePath}: ${item.status || "missing"} (${item.periodCount || 0} periods)`)
+    .join("; ");
+  const errorText = (history.errors || []).join("; ");
+  if (!periods.length) {
+    return `
+      <div class="history-subsection">
+        <strong>Quarterly statement history</strong>
+        <div class="requirement-strip">
+          <span class="missing">0 quarterly statement periods</span>
+          <span>${escapeHtml(history.status || "missing")}</span>
+        </div>
+        <p class="muted">${escapeHtml(history.sourcePath || "Quarterly statement source path n/a")}</p>
+        <p class="muted">${escapeHtml(history.limitations || "Missing quarterly statement data stays missing.")}</p>
+        ${errorText ? `<p class="muted">${escapeHtml(errorText)}</p>` : ""}
+      </div>
+    `;
+  }
+  return `
+    <div class="history-subsection">
+      <strong>Quarterly statement history</strong>
+      <div class="requirement-strip">
+        <span class="met">${escapeHtml(history.periodCount ?? periods.length)} dated statement period(s)</span>
+        <span>${escapeHtml(history.confidence || "screening-grade")}</span>
+      </div>
+      <div class="mini-table-wrap">
+        <table class="mini-table wide-mini-table quarterly-statement-table">
+          <thead>
+            <tr>
+              <th>Quarter</th>
+              <th>Period end</th>
+              ${displayFields.map((field) => `<th class="number">${escapeHtml(field.label)}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>${periodRows}</tbody>
+        </table>
+      </div>
+      <p class="muted">${escapeHtml(history.source || "Yahoo Finance via yfinance quarterly statement tables")}; fetched ${escapeHtml(shortDate(history.fetchedAt))}; statement currency ${escapeHtml(history.currency || "not supplied")}; ${escapeHtml(history.limitations || "")}</p>
+      ${statementStatus ? `<p class="muted">${escapeHtml(statementStatus)}</p>` : ""}
+      <details class="compact-details">
+        <summary>Statement row coverage</summary>
+        <div class="mini-table-wrap">
+          <table class="mini-table">
+            <thead><tr><th>Field</th><th>Statement</th><th class="number">Periods</th><th>Source row</th></tr></thead>
+            <tbody>${coverageRows || `<tr><td colspan="4">No statement fields mapped.</td></tr>`}</tbody>
+          </table>
+        </div>
+        ${errorText ? `<p class="muted">${escapeHtml(errorText)}</p>` : ""}
+      </details>
     </div>
   `;
 }
@@ -1338,17 +1435,20 @@ function renderOwnHistorySourceCell(row) {
   const context = row.historicalContext || {};
   const priceWindow = context.priceWindow || {};
   const snapshot = context.snapshotHistory || {};
+  const quarterly = context.quarterlyStatementHistory || {};
   return `
     <div class="fund-cell">
       <span class="tag">${escapeHtml(row.cacheStatus || "cache n/a")}</span>
       <span class="metric-line"><span>Price closes</span><b>${escapeHtml(priceWindow.observationCount ?? 0)}</b></span>
       <span class="metric-line"><span>Local snapshots</span><b>${escapeHtml(snapshot.snapshotCount ?? 0)}</b></span>
+      <span class="metric-line"><span>Quarterly statements</span><b>${escapeHtml(quarterly.periodCount ?? 0)}</b></span>
       <span class="muted">${escapeHtml(priceWindow.source || row.source || "source n/a")}</span>
       <span class="muted">Fetched ${escapeHtml(shortDate(priceWindow.fetchedAt || row.fetchedAt))}</span>
       <details class="compact-details">
         <summary>Policy</summary>
         <p class="muted">${escapeHtml(context.policy || "Historical context is descriptive only.")}</p>
         <p class="muted">${escapeHtml(priceWindow.limitations || row.sourceReliability || "Open/free data; verify against primary sources.")}</p>
+        <p class="muted">${escapeHtml(quarterly.limitations || "Quarterly statement rows stay missing unless the source returns dated statement tables.")}</p>
       </details>
     </div>
   `;

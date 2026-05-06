@@ -25,7 +25,7 @@ Completed MVP pieces:
 - Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches; dashboard HTML was refreshed to 05 May 2026 after the Pages branch lagged the current CSV.
 - Published Oslo Screener `latest.csv` parsed through `/api/technical-indicators` for broader technical indicator coverage.
 - Fundamentals tab with cached Yahoo/yfinance grouped scan columns, metric guide, validation panel, and expanded consensus/source row editor.
-- Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-fundamental-window requirements.
+- Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, source/freshness/confidence metadata, and missing-data gates.
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and watchlist-first significant-event table/API with event categories, source-quality metadata, and an on-demand 24-hour NewsWeb daily digest grouped by watchlist symbol/category.
 - Source quality tab and loading indicators.
@@ -38,7 +38,7 @@ Important current limitations:
 - Sector benchmark components are modeled, but optional sector index/proxy rows are only present when explicitly added.
 - Sector KPI input slots exist for NAV/fleet/P/NAV, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and fleet values. Benchmark values stay missing until reviewed/trusted manual or source-linked inputs include source context.
 - Derived valuation scores remain disabled; the app currently shows minimum-data requirements only.
-- Own-history context uses daily price history, compact sampled price charts, local snapshots, and gated local snapshot charts. True quarterly fundamental statement history remains future work.
+- Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, and strict yfinance quarterly statement tables when dated quarter-end rows are returned. Primary-source filing verification remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
@@ -294,11 +294,29 @@ Verified:
 - Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events including the daily digest, Technical indicators, and the separate RSI14 screener tab.
 - Opened the app in Safari at `http://127.0.0.1:8765` for normal browser review.
 
-## Next Sprint
-
 ### Quarterly History And Sharing Prep
 
-- Add true quarterly fundamental statement history when a reliable source path is confirmed.
+- Confirmed yfinance quarterly income statement, balance sheet, and cash-flow tables return dated quarter-end statement columns for Oslo examples including MOWI, NOD, and FRO.
+- Added strict quarterly statement parsing for explicit row labels only; missing yfinance rows and periods stay missing, and current summary fields are not used as a proxy for statement history.
+- Added quarterly statement history to the Own history detail panel with source path, period count, statement currency when `financialCurrency` is supplied, row coverage, confidence, timestamp, and limitations.
+- Added quarterly statement coverage metadata to `/api/fundamentals` validation output.
+- Preserved explicit optional sector index/proxy curation, the existing on-demand NewsWeb digest, `/api/technical-indicators`, and the separate RSI14 screener tab.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, watchlist technical indicators, and event monitoring.
+- Checked MOWI quarterly statement history in `/api/fundamentals`, returning 6 dated periods through 2025-12-31 with yfinance `financialCurrency` EUR.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history including quarterly statement detail, Benchmarks, News/Events including the daily digest, Technical indicators, and the separate RSI14 screener tab.
+- Checked browser console errors.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
+## Next Sprint
+
+### Sharing Prep Follow-Up
+
+- Keep quarterly statement history screening-grade until primary company-report verification is added.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.
 - Continue deployment/sharing prep without adding recommendation logic.

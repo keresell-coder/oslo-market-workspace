@@ -49,6 +49,7 @@ PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
 PRICE_CHART_SAMPLE_POINTS = 48
 SNAPSHOT_CHART_SAMPLE_POINTS = 8
+QUARTERLY_STATEMENT_MAX_PERIODS = 6
 NEWSWEB_URL = "https://newsweb.oslobors.no/"
 NEWSWEB_SEARCH_URL = "https://newsweb.oslobors.no/search"
 NEWSWEB_API_BASE = "https://api3.oslo.oslobors.no/v1/newsreader"
@@ -183,6 +184,114 @@ BENCHMARK_METRICS = [
 ]
 
 OWN_HISTORY_METRIC_KEYS = {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda", "dividendYield"}
+
+QUARTERLY_STATEMENT_FIELDS = [
+    {
+        "key": "totalRevenue",
+        "label": "Revenue",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Total Revenue", "Operating Revenue"],
+    },
+    {
+        "key": "grossProfit",
+        "label": "Gross profit",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Gross Profit"],
+    },
+    {
+        "key": "ebitda",
+        "label": "EBITDA",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["EBITDA", "Normalized EBITDA"],
+    },
+    {
+        "key": "ebit",
+        "label": "EBIT",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["EBIT"],
+    },
+    {
+        "key": "operatingIncome",
+        "label": "Operating income",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Operating Income"],
+    },
+    {
+        "key": "netIncome",
+        "label": "Net income",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Net Income", "Net Income Common Stockholders"],
+    },
+    {
+        "key": "dilutedEps",
+        "label": "Diluted EPS",
+        "unit": "per share",
+        "statement": "income",
+        "candidates": ["Diluted EPS", "Diluted EPS Other Gains Losses"],
+    },
+    {
+        "key": "totalAssets",
+        "label": "Total assets",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Total Assets"],
+    },
+    {
+        "key": "totalDebt",
+        "label": "Total debt",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Total Debt"],
+    },
+    {
+        "key": "netDebt",
+        "label": "Net debt",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Net Debt"],
+    },
+    {
+        "key": "commonEquity",
+        "label": "Common equity",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Common Stock Equity", "Stockholders Equity"],
+    },
+    {
+        "key": "cash",
+        "label": "Cash",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Cash And Cash Equivalents", "Cash Cash Equivalents And Short Term Investments"],
+    },
+    {
+        "key": "operatingCashFlow",
+        "label": "Operating cash flow",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Operating Cash Flow", "Cash Flow From Continuing Operating Activities"],
+    },
+    {
+        "key": "capitalExpenditure",
+        "label": "Capital expenditure",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Capital Expenditure"],
+    },
+    {
+        "key": "freeCashFlow",
+        "label": "Free cash flow",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Free Cash Flow"],
+    },
+]
 
 MINIMUM_DATA_REQUIREMENTS = {
     "peerMetricMinimumPeers": 3,
@@ -1183,6 +1292,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "sector": info.get("sector"),
         "industry": info.get("industry"),
         "currency": info.get("currency") or "NOK",
+        "financialCurrency": info.get("financialCurrency"),
         "price": current_price,
         "marketCap": pick_number(info, "marketCap"),
         "enterpriseValue": pick_number(info, "enterpriseValue"),
@@ -1211,6 +1321,11 @@ def fetch_yfinance(symbol: str) -> dict:
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
         "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
+        "quarterlyStatements": fetch_yfinance_quarterly_statements(
+            ticker,
+            info.get("financialCurrency") or "",
+            now,
+        ),
         "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
@@ -1366,6 +1481,178 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
             base["source"],
             base["limitations"],
         ),
+    }
+
+
+def dataframe_has_rows(frame) -> bool:
+    return frame is not None and not getattr(frame, "empty", True)
+
+
+def statement_frame_value(frame, row_labels: list[str], column) -> tuple[float | None, str | None]:
+    if not dataframe_has_rows(frame):
+        return None, None
+    index = getattr(frame, "index", [])
+    for row_label in row_labels:
+        if row_label not in index:
+            continue
+        try:
+            raw_value = frame.loc[row_label, column]
+        except Exception:
+            continue
+        if hasattr(raw_value, "iloc"):
+            raw_value = raw_value.iloc[0] if len(raw_value) else None
+        value = finite_float(raw_value)
+        if value is not None:
+            return value, row_label
+    return None, None
+
+
+def statement_period_columns(statements: dict[str, object]) -> list[dict]:
+    periods: dict[str, dict] = {}
+    for statement_name, frame in statements.items():
+        if not dataframe_has_rows(frame):
+            continue
+        for column in getattr(frame, "columns", []):
+            date_text = history_index_date(column)
+            if not date_text:
+                continue
+            period = periods.setdefault(date_text, {"periodEnd": date_text, "columns": {}})
+            period["columns"][statement_name] = column
+    return sorted(periods.values(), key=lambda item: item["periodEnd"], reverse=True)
+
+
+def fetch_yfinance_quarterly_statements(ticker, currency: str, fetched_at: str) -> dict:
+    base = {
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "fetchedAt": fetched_at,
+        "currency": currency,
+        "currencySource": "yfinance financialCurrency" if currency else "not supplied by yfinance",
+        "periodType": "quarter",
+        "confidence": "missing",
+        "limitations": (
+            "Open/free yfinance quarterly statement tables are screening-grade, rate-limited, and may lag or omit "
+            "line items. Values are shown only when a dated quarterly statement row is returned; no statement "
+            "history is inferred from current yfinance summary fields. Currency is shown only when yfinance "
+            "provides financialCurrency."
+        ),
+        "fields": [
+            {
+                "key": field["key"],
+                "label": field["label"],
+                "unit": field["unit"],
+                "statement": field["statement"],
+                "sourceRows": field["candidates"],
+            }
+            for field in QUARTERLY_STATEMENT_FIELDS
+        ],
+    }
+    statement_attrs = {
+        "income": "quarterly_income_stmt",
+        "balance": "quarterly_balance_sheet",
+        "cashflow": "quarterly_cashflow",
+    }
+    statements = {}
+    errors = []
+    for statement_name, attr in statement_attrs.items():
+        try:
+            frame = getattr(ticker, attr)
+        except Exception as exc:
+            errors.append(f"{attr}: {exc}")
+            continue
+        if dataframe_has_rows(frame):
+            statements[statement_name] = frame
+
+    periods = []
+    coverage_by_field = {field["key"]: 0 for field in QUARTERLY_STATEMENT_FIELDS}
+    source_rows_by_field: dict[str, str] = {}
+    for period in statement_period_columns(statements)[:QUARTERLY_STATEMENT_MAX_PERIODS]:
+        values = {}
+        source_rows = {}
+        for field in QUARTERLY_STATEMENT_FIELDS:
+            frame = statements.get(field["statement"])
+            column = period["columns"].get(field["statement"])
+            value, source_row = (
+                statement_frame_value(frame, field["candidates"], column)
+                if column is not None
+                else (None, None)
+            )
+            values[field["key"]] = value
+            if source_row:
+                source_rows[field["key"]] = source_row
+                source_rows_by_field.setdefault(field["key"], source_row)
+                coverage_by_field[field["key"]] += 1
+        if any(value is not None for value in values.values()):
+            periods.append(
+                {
+                    "periodEnd": period["periodEnd"],
+                    "label": history_quarter_label(period["periodEnd"]),
+                    "values": values,
+                    "sourceRows": source_rows,
+                }
+            )
+
+    statement_coverage = {
+        statement_name: {
+            "status": "available" if statement_name in statements else "missing",
+            "rowCount": len(getattr(statements.get(statement_name), "index", [])) if statement_name in statements else 0,
+            "periodCount": len(getattr(statements.get(statement_name), "columns", [])) if statement_name in statements else 0,
+            "sourcePath": statement_attrs[statement_name],
+        }
+        for statement_name in statement_attrs
+    }
+    present_fields = [key for key, count in coverage_by_field.items() if count > 0]
+    status = "available" if periods else "missing"
+    confidence = "screening-grade" if periods else "missing"
+    return {
+        **base,
+        "status": status,
+        "confidence": confidence,
+        "periodCount": len(periods),
+        "maximumPeriods": QUARTERLY_STATEMENT_MAX_PERIODS,
+        "latestPeriodEnd": periods[0]["periodEnd"] if periods else None,
+        "periods": periods,
+        "coverageByField": coverage_by_field,
+        "presentFields": present_fields,
+        "sourceRowsByField": source_rows_by_field,
+        "statementCoverage": statement_coverage,
+        "errors": errors,
+    }
+
+
+def fetch_yfinance_quarterly_statements_missing(currency: str) -> dict:
+    return {
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "fetchedAt": None,
+        "currency": currency,
+        "currencySource": "yfinance financialCurrency" if currency else "not supplied by yfinance",
+        "periodType": "quarter",
+        "status": "missing",
+        "confidence": "missing",
+        "periodCount": 0,
+        "maximumPeriods": QUARTERLY_STATEMENT_MAX_PERIODS,
+        "latestPeriodEnd": None,
+        "periods": [],
+        "fields": [
+            {
+                "key": field["key"],
+                "label": field["label"],
+                "unit": field["unit"],
+                "statement": field["statement"],
+                "sourceRows": field["candidates"],
+            }
+            for field in QUARTERLY_STATEMENT_FIELDS
+        ],
+        "coverageByField": {field["key"]: 0 for field in QUARTERLY_STATEMENT_FIELDS},
+        "presentFields": [],
+        "sourceRowsByField": {},
+        "statementCoverage": {},
+        "limitations": (
+            "No dated quarterly statement payload is cached yet. Missing data stays missing until yfinance returns "
+            "quarterly statement rows for this ticker."
+        ),
+        "errors": [],
     }
 
 
@@ -2630,7 +2917,11 @@ def needs_historical_context_refresh(payload: dict) -> bool:
     price_history = payload.get("priceHistory") or {}
     if not price_history:
         return True
-    return "quarterWindows" not in price_history or "chart" not in price_history
+    return (
+        "quarterWindows" not in price_history
+        or "chart" not in price_history
+        or "quarterlyStatements" not in payload
+    )
 
 
 def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
@@ -3287,19 +3578,22 @@ def historical_pricing_context(symbol: str, payload: dict) -> dict:
         "status": "available" if has_context else "insufficient history",
         "priceWindow": price_window,
         "snapshotHistory": snapshot_history,
+        "quarterlyStatementHistory": payload.get("quarterlyStatements")
+        or fetch_yfinance_quarterly_statements_missing(payload.get("financialCurrency") or ""),
         "watchlistSignal": watchlist_signal,
         "requirements": {
             "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
             "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
         },
         "quarterlyFundamentalPlan": {
-            "status": "not implemented",
+            "status": "implemented when source returns dated statement rows",
             "label": "True quarterly fundamental windows",
             "requirement": (
                 "Requires dated quarterly statement fields such as revenue, EBIT/EBITDA, EPS, book value, "
                 "net debt, and sector KPIs before quarterly valuation windows can be shown."
             ),
-            "currentProxy": "Only price quarter windows are shown today from Yahoo/yfinance daily closes.",
+            "currentProxy": "Price quarter windows remain separate and use Yahoo/yfinance daily closes only.",
+            "sourcePath": "Yahoo/yfinance quarterly statement tables; missing source rows stay missing.",
         },
         "policy": (
             "Historical context is descriptive only. It compares current values with own price history and local "
@@ -4167,8 +4461,13 @@ def source_notes() -> dict:
             "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
         },
         "historicalContext": {
-            "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes and local dated fundamentals snapshots.",
-            "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and is not a sector, peer, or valuation verdict.",
+            "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes, local dated fundamentals snapshots, and yfinance dated quarterly statement rows where available.",
+            "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and quarterly statement history depends on yfinance returning dated statement tables; neither is a sector, peer, or valuation verdict.",
+        },
+        "quarterlyStatements": {
+            "use": "True quarterly statement history is read from yfinance quarterly income statement, balance sheet, and cash-flow tables when they contain dated quarter-end columns.",
+            "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields.",
+            "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing and should be verified against company reports before serious use.",
         },
         "benchmarks": {
             "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. Sector benchmark components now separate Oslo peers, international peers, and optional sector index/proxy roles.",
@@ -4257,6 +4556,19 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
     for row in rows:
         status = row.get("cacheStatus") or "unknown"
         cache_statuses[status] = cache_statuses.get(status, 0) + 1
+    quarterly_coverage = []
+    for row in rows:
+        history = ((row.get("historicalContext") or {}).get("quarterlyStatementHistory")) or row.get("quarterlyStatements") or {}
+        quarterly_coverage.append(
+            {
+                "symbol": row.get("symbol"),
+                "status": history.get("status") or "missing",
+                "periodCount": history.get("periodCount") or 0,
+                "latestPeriodEnd": history.get("latestPeriodEnd"),
+                "presentFields": history.get("presentFields") or [],
+                "source": history.get("source") or "Yahoo Finance via yfinance quarterly statement tables",
+            }
+        )
 
     return {
         "rowCount": total,
@@ -4265,6 +4577,7 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
         "fetchedAtNewest": fetched_values[-1] if fetched_values else None,
         "cacheStatuses": cache_statuses,
         "fieldCoverage": field_coverage,
+        "quarterlyStatementCoverage": quarterly_coverage,
         "shippingSectorGaps": shipping_gaps,
         "minimumDataRequirements": MINIMUM_DATA_REQUIREMENTS,
         "defaultTableDecision": "Keep the current default table unchanged for now. P/NAV remains visible as explicit missing context for shipping and asset-backed sectors; NAV/fleet values, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and similar sector KPIs belong behind reviewed manual/source-linked fields before any computed presentation.",

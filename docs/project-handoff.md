@@ -20,7 +20,7 @@ Local git status:
 
 ```text
 default branch: main
-current sprint branch: codex/newsweb-daily-digest
+current sprint branch: codex/quarterly-history-sharing-prep
 ```
 
 Local app:
@@ -87,7 +87,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - `/api/fundamentals`
 - Own History tab:
   - reuses `/api/fundamentals`
-  - shows descriptive price-history context, compact price charts, local snapshot trend charts/rows, source/freshness/confidence metadata, and true-quarterly-history requirements
+  - shows descriptive price-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, source/freshness/confidence metadata, and missing-data gates
 - Consensus source infrastructure:
   - `consensus_sources` table
   - `/api/consensus`
@@ -122,6 +122,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 ## Important Data Caveats
 
 - Yahoo/yfinance data is free, delayed, rate-limited, and incomplete.
+- Quarterly statement history uses yfinance quarterly income statement, balance sheet, and cash-flow tables only when they return dated quarter-end columns. Missing statement rows stay missing, statement values are not inferred from current summary fields, and primary company-report verification remains a future step.
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
@@ -174,6 +175,15 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Confirmed yfinance quarterly income statement, balance sheet, and cash-flow tables return dated quarter-end statement columns for Oslo examples including MOWI, NOD, and FRO.
+- Added strict quarterly statement parsing for explicit yfinance row labels only; missing periods and fields stay missing, and current yfinance summary fields are not used as statement-history proxies.
+- Added a Quarterly statement history section to Own history row details with period count, source path, statement currency when yfinance supplies `financialCurrency`, row coverage, confidence, timestamp, and limitations.
+- Added quarterly statement coverage metadata to `/api/fundamentals` validation output.
+- Preserved optional sector index/proxy curation as explicit peer rows only, kept the on-demand NewsWeb daily digest unchanged, preserved `/api/technical-indicators`, and added no recommendation logic.
+- Verification passed for syntax, README API checks, focused MOWI quarterly payload with 6 dated periods through 2025-12-31 and EUR `financialCurrency`, in-app browser navigation across Watchlist/Fundamentals/Own history/Benchmarks/News/Events/Technical indicators/RSI14 screener, browser console errors, and Safari launch.
+
+## Completed Previous Sprint
+
 - Added a conservative on-demand 24-hour NewsWeb watchlist digest to `/api/event-monitoring`.
 - Grouped digest rows by watchlist symbol and event category.
 - Added heuristic duplicate/correction grouping for same client announcement IDs, corrections, repeated issuer messages, and same-day title fingerprints.
@@ -181,17 +191,6 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Kept source links, timestamps, freshness, confidence, limitations, missing-data wording, and no-advice wording visible in the digest and News/Events table.
 - Preserved Watchlist, Fundamentals, Own history, Benchmarks, Technical indicators, `/api/technical-indicators`, and the separate RSI14 screener tab.
 - Verification passed for syntax, README API checks, `/api/event-monitoring?refresh=1` returning an 8-row 24-hour digest across 5 watchlist symbols during live verification, in-app browser navigation, and Safari launch.
-
-## Completed Previous Sprint
-
-- Renamed the tab to **News/Events** and added watchlist-first significant-event monitoring.
-- Added event categories: earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action.
-- Added `/api/event-monitoring` for watchlist event rows, category summary, source-policy metadata, NewsWeb source links, and missing-data coverage.
-- Extended `significant_events` with source type, review status, confidence, and limitation-note fields.
-- Added on-demand NewsWeb pulls from `api3.oslo.oslobors.no/v1/newsreader/customQuery`; Watchlist Updates now uses NewsWeb rows plus manual rows.
-- Kept daily digest disabled in that sprint; it was completed in the follow-up NewsWeb Daily Digest sprint.
-- Preserved no-advice wording, missing-data discipline, Technical indicators, `/api/technical-indicators`, Own history, Benchmarks, and the separate RSI14 screener tab.
-- Verification passed for syntax, README API checks, `/api/event-monitoring?refresh=1` returning 60 NewsWeb rows across 12 watchlist symbols, in-app browser navigation across Watchlist/Fundamentals/Own history/Benchmarks/News/Events/Technical indicators/RSI14 screener, browser console errors, and Safari launch.
 
 ## Completed Earlier Sprint
 
@@ -220,11 +219,11 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: quarterly history and sharing prep.
+Next priority: sharing prep follow-up.
 
 Goal:
 
-- Add true quarterly fundamental statement history when a reliable source path is confirmed, while keeping sharing/deployment prep conservative.
+- Keep quarterly statement history screening-grade until primary company-report verification is added, while continuing sharing/deployment prep conservatively.
 
 Tasks:
 
@@ -238,7 +237,7 @@ Tasks:
 2. Open Watchlist tab.
 3. Confirm rows render and Watchlist remains scan-first.
 4. Open Fundamentals and confirm the grouped scan table uses provider/source target wording and the consensus/source row editor/table renders.
-5. Open Own History and confirm price-history context, local snapshot charts/rows, and source/gate metadata render.
+5. Open Own History and confirm price-history context, local snapshot charts/rows, quarterly statement history details, and source/gate metadata render.
 6. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
 7. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor render without a repeated own-history block.
 8. Open News/Events and confirm source-policy status, daily digest grouped by symbol/category, per-symbol NewsWeb fetch status, source links, watchlist rows, and manual editor render.

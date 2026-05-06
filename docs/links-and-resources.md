@@ -33,7 +33,7 @@
 
 ## Codex Chats
 
-- Current sprint branch: `codex/newsweb-daily-digest`
+- Current sprint branch: `codex/quarterly-history-sharing-prep`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -68,6 +68,7 @@
 - Yahoo Finance via `yfinance`
 - Yahoo/yfinance target and rating-label fields are stored as provider-row consensus/source rows, not verified consensus.
 - Yahoo/yfinance 1-year daily closes for sampled compact price charts, with observation count, freshness, confidence, and limitations shown in the app
+- Yahoo/yfinance quarterly income statement, balance sheet, and cash-flow tables for true quarterly statement history when dated quarter-end columns are returned; missing statement rows stay missing and current summary fields are not used as proxies
 - Published RSI14/Oslo Screener Dashboard HTML
 - Published Oslo Screener `latest.csv` technical indicator output
 - Manual/source-linked sector KPI inputs, reviewed locally before values appear in benchmark output
@@ -108,5 +109,6 @@
 
 - TradingView analyst/target-price pages
 - MarketScreener consensus pages
+- Primary company report parsing for quarterly statement verification
 - Scheduled NewsWeb/Euronext announcement automation
 The current digest is on-demand. Any scheduled automation should reuse the same conservative source path, keep deduplication/source links/error/freshness reporting visible, and preserve overlapping analyst-count caveats for consensus data.
