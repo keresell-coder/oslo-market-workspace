@@ -49,6 +49,8 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `scripts/backup_database.sh`: SQLite online backup utility with integrity check and checksum output.
 - `scripts/restore_database.sh`: SQLite restore utility with backup verification and pre-restore safety backup.
 - `scripts/drill_restore_database.sh`: non-destructive restore drill utility that restores a fresh backup to a scratch database.
+- `scripts/verify_public_deployment.sh`: hosted/public HTTPS, Basic Auth, health, and README API smoke-test utility.
+- `deploy/`: hosted single-instance environment, systemd, Caddy, and backup cron templates for the recommended public-access path.
 - `docs/primary-report-verification.md`: manual/source-linked review workflow for quarterly statement periods.
 - `.github/workflows/ci.yml`: syntax checks for server and frontend.
 
@@ -108,7 +110,7 @@ Consensus Quality is complete:
 - Event categories are earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
-- Sharing prep has environment-based host/port/database settings, optional Basic Auth, SQLite backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist; default local use is unchanged, non-local unauthenticated binds are refused unless explicitly overridden, and no external deployment has been performed.
+- Sharing prep has environment-based host/port/database settings, optional Basic Auth, SQLite backup/restore/drill scripts, optional backup mirroring, hosted service/reverse-proxy templates, deployment target comparison, HTTPS/reverse-proxy expectations, a hosted verification script, and a production access-control checklist; default local use is unchanged, non-local unauthenticated binds are refused unless explicitly overridden, and no external deployment has been performed.
 - Go-live direction: controlled public MVP at a public HTTPS address, behind authentication, on one hosted app instance with persistent SQLite and off-host backups. Estimated from current state: 2 sprints minimum, 3 sprints recommended.
 - Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 
@@ -116,10 +118,10 @@ Consensus Quality is complete:
 
 Public Access Foundation:
 
-- choose domain/subdomain and single-host deployment target
-- configure Python app service bound to localhost behind HTTPS reverse proxy
+- provide or create real domain/subdomain, DNS access, single-host target, SSH/deployment access, and mounted off-host/encrypted backup destination
+- install the `deploy/` templates on the host with the Python app bound to localhost behind HTTPS reverse proxy
 - configure Basic Auth or stronger upstream access control
 - set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`
-- run hosted backup, mirror copy, restore drill, README API checks, and external-device tab verification
+- run hosted backup, mirror copy, restore drill, README API checks, `scripts/verify_public_deployment.sh`, and external-device tab verification
 - keep optional sector index/proxy curation explicit and reviewed
 - keep all output descriptive and non-advisory

@@ -28,7 +28,7 @@ Completed MVP pieces:
 - Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, source/freshness/confidence metadata, and missing-data gates.
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and watchlist-first significant-event table/API with event categories, source-quality metadata, and an on-demand 24-hour NewsWeb daily digest grouped by watchlist symbol/category.
-- Environment-based sharing-prep config for host, port, database path, and optional Basic Auth; non-local unauthenticated binds are blocked by default.
+- Environment-based sharing-prep config for host, port, database path, optional Basic Auth, hosted service/reverse-proxy templates, and public deployment verification; non-local unauthenticated binds are blocked by default.
 - GitHub Actions CI checks for Python compile and frontend syntax.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
@@ -43,7 +43,7 @@ Important current limitations:
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, strict yfinance quarterly statement tables when dated quarter-end rows are returned, and manual/source-linked primary company-report review tracking per statement period. Primary-report value entry/import remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
-- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore/drill scripts, optional backup mirroring, deployment target comparison, HTTPS/reverse-proxy expectations, and a production access-control checklist are documented, but no external deployment has been performed.
+- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore/drill scripts, optional backup mirroring, deployment target comparison, hosted service/reverse-proxy templates, HTTPS/reverse-proxy expectations, a hosted verification script, and a production access-control checklist are documented, but no external deployment has been performed.
 - Go-live assessment: the app can go live soon as a controlled, authenticated public MVP. It is not ready today for public access, and free/open data remains screening-grade rather than fully guaranteed/authoritative.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
@@ -418,17 +418,49 @@ Verified:
   visible source/freshness/confidence/limitations plus manual/source-linked
   review paths, not guaranteed correctness from free/open provider data.
 
+### Public Access Foundation Repo Prep
+
+- Added `deploy/oslo-stock.env.example` for the hosted environment file with
+  localhost bind, Basic Auth, persistent SQLite path, local backup path, and
+  off-host/encrypted backup mirror path.
+- Added `deploy/oslo-stock.service` for one systemd-managed Python app instance.
+- Added `deploy/Caddyfile.example` for a Caddy HTTPS reverse proxy to
+  `127.0.0.1:8765`.
+- Added `deploy/oslo-stock-backup.cron.example` for a daily hosted backup job.
+- Added `scripts/verify_public_deployment.sh` to check HTTPS, Basic Auth
+  blocking, `/api/health`, and the README API endpoints against a public URL.
+- Confirmed actual external deployment remains blocked until a real
+  domain/subdomain, DNS access, host credential, and mounted off-host/encrypted
+  backup destination are supplied.
+- Added no recommendation logic, no standalone multiple verdict labels, no
+  scheduled NewsWeb automation, and no Oslo Screener repo edits.
+
+Verified:
+
+- Ran backend/frontend/script syntax checks.
+- Ran the README API checks against the local app.
+- Ran `scripts/drill_restore_database.sh`.
+- Verified backup mirroring with a temporary mirror directory.
+- Ran `scripts/verify_public_deployment.sh` against a temporary authenticated
+  local instance with `OSLO_ALLOW_HTTP_VERIFY=1`.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history,
+  Benchmarks, News/Events, Technical indicators, and the separate RSI14
+  screener tab with no console errors.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
 ## Next Sprint
 
 ### Public Access Foundation
 
-- Choose domain/subdomain and the single-host deployment target.
-- Provision the host and configure the Python app as a service bound to localhost.
+- Provide or create the real domain/subdomain, DNS access, single-host target,
+  SSH/deployment access, and mounted off-host/encrypted backup destination.
+- Install the `deploy/` templates on the host and configure the Python app as a
+  service bound to localhost.
 - Configure HTTPS reverse proxy and Basic Auth or stronger upstream access control.
 - Set persistent hosted `OSLO_APP_DB_PATH`.
 - Set real hosted `OSLO_APP_BACKUP_MIRROR_DIR`.
 - Run backup, mirror copy, and restore drill on the host.
-- Run README API checks against the hosted URL.
+- Run README API checks and `scripts/verify_public_deployment.sh` against the hosted URL.
 - Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and RSI14 screener from another device.
 - Keep quarterly statement history screening-grade until reviewed primary-report values are explicitly added.
 - Keep optional sector index/proxy curation explicit and reviewed.

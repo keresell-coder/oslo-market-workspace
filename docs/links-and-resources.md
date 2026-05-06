@@ -19,10 +19,15 @@
 - SQLite backup script: `scripts/backup_database.sh`
 - SQLite restore script: `scripts/restore_database.sh`
 - SQLite restore drill script: `scripts/drill_restore_database.sh`
+- Hosted/public verification script: `scripts/verify_public_deployment.sh`
 - Sharing/deployment notes: `docs/deployment-sharing.md`
 - Go-live readiness notes: `docs/go-live-readiness.md`
 - Primary report verification notes: `docs/primary-report-verification.md`
 - Runtime config example: `.env.example`
+- Hosted runtime config example: `deploy/oslo-stock.env.example`
+- Hosted systemd service template: `deploy/oslo-stock.service`
+- Hosted Caddy reverse-proxy template: `deploy/Caddyfile.example`
+- Hosted backup cron template: `deploy/oslo-stock-backup.cron.example`
 
 ## Main Local Files
 
@@ -36,6 +41,11 @@
 - `scripts/backup_database.sh`
 - `scripts/restore_database.sh`
 - `scripts/drill_restore_database.sh`
+- `scripts/verify_public_deployment.sh`
+- `deploy/oslo-stock.env.example`
+- `deploy/oslo-stock.service`
+- `deploy/Caddyfile.example`
+- `deploy/oslo-stock-backup.cron.example`
 - `.env.example`
 - `.github/workflows/ci.yml`
 - `app/server.py`
@@ -101,7 +111,7 @@ Non-local bind hosts are refused by default unless Basic Auth credentials are co
 - Render persistent disks: https://render.com/docs/disks
 - Fly.io volumes: https://fly.io/docs/volumes/
 
-Current decision as of 06 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. No external deployment has been performed.
+Current decision as of 06 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. Repo templates now exist for that single-host path, but no external deployment has been performed because no real domain/subdomain, DNS access, host credential, or mounted off-host backup destination is present in this workspace.
 
 ## External Sources In Use
 

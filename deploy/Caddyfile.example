@@ -1,0 +1,8 @@
+# Replace research.example.com with the chosen public subdomain.
+# The Python app should stay bound to 127.0.0.1:8765.
+
+research.example.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8765
+}
+

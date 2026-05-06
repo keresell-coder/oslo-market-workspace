@@ -95,9 +95,19 @@ Recommended path: 3 sprints.
 
 Goal: make the app reachable at a public HTTPS address with controlled access.
 
+Repo foundation completed:
+
+- deployment templates now exist for hosted environment, systemd service, Caddy
+  reverse proxy, and daily backup cron
+- `scripts/verify_public_deployment.sh` now checks HTTPS/API/auth basics against
+  a public URL
+- actual public deployment remains pending because no real domain/subdomain,
+  DNS access, host credential, or mounted off-host backup destination is present
+  in the local repo
+
 Tasks:
 
-- choose domain/subdomain and hosting target
+- provide or create the real domain/subdomain and hosting target
 - create VPS or equivalent single-host runtime
 - configure Python app service bound to localhost
 - configure HTTPS reverse proxy

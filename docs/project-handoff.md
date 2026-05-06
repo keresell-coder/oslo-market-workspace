@@ -83,6 +83,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - non-local unauthenticated binds are refused unless explicitly overridden
   - `scripts/backup_database.sh`, `scripts/restore_database.sh`, and `scripts/drill_restore_database.sh` provide SQLite backup/restore/drill utilities with integrity checks
   - optional `OSLO_APP_BACKUP_MIRROR_DIR` mirrors backup files and checksums to a mounted off-host path
+  - `deploy/oslo-stock.env.example`, `deploy/oslo-stock.service`, `deploy/Caddyfile.example`, and `deploy/oslo-stock-backup.cron.example` provide the single-host service/reverse-proxy/backup templates for the public-access path
+  - `scripts/verify_public_deployment.sh` checks HTTPS, Basic Auth blocking, `/api/health`, and the README API endpoints against a hosted URL
   - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails, backup workflow, target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist
   - `docs/go-live-readiness.md` explains the 2-sprint minimum / 3-sprint recommended path to public MVP
   - GitHub Actions CI checks backend compile and frontend syntax
@@ -144,7 +146,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
-- Basic Auth is a sharing-prep gate, not a full production security model. Backup/restore/drill, optional backup mirroring, HTTPS/reverse-proxy expectations, target comparison, and an access-control checklist are now documented, but actual external deployment still needs explicit scoping and a real mounted off-host backup destination.
+- Basic Auth is a sharing-prep gate, not a full production security model. Backup/restore/drill, optional backup mirroring, hosted service/reverse-proxy templates, HTTPS/reverse-proxy expectations, target comparison, a hosted verification script, and an access-control checklist are now documented, but actual external deployment still needs a real domain/subdomain, DNS access, host credential, and mounted off-host backup destination.
 - The app can go live soon as a controlled, authenticated MVP. It is not ready today for public access, and free/open data remains screening-grade rather than fully guaranteed/authoritative.
 - NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers `api3.oslo.oslobors.no` via `urls.json`, and ticker queries return issuer announcements from `/v1/newsreader/customQuery`.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
@@ -195,12 +197,29 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Added Public Access Foundation repo assets for the recommended single-host
+  path: hosted environment template, systemd service template, Caddy reverse
+  proxy template, daily backup cron example, and hosted verification script.
+- Kept the app deployment shape to one Python instance bound to localhost behind
+  HTTPS with Basic Auth enabled and persistent SQLite outside the git checkout.
+- Confirmed actual hosted/public URL access, DNS/HTTPS provisioning,
+  off-host/encrypted mirror setup, hosted restore drill, and another-device tab
+  verification are blocked until real operator credentials/paths are supplied.
+- Preserved all no-advice/no-standalone-verdict guardrails, kept NewsWeb
+  automation out of scope, and did not edit the Oslo Screener repos.
+- Verification passed for backend/frontend/script syntax, README API checks,
+  restore drill, temporary backup-mirror copy, hosted-verification-script dry
+  run against a temporary authenticated local instance, in-app browser tab
+  checks, browser console errors, and Safari launch.
+
+## Completed Previous Sprint
+
 - Clarified the go-live direction: public HTTPS address for use from other devices is now the next priority.
 - Added `docs/go-live-readiness.md` with the public-access architecture, data-quality boundary, interactive refresh expectations, and sprint count.
 - Estimated 2 sprints minimum and 3 sprints recommended from current state: Public Access Foundation, Data Refresh And Source-Quality Readiness, and Beta Release Hardening.
 - Reframed "accurate, reliable, credible, and validated" as visible freshness/source/confidence/limitations plus manual/source-linked review paths, not guaranteed correctness from free/open data.
 
-## Completed Previous Sprint
+## Completed Earlier Sprint
 
 - Added manual/source-linked primary company-report review tracking for quarterly statement periods.
 - Added `quarterly_statement_reviews` storage and `/api/quarterly-statement-reviews` for reading/saving per-symbol, per-period review rows.
@@ -280,11 +299,14 @@ Goal:
 
 Tasks:
 
-- Choose domain/subdomain and single-host deployment target.
-- Configure Python app service bound to localhost behind HTTPS reverse proxy.
-- Configure Basic Auth or stronger upstream access control.
-- Set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`.
-- Run hosted backup, mirror copy, restore drill, README API checks, and external-device tab verification.
+- Provide or create the real domain/subdomain, DNS access, single-host target,
+  SSH/deployment access, and mounted off-host/encrypted backup destination.
+- Install the `deploy/` templates on the host with the Python app bound to
+  localhost behind HTTPS and Basic Auth.
+- Set persistent hosted `OSLO_APP_DB_PATH` and real
+  `OSLO_APP_BACKUP_MIRROR_DIR`.
+- Run hosted backup, mirror copy, restore drill, README API checks,
+  `scripts/verify_public_deployment.sh`, and external-device tab verification.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 

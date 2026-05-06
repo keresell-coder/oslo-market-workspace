@@ -50,6 +50,14 @@ scripts/restore_database.sh backups/sqlite/<backup>.sqlite3
 
 The backup script uses SQLite's online backup path, writes timestamped backups under `backups/sqlite/` by default, and writes a `.sha256` checksum. The restore script verifies the selected backup, creates a pre-restore backup of the current database, and replaces the configured database path. Stop the app before restoring.
 
+Hosted deployment support files:
+
+- `deploy/oslo-stock.env.example`: hosted environment file shape for localhost binding, Basic Auth, persistent SQLite, and backup mirror paths.
+- `deploy/oslo-stock.service`: systemd service template for one Python app instance.
+- `deploy/Caddyfile.example`: HTTPS reverse-proxy template.
+- `deploy/oslo-stock-backup.cron.example`: daily hosted backup job template.
+- `scripts/verify_public_deployment.sh`: hosted HTTPS/API/auth smoke test.
+
 Current go-live assessment: the app can go live soon as a controlled,
 authenticated MVP, but not as a public unauthenticated site and not as a fully
 validated research platform. See `docs/go-live-readiness.md`.
@@ -73,7 +81,7 @@ Local folder:
 - **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
-- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore/drill scripts, optional backup mirroring, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, a production access-control checklist, and a CI syntax-check workflow.
+- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore/drill scripts, optional backup mirroring, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, hosted service/reverse-proxy templates, a hosted verification script, a production access-control checklist, and a CI syntax-check workflow.
 
 ## Rules And Guardrails
 
@@ -100,9 +108,10 @@ Local folder:
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
 - Remaining major gaps: primary-source value entry/import for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, selecting the real mounted off-host backup destination, and any actual external deployment.
-- Public MVP gap: the app still needs hosted HTTPS access, access control,
-  persistent hosted database path, real off-host backup mirror, hosted restore
-  drill, and cross-device smoke testing before release.
+- Public MVP gap: the repo now has hosted service/reverse-proxy templates and a
+  hosted verification script, but the app still needs a real domain/subdomain,
+  a provisioned single host, DNS/HTTPS setup, a real off-host backup mirror,
+  hosted restore drill, and cross-device smoke testing before release.
 
 ## Verification
 
@@ -132,6 +141,23 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Public Access Foundation Repo Prep**
+
+- Added hosted deployment templates for a single Python app instance bound to
+  localhost behind Caddy HTTPS.
+- Added a hosted environment template with `OSLO_APP_DB_PATH` outside the git
+  checkout and `OSLO_APP_BACKUP_MIRROR_DIR` pointing to an off-host/encrypted
+  mounted backup location.
+- Added a daily backup cron example and `scripts/verify_public_deployment.sh`
+  for HTTPS/API/auth checks against a public URL.
+- Confirmed no real public URL, DNS record, host credential, or mounted
+  off-host mirror path is present in this local repo, so actual external
+  deployment and another-device verification remain blocked pending those
+  operator details.
+- Verified backend/frontend/script syntax, README API checks, restore drill,
+  temporary backup-mirror copy, local dry run of the hosted verification script,
+  in-app browser tabs, and Safari launch.
 
 **Go-Live Readiness Reframe**
 
@@ -265,11 +291,15 @@ After each completed task, update the relevant docs so they reflect what changed
 
 **Public Access Foundation**
 
-- Choose domain/subdomain and single-host deployment target.
-- Configure hosted app service bound to localhost behind HTTPS reverse proxy.
-- Configure Basic Auth or stronger upstream access control.
-- Set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`.
-- Run hosted backup, mirror copy, restore drill, README API checks, and external-device tab verification.
+- Provide or create the real domain/subdomain, DNS access, single-host target,
+  SSH/deployment access, and mounted off-host/encrypted backup destination.
+- Install the `deploy/` templates on the host with the Python app bound to
+  `127.0.0.1` behind HTTPS and Basic Auth.
+- Set the live `OSLO_APP_DB_PATH` and `OSLO_APP_BACKUP_MIRROR_DIR`, run hosted
+  backup/mirror/restore drill, then run README API checks plus
+  `scripts/verify_public_deployment.sh` against the public URL.
+- Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
+  Technical indicators, and RSI14 screener from another device.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Continue without adding recommendation logic.
 

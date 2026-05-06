@@ -74,6 +74,23 @@ a public address, complete:
 - hosted README API checks
 - cross-device browser verification
 
+The repository now includes deployment support files for the recommended
+single-host path:
+
+- `deploy/oslo-stock.env.example`: install as
+  `/etc/oslo-stock/oslo-stock.env` and replace placeholders with real secrets
+  and host paths.
+- `deploy/oslo-stock.service`: systemd service template for one app instance
+  running from `/opt/oslo-stock/oslo-market-workspace`.
+- `deploy/Caddyfile.example`: Caddy HTTPS reverse-proxy template for a public
+  subdomain proxying to `127.0.0.1:8765`.
+- `deploy/oslo-stock-backup.cron.example`: daily backup cron template.
+- `scripts/verify_public_deployment.sh`: hosted smoke test for HTTPS, Basic
+  Auth blocking, `/api/health`, and the README API endpoints.
+
+These files do not create the DNS record, provision the VPS, mount the off-host
+backup destination, or verify another-device browser access by themselves.
+
 Recommended sprint count from the current state:
 
 - 2 sprints minimum for a controlled public MVP.
@@ -241,6 +258,10 @@ research.example.com {
 }
 ```
 
+Use `deploy/Caddyfile.example` as the repo-maintained starting point and keep
+app-layer Basic Auth enabled through `/etc/oslo-stock/oslo-stock.env` unless a
+stronger upstream access layer is configured and tested.
+
 Expectations:
 
 - Use a real domain name and HTTPS.
@@ -280,9 +301,12 @@ Before external sharing:
 
 ## Current Scope
 
-This prep does not add scheduled NewsWeb collection, recommendation logic,
-external publishing, or an actual production deployment. The app remains a
-descriptive, screening-grade research workspace.
+This prep does not add scheduled NewsWeb collection, recommendation logic, or
+external publishing. The repo now contains concrete single-host deployment
+templates and a public verification script, but an actual production deployment
+still requires a real domain/subdomain, DNS access, host credentials, and a
+mounted off-host/encrypted backup destination. The app remains a descriptive,
+screening-grade research workspace.
 
 ## Source References Checked
 
