@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
+import hmac
 import json
 import math
+import os
 import re
 import sqlite3
 import sys
@@ -32,7 +35,14 @@ except Exception:  # pragma: no cover
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DATA = ROOT / "data"
-DB_PATH = DATA / "oslo_workspace.sqlite3"
+DEFAULT_DB_PATH = DATA / "oslo_workspace.sqlite3"
+APP_HOST = os.environ.get("OSLO_APP_HOST", "127.0.0.1").strip() or "127.0.0.1"
+APP_PORT = int(os.environ.get("OSLO_APP_PORT", "8765"))
+DB_PATH = Path(os.environ.get("OSLO_APP_DB_PATH", str(DEFAULT_DB_PATH))).expanduser()
+if not DB_PATH.is_absolute():
+    DB_PATH = ROOT.parent / DB_PATH
+AUTH_USERNAME = os.environ.get("OSLO_APP_AUTH_USERNAME", "")
+AUTH_PASSWORD = os.environ.get("OSLO_APP_AUTH_PASSWORD", "")
 CACHE_TTL_SECONDS = 60 * 60 * 6
 CONSENSUS_FRESH_SECONDS = 60 * 60 * 24 * 3
 CONSENSUS_OLD_SECONDS = 60 * 60 * 24 * 14
@@ -853,7 +863,7 @@ def peer_market_for_symbol(symbol: str) -> str:
 
 
 def connect() -> sqlite3.Connection:
-    DATA.mkdir(parents=True, exist_ok=True)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con
@@ -1248,6 +1258,75 @@ def ensure_significant_events_schema(con: sqlite3.Connection) -> None:
 
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict]:
     return [dict(row) for row in rows]
+
+
+def env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def is_local_bind_host(host: str) -> bool:
+    return host in {"127.0.0.1", "localhost", "::1"}
+
+
+def auth_required() -> bool:
+    if env_flag("OSLO_APP_REQUIRE_AUTH", False):
+        return True
+    return not is_local_bind_host(APP_HOST) and auth_configured() and not remote_bind_without_auth_allowed()
+
+
+def auth_configured() -> bool:
+    return bool(AUTH_USERNAME and AUTH_PASSWORD)
+
+
+def remote_bind_without_auth_allowed() -> bool:
+    return env_flag("OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE", False)
+
+
+def sharing_config() -> dict:
+    return {
+        "bindHost": APP_HOST,
+        "port": APP_PORT,
+        "localOnly": is_local_bind_host(APP_HOST),
+        "authRequired": auth_required(),
+        "authConfigured": auth_configured(),
+        "remoteBindRequiresAuth": not remote_bind_without_auth_allowed(),
+        "databasePathConfigured": "OSLO_APP_DB_PATH" in os.environ,
+        "policy": (
+            "Default runtime is local-only. Binding to a non-local host requires Basic Auth credentials unless "
+            "OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1 is set intentionally."
+        ),
+    }
+
+
+def validate_runtime_config() -> None:
+    if auth_required() and not auth_configured():
+        raise RuntimeError(
+            "OSLO_APP_REQUIRE_AUTH is enabled, but OSLO_APP_AUTH_USERNAME and OSLO_APP_AUTH_PASSWORD are not both set."
+        )
+    if not is_local_bind_host(APP_HOST) and not auth_configured() and not remote_bind_without_auth_allowed():
+        raise RuntimeError(
+            "Refusing to bind outside localhost without auth. Set OSLO_APP_AUTH_USERNAME and "
+            "OSLO_APP_AUTH_PASSWORD, or set OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1 for an intentional "
+            "unauthenticated shared run."
+        )
+
+
+def valid_basic_auth(header: str | None) -> bool:
+    if not auth_required():
+        return True
+    if not header or not header.lower().startswith("basic "):
+        return False
+    try:
+        decoded = base64.b64decode(header.split(" ", 1)[1], validate=True).decode("utf-8")
+    except Exception:
+        return False
+    username, separator, password = decoded.partition(":")
+    if not separator:
+        return False
+    return hmac.compare_digest(username, AUTH_USERNAME) and hmac.compare_digest(password, AUTH_PASSWORD)
 
 
 def get_json_body(handler: SimpleHTTPRequestHandler) -> dict:
@@ -3982,10 +4061,24 @@ class AppHandler(SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         sys.stderr.write("%s - %s\n" % (self.address_string(), format % args))
 
+    def auth_ok(self, parsed) -> bool:
+        if parsed.path == "/api/health":
+            return True
+        if valid_basic_auth(self.headers.get("authorization")):
+            return True
+        self.send_response(HTTPStatus.UNAUTHORIZED)
+        self.send_header("www-authenticate", 'Basic realm="Oslo Stock web-app"')
+        self.send_header("cache-control", "no-store")
+        self.send_header("content-length", "0")
+        self.end_headers()
+        return False
+
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/health":
-            return send_json(self, {"ok": True, "time": utc_now()})
+            return send_json(self, {"ok": True, "time": utc_now(), "sharing": sharing_config()})
         if parsed.path == "/api/tickers":
             return self.handle_tickers()
         if parsed.path == "/api/watchlist":
@@ -4016,6 +4109,8 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/tickers":
             return self.handle_ticker_post()
         if parsed.path == "/api/watchlist":
@@ -4034,6 +4129,8 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def do_DELETE(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/watchlist":
             return self.handle_watchlist_delete(parsed)
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
@@ -4469,6 +4566,11 @@ def source_notes() -> dict:
             "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields.",
             "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing and should be verified against company reports before serious use.",
         },
+        "sharingConfig": {
+            "use": "Environment variables can set host, port, database path, and optional Basic Auth for a future shared run.",
+            "verification": "The default run remains local-only at 127.0.0.1:8765. Non-local bind hosts are blocked unless Basic Auth credentials are configured or an explicit unauthenticated override is set.",
+            "limitations": "Basic Auth is a sharing-prep gate, not a full production security model. Use HTTPS, backups, access controls, and reviewed deployment settings before external sharing.",
+        },
         "benchmarks": {
             "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. Sector benchmark components now separate Oslo peers, international peers, and optional sector index/proxy roles.",
             "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only. Backend-assisted groups are draft only and require business-model review; sector index/proxy rows are never inferred from generic sector labels.",
@@ -4586,11 +4688,11 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
 
 
 def main() -> None:
+    validate_runtime_config()
     init_db()
-    host = "127.0.0.1"
-    port = 8765
-    server = ThreadingHTTPServer((host, port), AppHandler)
-    print(f"Oslo Stock web-app running at http://{host}:{port}")
+    server = ThreadingHTTPServer((APP_HOST, APP_PORT), AppHandler)
+    auth_note = "auth required" if auth_required() else "local/no auth"
+    print(f"Oslo Stock web-app running at http://{APP_HOST}:{APP_PORT} ({auth_note})")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

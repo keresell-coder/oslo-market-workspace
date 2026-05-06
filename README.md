@@ -26,6 +26,18 @@ scripts/open_in_safari.sh
 
 The script starts the local server in Terminal if needed, verifies `http://127.0.0.1:8765/api/health`, and opens Safari at `http://127.0.0.1:8765`.
 
+## Sharing Prep
+
+The default run is local-only and unauthenticated. Runtime settings can be configured with environment variables:
+
+- `OSLO_APP_HOST`: bind host, default `127.0.0.1`.
+- `OSLO_APP_PORT`: bind port, default `8765`.
+- `OSLO_APP_DB_PATH`: optional SQLite database path.
+- `OSLO_APP_REQUIRE_AUTH`: set to `1` to require Basic Auth.
+- `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
+
+If `OSLO_APP_HOST` is set to a non-local bind host such as `0.0.0.0`, the server refuses to start unless Basic Auth credentials are configured or `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1` is set intentionally. See `docs/deployment-sharing.md` and `.env.example`.
+
 Repository: `keresell-coder/oslo-market-workspace`
 
 Local folder:
@@ -45,6 +57,7 @@ Local folder:
 - **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
+- **Sharing prep**: environment-based host/port/database configuration, an optional Basic Auth gate, and a CI syntax-check workflow.
 
 ## Rules And Guardrails
 
@@ -100,6 +113,15 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Sharing Prep Follow-Up**
+
+- Added environment-based runtime settings for host, port, SQLite path, and optional Basic Auth.
+- Kept the default run local-only at `127.0.0.1:8765` with no auth prompt.
+- Added a startup guard that refuses non-local unauthenticated binds unless an explicit override is set.
+- Added `docs/deployment-sharing.md`, `.env.example`, and a GitHub Actions CI workflow for backend/frontend syntax checks.
+- Kept quarterly statement history screening-grade, sector index/proxy rows explicit, the on-demand NewsWeb digest unchanged, and recommendation logic absent.
+- Verified syntax, README API checks, optional Basic Auth behavior on a temporary local port, non-local unauthenticated startup refusal, in-app browser navigation across the main tabs, and Safari launch.
 
 **Quarterly History And Sharing Prep**
 
@@ -199,8 +221,9 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**Quarterly History And Sharing Prep**
+**Sharing And Deployment Follow-Up**
 
+- Continue sharing/deployment prep: backup strategy, deployment target choice, and HTTPS/reverse-proxy notes.
 - Extend quarterly statement review toward primary company reports before using the data beyond screening context.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible failure states.

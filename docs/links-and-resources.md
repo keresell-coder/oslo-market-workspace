@@ -16,6 +16,8 @@
 - Local app default: http://127.0.0.1:8765
 - Local app alternate/debug: http://127.0.0.1:8768
 - Safari launcher: `scripts/open_in_safari.sh`
+- Sharing/deployment notes: `docs/deployment-sharing.md`
+- Runtime config example: `.env.example`
 
 ## Main Local Files
 
@@ -25,6 +27,8 @@
 - `docs/project-handoff.md`
 - `docs/links-and-resources.md`
 - `scripts/open_in_safari.sh`
+- `.env.example`
+- `.github/workflows/ci.yml`
 - `app/server.py`
 - `app/static/index.html`
 - `app/static/app.js`
@@ -33,7 +37,7 @@
 
 ## Codex Chats
 
-- Current sprint branch: `codex/quarterly-history-sharing-prep`
+- Current sprint branch: `codex/sharing-prep-follow-up`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -62,6 +66,17 @@
 - `POST /api/events`
 - `GET /api/event-monitoring`
 - `GET /api/sources`
+
+## Runtime Configuration
+
+- `OSLO_APP_HOST`: bind host, default `127.0.0.1`.
+- `OSLO_APP_PORT`: bind port, default `8765`.
+- `OSLO_APP_DB_PATH`: optional SQLite database path.
+- `OSLO_APP_REQUIRE_AUTH`: set to `1` for Basic Auth.
+- `OSLO_APP_AUTH_USERNAME` and `OSLO_APP_AUTH_PASSWORD`: Basic Auth credentials.
+- `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE`: explicit override for non-local unauthenticated binds.
+
+Non-local bind hosts are refused by default unless Basic Auth credentials are configured or the explicit unauthenticated override is set.
 
 ## External Sources In Use
 

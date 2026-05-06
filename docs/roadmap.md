@@ -28,6 +28,8 @@ Completed MVP pieces:
 - Own History tab with descriptive own-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, source/freshness/confidence metadata, and missing-data gates.
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and watchlist-first significant-event table/API with event categories, source-quality metadata, and an on-demand 24-hour NewsWeb daily digest grouped by watchlist symbol/category.
+- Environment-based sharing-prep config for host, port, database path, and optional Basic Auth; non-local unauthenticated binds are blocked by default.
+- GitHub Actions CI checks for Python compile and frontend syntax.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
 
@@ -41,6 +43,7 @@ Important current limitations:
 - Own-history context uses daily price history, compact sampled price charts, local snapshots, gated local snapshot charts, and strict yfinance quarterly statement tables when dated quarter-end rows are returned. Primary-source filing verification remains future work.
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
+- Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; external sharing still needs HTTPS/reverse-proxy review, backups, and deployment-target decisions.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
@@ -312,11 +315,32 @@ Verified:
 - Checked browser console errors.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
-## Next Sprint
-
 ### Sharing Prep Follow-Up
 
+- Added environment-based runtime settings for bind host, port, SQLite database path, and optional Basic Auth.
+- Preserved local default behavior at `127.0.0.1:8765` without an auth prompt.
+- Added a startup guard that refuses non-local unauthenticated binds unless `OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1` is set intentionally.
+- Added `.env.example` and `docs/deployment-sharing.md` with local/default, private-network, authentication, database, and backup notes.
+- Added GitHub Actions CI for `python3 -m py_compile app/server.py` and `node --check app/static/app.js`.
+- Preserved quarterly statement screening-grade wording, explicit sector index/proxy curation, the current on-demand NewsWeb digest, `/api/technical-indicators`, and the separate RSI14 screener tab.
+
+Verified:
+
+- Ran `python3 -m py_compile app/server.py`.
+- Ran `node --check app/static/app.js`.
+- Ran the README API checks for Watchlist, MOWI fundamentals, watchlist technical indicators, and event monitoring.
+- Checked optional Basic Auth on a temporary local port for unauthenticated 401, authenticated 200, and public `/api/health`.
+- Checked non-local unauthenticated startup refusal.
+- Used the in-app browser to verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and the separate RSI14 screener tab.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
+## Next Sprint
+
+### Sharing And Deployment
+
 - Keep quarterly statement history screening-grade until primary company-report verification is added.
+- Decide database backup/restore workflow before any broader sharing.
+- Choose a deployment target and document HTTPS/reverse-proxy expectations.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits, dedupe review, and visible failure states.
 - Continue deployment/sharing prep without adding recommendation logic.
@@ -325,11 +349,9 @@ Verified:
 
 ### Sharing And Deployment
 
-- Add environment-based config.
-- Add basic authentication before external sharing.
 - Decide database path and backup strategy.
-- Add deployment documentation.
-- Add GitHub Actions checks.
+- Add concrete deployment-target documentation.
+- Add HTTPS/reverse-proxy guidance and production access-control checklist.
 
 ## Deferred
 

@@ -20,7 +20,7 @@ Local git status:
 
 ```text
 default branch: main
-current sprint branch: codex/quarterly-history-sharing-prep
+current sprint branch: codex/sharing-prep-follow-up
 ```
 
 Local app:
@@ -69,6 +69,12 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Safari launcher:
   - `scripts/open_in_safari.sh`
   - starts the local server in Terminal if needed, verifies `/api/health`, and opens Safari at `http://127.0.0.1:8765`
+- Sharing prep:
+  - environment variables configure bind host, port, SQLite path, and optional Basic Auth
+  - default run remains local-only at `127.0.0.1:8765`
+  - non-local unauthenticated binds are refused unless explicitly overridden
+  - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails
+  - GitHub Actions CI checks backend compile and frontend syntax
 - Watchlist overview endpoint:
   - `/api/watchlist-overview`
 - Watchlist front page shows:
@@ -126,6 +132,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - Yahoo/yfinance target price and rating-label data is single-source provider-row data by default and not verified consensus.
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
+- Basic Auth is a sharing-prep gate, not a full production security model. Broader sharing still needs HTTPS/reverse-proxy review, backups, and deployment-target decisions.
 - NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers `api3.oslo.oslobors.no` via `urls.json`, and ticker queries return issuer announcements from `/v1/newsreader/customQuery`.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
 - Backend-assisted peer groups stay `draft` until reviewed.
@@ -175,14 +182,21 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Added environment-based runtime settings for bind host, port, SQLite database path, and optional Basic Auth.
+- Kept default local behavior unchanged at `127.0.0.1:8765` with no auth prompt.
+- Added a startup guard that refuses non-local unauthenticated binds unless an explicit override is set.
+- Added `.env.example`, `docs/deployment-sharing.md`, and GitHub Actions CI for backend/frontend syntax checks.
+- Preserved quarterly statement screening-grade wording, explicit sector index/proxy curation, the current on-demand NewsWeb digest, `/api/technical-indicators`, the separate RSI14 screener tab, and no-recommendation behavior.
+- Verification passed for syntax, README API checks, optional Basic Auth on a temporary local port, non-local unauthenticated startup refusal, in-app browser navigation, and Safari launch.
+
+## Completed Previous Sprint
+
 - Confirmed yfinance quarterly income statement, balance sheet, and cash-flow tables return dated quarter-end statement columns for Oslo examples including MOWI, NOD, and FRO.
 - Added strict quarterly statement parsing for explicit yfinance row labels only; missing periods and fields stay missing, and current yfinance summary fields are not used as statement-history proxies.
 - Added a Quarterly statement history section to Own history row details with period count, source path, statement currency when yfinance supplies `financialCurrency`, row coverage, confidence, timestamp, and limitations.
 - Added quarterly statement coverage metadata to `/api/fundamentals` validation output.
 - Preserved optional sector index/proxy curation as explicit peer rows only, kept the on-demand NewsWeb daily digest unchanged, preserved `/api/technical-indicators`, and added no recommendation logic.
 - Verification passed for syntax, README API checks, focused MOWI quarterly payload with 6 dated periods through 2025-12-31 and EUR `financialCurrency`, in-app browser navigation across Watchlist/Fundamentals/Own history/Benchmarks/News/Events/Technical indicators/RSI14 screener, browser console errors, and Safari launch.
-
-## Completed Previous Sprint
 
 - Added a conservative on-demand 24-hour NewsWeb watchlist digest to `/api/event-monitoring`.
 - Grouped digest rows by watchlist symbol and event category.
@@ -219,16 +233,17 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: sharing prep follow-up.
+Next priority: sharing/deployment follow-up.
 
 Goal:
 
-- Keep quarterly statement history screening-grade until primary company-report verification is added, while continuing sharing/deployment prep conservatively.
+- Decide database backup/restore workflow and deployment-target expectations while keeping quarterly statement history screening-grade until primary company-report verification is added.
 
 Tasks:
 
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states.
+- Document HTTPS/reverse-proxy expectations before external sharing.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
 ## Verification Checklist For Next Chat

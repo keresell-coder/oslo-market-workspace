@@ -36,7 +36,7 @@ If a stale local server holds the port, stop the old Python process or run a tem
 
 ## Current Architecture
 
-- `app/server.py`: Python standard-library HTTP server, SQLite storage, yfinance collection, compact price/own-history chart payloads, strict yfinance quarterly statement parsing, screener parsing, consensus/event APIs, and watchlist-first event monitoring/daily digest metadata.
+- `app/server.py`: Python standard-library HTTP server, environment-based runtime config, optional Basic Auth, SQLite storage, yfinance collection, compact price/own-history chart payloads, strict yfinance quarterly statement parsing, screener parsing, consensus/event APIs, and watchlist-first event monitoring/daily digest metadata.
 - `app/static/index.html`: single-page app shell.
 - `app/static/app.js`: frontend data loading and rendering; Own History reuses `/api/fundamentals` rather than a separate backend endpoint.
 - `app/static/styles.css`: UI styling.
@@ -44,6 +44,8 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `docs/roadmap.md`: sprint plan.
 - `docs/project-handoff.md`: continuation context for new Codex chats.
 - `docs/links-and-resources.md`: important links and source notes.
+- `docs/deployment-sharing.md`: sharing-prep runtime settings, authentication guardrails, and database/backup notes.
+- `.github/workflows/ci.yml`: syntax checks for server and frontend.
 
 ## Documentation Discipline
 
@@ -101,12 +103,15 @@ Consensus Quality is complete:
 - Event categories are earnings, contract/order, financing/private placement, dividend, insider, M&A, guidance/profit warning, and corporate action
 - The RSI14 dashboard was refreshed to 05 May 2026 after its served `gh-pages` HTML lagged the current `latest.csv`; if it looks stale again, compare the CSV timestamp with the dashboard date and check `oslo-screener-dashboard` default branch plus `gh-pages` deployment.
 - Oslo Screener reliability pass is complete: both screener repos default to `main`; the producer verifies `latest.csv` before publishing; the dashboard runs after the producer with a backup schedule and shows source-generation freshness.
+- Sharing prep has environment-based host/port/database settings and optional Basic Auth; default local use is unchanged, and non-local unauthenticated binds are refused unless explicitly overridden.
 
 ## Next Sprint Priority
 
-Sharing Prep Follow-Up:
+Sharing And Deployment Follow-Up:
 
 - keep quarterly statement history screening-grade until primary company-report verification is added
+- decide database backup/restore workflow before broader sharing
+- document deployment target and HTTPS/reverse-proxy expectations
 - keep optional sector index/proxy curation explicit and reviewed
 - consider scheduled NewsWeb digest automation separately from the current on-demand digest, with conservative rate limits and visible stale/error states
 - keep all output descriptive and non-advisory
