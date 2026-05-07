@@ -32,6 +32,7 @@ Completed MVP pieces:
 - Environment-based sharing-prep config for host, port, database path, optional Basic Auth, hosted service/reverse-proxy templates, and public deployment verification; non-local unauthenticated binds are blocked by default.
 - Operator refresh checklist plus refresh status strips for Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources.
 - Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows. Refresh status strips surface `stale-after-error` source states where cached fallback rows are reused.
+- Host-side public-access runbook exists at `docs/hosted-public-access-runbook.md`, and `scripts/verify_public_deployment.sh` now includes hosted `refresh=1` checks for Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks.
 - GitHub Actions CI checks for Python compile and frontend syntax.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
@@ -47,7 +48,7 @@ Important current limitations:
 - Consensus data is provider/source-row based; reported analyst refs are not deduplicated across providers, and rating labels are not converted into majority or analyst-weighted recommendations.
 - Scheduled NewsWeb/event collection is not implemented. News/Events uses on-demand NewsWeb rows plus manual/source-reviewed rows, and the daily digest is generated on demand from the same cached NewsWeb source path.
 - Sharing prep is not a full production deployment. Basic Auth exists as a conservative gate; backup/restore/drill scripts, optional backup mirroring, deployment target comparison, hosted service/reverse-proxy templates, HTTPS/reverse-proxy expectations, a hosted verification script, and a production access-control checklist are documented, but no external deployment has been performed.
-- Hosted/public deployment is still blocked until a real domain/subdomain, DNS access, single-host SSH/deployment access, and mounted off-host/encrypted backup destination are provided.
+- Hosted/public deployment is still blocked until a real domain/subdomain, DNS access, single-host SSH/deployment access, and mounted off-host/encrypted backup destination are provided. The repo can only provide templates, runbook steps, and local verification until those details exist.
 - Go-live assessment: the app can go live soon as a controlled, authenticated public MVP. It is not ready today for public access, and free/open data remains screening-grade rather than fully guaranteed/authoritative.
 - RSI14 dashboard coverage is limited to cards present in the published dashboard; broader technical coverage comes from `latest.csv`.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
@@ -62,6 +63,30 @@ Continuation guardrails:
 - If README or this roadmap omits a major tab/API, update the docs before proceeding.
 
 ## Completed Sprints
+
+### Hosted Public Access Completion: Host Runbook And Refresh Verification
+
+- Added `docs/hosted-public-access-runbook.md` for the host-side install,
+  HTTPS/authentication setup, persistent SQLite path, off-host backup mirror,
+  hosted backup/restore drill, public verification, refresh verification,
+  operator checklist, another-device tab pass, and release-evidence capture.
+- Extended `scripts/verify_public_deployment.sh` to run hosted `refresh=1`
+  checks for Watchlist, Fundamentals, Technical indicators, News/Events, and
+  Benchmarks in addition to the baseline README API checks.
+- Kept hosted refresh verification tolerant of explicit cached/stale/error
+  source states, while still failing when refresh endpoints stop returning
+  usable JSON or the Watchlist endpoint stops marking `refreshRequested=true`.
+- Confirmed the live host-side rollout remains blocked pending real
+  domain/DNS/SSH host/off-host backup-mount details.
+
+Verified:
+
+- Ran a local dry run of the enhanced public verification script, including the
+  new refresh checks.
+- Ran backend/frontend/script syntax checks, README API checks, local restore
+  drill, in-app browser tab pass with no console errors, and Safari launch.
+- Hosted HTTPS/authentication, backup mirror, restore drill, and another-device
+  browser checks remain pending until a real host exists.
 
 ### Hosted Public Access Completion: Refresh And Verification Hardening
 

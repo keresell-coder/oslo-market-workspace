@@ -59,11 +59,15 @@ If a stale local server holds the port, stop the old Python process or run a tem
 - `docs/links-and-resources.md`: important links and source notes.
 - `docs/deployment-sharing.md`: sharing-prep runtime settings, authentication guardrails, database backup/restore workflow, deployment target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist.
 - `docs/go-live-readiness.md`: public MVP readiness plan, sprint count, public-address architecture, and data-quality boundary.
+- `docs/hosted-public-access-runbook.md`: host-side install, verification,
+  backup/restore drill, public verification, refresh verification, and
+  another-device browser pass sequence.
 - `docs/operator-refresh-checklist.md`: beta refresh/review order and source-quality checks before sharing a view.
 - `scripts/backup_database.sh`: SQLite online backup utility with integrity check and checksum output.
 - `scripts/restore_database.sh`: SQLite restore utility with backup verification and pre-restore safety backup.
 - `scripts/drill_restore_database.sh`: non-destructive restore drill utility that restores a fresh backup to a scratch database.
-- `scripts/verify_public_deployment.sh`: hosted/public HTTPS, Basic Auth, health, and README API smoke-test utility.
+- `scripts/verify_public_deployment.sh`: hosted/public HTTPS, Basic Auth,
+  health, README API, and hosted true-refresh smoke-test utility.
 - `deploy/`: hosted single-instance environment, systemd, Caddy, and backup cron templates for the recommended public-access path.
 - `docs/primary-report-verification.md`: manual/source-linked review workflow for quarterly statement periods.
 - `.github/workflows/ci.yml`: syntax checks for server and frontend.
@@ -128,7 +132,7 @@ Consensus Quality is complete:
 - Go-live direction: controlled public MVP at a public HTTPS address, behind authentication, on one hosted app instance with persistent SQLite and off-host backups. Estimated from current state: 2 sprints minimum, 3 sprints recommended.
 - Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 - Data Refresh And Source-Quality Readiness has visible refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources, plus a Start-tab/operator checklist; NewsWeb digest remains on demand.
-- Hosted Public Access Completion refresh hardening is partly complete: Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14 dashboard, and technical CSV refresh failures surface as `stale-after-error` when cached fallback rows remain visible; the hosted verification script supports local dry runs while keeping real HTTPS checks strict.
+- Hosted Public Access Completion repo-side support is partly complete: Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14 dashboard, and technical CSV refresh failures surface as `stale-after-error` when cached fallback rows remain visible; the hosted verification script supports local dry runs while keeping real HTTPS checks strict and now checks hosted `refresh=1` paths for Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks; `docs/hosted-public-access-runbook.md` records the host-side install/verification sequence.
 
 ## Next Sprint Priority
 

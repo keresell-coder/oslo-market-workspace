@@ -84,6 +84,9 @@ Repo/UI foundation completed for this step:
   remain available.
 - `docs/operator-refresh-checklist.md` records the pre-sharing refresh order and
   source-quality checks.
+- `docs/hosted-public-access-runbook.md` records the host-side install,
+  backup/restore, hosted verification, refresh verification, and another-device
+  browser pass sequence.
 - NewsWeb daily digest remains on demand.
 
 ## Data Quality Boundary
@@ -145,6 +148,12 @@ Repo foundation completed:
   a public URL
 - `scripts/verify_public_deployment.sh` also supports a local HTTP dry run for
   endpoint/script validation without weakening the hosted HTTPS checks
+- `scripts/verify_public_deployment.sh` now includes hosted true-refresh checks
+  for Watchlist, Fundamentals, Technical indicators, News/Events, and
+  Benchmarks, with explicit cached/stale/error states allowed when the API keeps
+  those states visible
+- `docs/hosted-public-access-runbook.md` now provides the host-side execution
+  sequence and release-evidence checklist
 - true-refresh behavior has been fixed and locally verified for the app refresh
   buttons where the backend supports upstream/source refreshes
 - actual public deployment remains pending because no real domain/subdomain,

@@ -57,6 +57,8 @@ Hosted deployment support files:
 - `deploy/Caddyfile.example`: HTTPS reverse-proxy template.
 - `deploy/oslo-stock-backup.cron.example`: daily hosted backup job template.
 - `scripts/verify_public_deployment.sh`: hosted HTTPS/API/auth smoke test.
+- `docs/hosted-public-access-runbook.md`: host-side install and verification
+  sequence for the controlled public HTTPS rollout.
 
 Beta/operator routine:
 
@@ -116,8 +118,9 @@ Local folder:
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
 - Remaining major gaps: primary-source value entry/import for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, selecting the real mounted off-host backup destination, and any actual external deployment.
 - Public MVP gap: the repo now has hosted service/reverse-proxy templates, a
-  hosted verification script, and verified true-refresh paths for the app's
-  refresh buttons. Actual external deployment still needs a real
+  host-side runbook, a hosted verification script with true-refresh checks, and
+  verified true-refresh paths for the app's refresh buttons. Actual external
+  deployment still needs a real
   domain/subdomain, a provisioned single host, DNS/HTTPS setup, a real off-host
   backup mirror, hosted restore drill, and cross-device smoke testing before
   release.
@@ -150,6 +153,26 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Hosted Public Access Completion: Host Runbook And Refresh Verification**
+
+- Added `docs/hosted-public-access-runbook.md` with the host install sequence,
+  persistent SQLite/backup-mirror expectations, hosted backup/restore drill,
+  public verification command, hosted refresh verification, operator checklist,
+  another-device browser pass, and release-evidence fields.
+- Extended `scripts/verify_public_deployment.sh` so public hosted checks now
+  include `refresh=1` smoke tests for Watchlist, Fundamentals, Technical
+  indicators, News/Events, and Benchmarks. Visible cached/stale/error source
+  states remain allowed when the endpoint returns usable JSON and keeps the
+  state explicit.
+- Confirmed actual hosted deployment remains blocked because this workspace
+  still has no real domain/subdomain, DNS access, single-host SSH/deployment
+  access, or mounted off-host/encrypted backup destination.
+- Verified backend/frontend/script syntax, README API checks, local restore
+  drill, enhanced public verification script with a local HTTP dry run, in-app
+  browser tab pass with no console errors, and Safari launch. Hosted
+  HTTPS/authentication/another-device checks remain pending until real host
+  details are provided.
 
 **Hosted Public Access Completion: Refresh And Verification Hardening**
 

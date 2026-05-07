@@ -23,6 +23,7 @@
 - Hosted/public verification script: `scripts/verify_public_deployment.sh`
 - Sharing/deployment notes: `docs/deployment-sharing.md`
 - Go-live readiness notes: `docs/go-live-readiness.md`
+- Hosted public access runbook: `docs/hosted-public-access-runbook.md`
 - Primary report verification notes: `docs/primary-report-verification.md`
 - Operator refresh checklist: `docs/operator-refresh-checklist.md`
 - Runtime config example: `.env.example`
@@ -39,6 +40,7 @@
 - `docs/project-handoff.md`
 - `docs/links-and-resources.md`
 - `docs/go-live-readiness.md`
+- `docs/hosted-public-access-runbook.md`
 - `docs/operator-refresh-checklist.md`
 - `scripts/open_in_safari.sh`
 - `scripts/backup_database.sh`
@@ -121,7 +123,7 @@ Non-local bind hosts are refused by default unless Basic Auth credentials are co
 - Render persistent disks: https://render.com/docs/disks
 - Fly.io volumes: https://fly.io/docs/volumes/
 
-Current decision as of 07 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. Repo templates and true-refresh verification support now exist for that single-host path, but no external deployment has been performed because no real domain/subdomain, DNS access, host credential, or mounted off-host backup destination is present in this workspace.
+Current decision as of 07 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. Repo templates, a host-side runbook, and true-refresh verification support now exist for that single-host path, but no external deployment has been performed because no real domain/subdomain, DNS access, host credential, or mounted off-host backup destination is present in this workspace.
 
 ## External Sources In Use
 

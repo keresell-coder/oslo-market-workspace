@@ -86,9 +86,14 @@ single-host path:
   subdomain proxying to `127.0.0.1:8765`.
 - `deploy/oslo-stock-backup.cron.example`: daily backup cron template.
 - `scripts/verify_public_deployment.sh`: hosted smoke test for HTTPS, Basic
-  Auth blocking, `/api/health`, and the README API endpoints. For local script
-  validation only, `OSLO_ALLOW_HTTP_VERIFY=1` allows an HTTP dry run without
-  weakening the hosted HTTPS checks.
+  Auth blocking, `/api/health`, the README API endpoints, and hosted
+  `refresh=1` paths for Watchlist, Fundamentals, Technical indicators,
+  News/Events, and Benchmarks. For local script validation only,
+  `OSLO_ALLOW_HTTP_VERIFY=1` allows an HTTP dry run without weakening the
+  hosted HTTPS checks.
+- `docs/hosted-public-access-runbook.md`: host-side install, verification,
+  backup/restore drill, hosted refresh checks, another-device browser pass, and
+  release-evidence checklist.
 
 These files do not create the DNS record, provision the VPS, mount the off-host
 backup destination, or verify another-device browser access by themselves.
@@ -97,8 +102,9 @@ As of 07 May 2026, true-refresh behavior has been locally fixed and verified for
 the refreshable app surfaces. Watchlist refresh calls live yfinance, RSI14
 dashboard, `latest.csv`, and NewsWeb paths where supported; yfinance, RSI14, and
 technical CSV refresh failures show `stale-after-error` when cached fallback
-data remains visible. Re-run the same checks against the hosted URL before
-sharing a beta view.
+data remains visible. `scripts/verify_public_deployment.sh` now exercises those
+hosted refresh paths by default. Re-run the script and the operator checklist
+against the hosted URL before sharing a beta view.
 
 Recommended sprint count from the current state:
 
@@ -317,10 +323,11 @@ Before external sharing:
 
 This prep does not add scheduled NewsWeb collection, recommendation logic, or
 external publishing. The repo now contains concrete single-host deployment
-templates and a public verification script, but an actual production deployment
-still requires a real domain/subdomain, DNS access, host credentials, and a
-mounted off-host/encrypted backup destination. The app remains a descriptive,
-screening-grade research workspace.
+templates, a host-side runbook, and a public verification script with refresh
+checks, but an actual production deployment still requires a real
+domain/subdomain, DNS access, host credentials, and a mounted off-host/encrypted
+backup destination. The app remains a descriptive, screening-grade research
+workspace.
 
 ## Source References Checked
 

@@ -97,7 +97,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - `scripts/backup_database.sh`, `scripts/restore_database.sh`, and `scripts/drill_restore_database.sh` provide SQLite backup/restore/drill utilities with integrity checks
   - optional `OSLO_APP_BACKUP_MIRROR_DIR` mirrors backup files and checksums to a mounted off-host path
   - `deploy/oslo-stock.env.example`, `deploy/oslo-stock.service`, `deploy/Caddyfile.example`, and `deploy/oslo-stock-backup.cron.example` provide the single-host service/reverse-proxy/backup templates for the public-access path
-  - `scripts/verify_public_deployment.sh` checks HTTPS, Basic Auth blocking, `/api/health`, and the README API endpoints against a hosted URL
+  - `docs/hosted-public-access-runbook.md` records the host install, HTTPS/authentication, persistent SQLite, backup/restore drill, hosted refresh verification, another-device browser pass, and release-evidence sequence
+  - `scripts/verify_public_deployment.sh` checks HTTPS, Basic Auth blocking, `/api/health`, the README API endpoints, and hosted `refresh=1` paths for Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks against a hosted URL
   - `scripts/verify_public_deployment.sh` also supports local HTTP dry runs with `OSLO_ALLOW_HTTP_VERIFY=1` for script/endpoint validation only
   - Start tab plus `docs/operator-refresh-checklist.md` provide the beta refresh/review routine
   - refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources show last successful app refresh, source timestamp when available, source/cache details, and warnings/errors
@@ -214,6 +215,26 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, `docs/links-and-resources.md`, and `AGENTS.md` stay aligned with completed work and next plans.
 
 ## Completed This Sprint
+
+- Added Hosted Public Access Completion host-runbook and hosted refresh
+  verification support:
+  - `docs/hosted-public-access-runbook.md` now provides the host-side install,
+    verification, backup/restore drill, public HTTPS verification, refresh
+    verification, operator checklist, another-device browser pass, and
+    release-evidence sequence.
+  - `scripts/verify_public_deployment.sh` now runs hosted `refresh=1` checks for
+    Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks
+    in addition to the baseline README API checks.
+  - Cached/stale/error source states are allowed during hosted verification when
+    the API returns usable JSON and keeps the state explicit.
+  - Verification passed for backend/frontend/script syntax, README API checks,
+    local restore drill, enhanced public verification script local dry run,
+    in-app browser tab pass with no console errors, and Safari launch.
+  - Real HTTPS, authentication, hosted backup mirror, hosted restore drill,
+    operator checklist, and another-device browser checks remain blocked until
+    domain/DNS/SSH host and backup-mount details are provided.
+
+## Completed Previous Sprint
 
 - Added Hosted Public Access Completion refresh/verification hardening:
   - `/api/watchlist-overview?refresh=1` now refreshes the source paths used by

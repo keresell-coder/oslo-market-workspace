@@ -5,6 +5,11 @@ Use this before sharing a beta view or discussing the app with another user.
 The app remains screening-grade. Refreshing data does not validate it, create
 investment advice, or turn provider rows into verified consensus.
 
+For a hosted beta view, also run `scripts/verify_public_deployment.sh` against
+the public HTTPS URL. That script checks the baseline API endpoints plus hosted
+`refresh=1` paths for Watchlist, Fundamentals, Technical indicators,
+News/Events, and Benchmarks.
+
 ## Refresh Order
 
 1. Open the Start tab and review the operator refresh checklist.
