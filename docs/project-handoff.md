@@ -85,6 +85,8 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - optional `OSLO_APP_BACKUP_MIRROR_DIR` mirrors backup files and checksums to a mounted off-host path
   - `deploy/oslo-stock.env.example`, `deploy/oslo-stock.service`, `deploy/Caddyfile.example`, and `deploy/oslo-stock-backup.cron.example` provide the single-host service/reverse-proxy/backup templates for the public-access path
   - `scripts/verify_public_deployment.sh` checks HTTPS, Basic Auth blocking, `/api/health`, and the README API endpoints against a hosted URL
+  - Start tab plus `docs/operator-refresh-checklist.md` provide the beta refresh/review routine
+  - refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources show last successful app refresh, source timestamp when available, source/cache details, and warnings/errors
   - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails, backup workflow, target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist
   - `docs/go-live-readiness.md` explains the 2-sprint minimum / 3-sprint recommended path to public MVP
   - GitHub Actions CI checks backend compile and frontend syntax
@@ -197,6 +199,24 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Completed This Sprint
 
+- Added Data Refresh And Source-Quality Readiness UI:
+  - Start-tab operator refresh checklist
+  - refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks,
+    News/Events, Technical indicators, and Sources
+  - local persisted last-successful refresh timestamps
+  - source timestamp/source-cache details and warning/error surfaces where API
+    payloads expose them
+- Added `docs/operator-refresh-checklist.md`.
+- Kept NewsWeb daily digest on demand, preserved missing-data behavior, added no
+  recommendation logic, added no standalone multiple labels, and did not edit
+  Oslo Screener repos.
+- Verification passed for backend/frontend/script syntax, README API checks,
+  restore drill, temporary backup-mirror copy, in-app browser refresh-status
+  checks across the main tabs and RSI14 screener, browser console errors, and
+  Safari launch.
+
+## Completed Previous Sprint
+
 - Added Public Access Foundation repo assets for the recommended single-host
   path: hosted environment template, systemd service template, Caddy reverse
   proxy template, daily backup cron example, and hosted verification script.
@@ -212,7 +232,7 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
   run against a temporary authenticated local instance, in-app browser tab
   checks, browser console errors, and Safari launch.
 
-## Completed Previous Sprint
+## Completed Earlier Sprint
 
 - Clarified the go-live direction: public HTTPS address for use from other devices is now the next priority.
 - Added `docs/go-live-readiness.md` with the public-access architecture, data-quality boundary, interactive refresh expectations, and sprint count.

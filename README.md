@@ -58,6 +58,11 @@ Hosted deployment support files:
 - `deploy/oslo-stock-backup.cron.example`: daily hosted backup job template.
 - `scripts/verify_public_deployment.sh`: hosted HTTPS/API/auth smoke test.
 
+Beta/operator routine:
+
+- `docs/operator-refresh-checklist.md`: refresh order and source-quality checks
+  before sharing a beta view.
+
 Current go-live assessment: the app can go live soon as a controlled,
 authenticated MVP, but not as a public unauthenticated site and not as a fully
 validated research platform. See `docs/go-live-readiness.md`.
@@ -72,7 +77,7 @@ Local folder:
 
 ## Current App
 
-- **Start**: concise intent, source/metric summary, limitations, and not-investment-advice disclaimer.
+- **Start**: concise intent, source/metric summary, operator refresh checklist, limitations, and not-investment-advice disclaimer.
 - **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, and expanded consensus/source row editor.
 - **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, primary-report review tracking, source/freshness/confidence metadata, and missing-data gates.
@@ -81,7 +86,7 @@ Local folder:
 - **News/Events**: watchlist-first NewsWeb announcements plus manual/source-reviewed event rows, on-demand 24-hour daily digest grouped by symbol/category, duplicate/correction grouping, per-symbol fetch status, source links, freshness, confidence, and missing-data caveats.
 - **RSI14 screener**: separate embedded/parsing tab for the published Oslo Screener dashboard. The dashboard was refreshed to the 05 May 2026 screener data after its Pages branch lagged the current `latest.csv`. Do not edit the Oslo Screener repository unless explicitly requested.
 - **Sources**: source quality and limitations.
-- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore/drill scripts, optional backup mirroring, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, hosted service/reverse-proxy templates, a hosted verification script, a production access-control checklist, and a CI syntax-check workflow.
+- **Sharing prep**: environment-based host/port/database configuration, SQLite backup/restore/drill scripts, optional backup mirroring, an optional Basic Auth gate, deployment target notes, HTTPS/reverse-proxy expectations, hosted service/reverse-proxy templates, a hosted verification script, operator refresh checklist, a production access-control checklist, and a CI syntax-check workflow.
 
 ## Rules And Guardrails
 
@@ -141,6 +146,22 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Data Refresh And Source-Quality Readiness**
+
+- Added a Start-tab operator refresh checklist for the beta refresh/review
+  routine.
+- Added refresh status strips to Watchlist, Fundamentals, Own history,
+  Benchmarks, News/Events, Technical indicators, and Sources.
+- Refresh status strips show refresh state, last successful app refresh, source
+  timestamp when available, source/cache details, warnings/errors, and the
+  relevant source-quality check before sharing.
+- Added `docs/operator-refresh-checklist.md`.
+- Kept the NewsWeb daily digest on demand, added no recommendation logic, added
+  no standalone multiple verdict labels, and did not edit Oslo Screener repos.
+- Verified backend/frontend/script syntax, README API checks, restore drill,
+  temporary backup-mirror copy, in-app browser refresh-status pass with no
+  console errors, and Safari launch.
 
 **Public Access Foundation Repo Prep**
 
@@ -300,6 +321,8 @@ After each completed task, update the relevant docs so they reflect what changed
   `scripts/verify_public_deployment.sh` against the public URL.
 - Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
   Technical indicators, and RSI14 screener from another device.
+- Run the operator refresh checklist against the hosted instance before sharing
+  a beta view.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Continue without adding recommendation logic.
 

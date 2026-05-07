@@ -8,6 +8,43 @@ const peerRoles = ["focus company", "Oslo peer", "Nordic peer", "European peer",
 const sectorKpiReviewStatuses = ["draft", "reviewed", "trusted"];
 const sectorKpiInputTypes = ["manual", "source-linked"];
 let loadingDepth = 0;
+const refreshStatusConfig = {
+  watchlist: {
+    target: "watchlist-refresh-status",
+    label: "Watchlist overview",
+    check: "Confirm source links, missing rows, RSI14/dashboard freshness, and event status before sharing.",
+  },
+  technical: {
+    target: "technical-refresh-status",
+    label: "Technical indicators",
+    check: "Compare latest.csv source date, generated timestamp, and dashboard highlights when the RSI14 tab looks stale.",
+  },
+  fundamentals: {
+    target: "fundamental-refresh-status",
+    label: "Fundamentals",
+    check: "Review yfinance fetch errors, cache status, field coverage, and provider/source row caveats.",
+  },
+  ownHistory: {
+    target: "own-history-refresh-status",
+    label: "Own history",
+    check: "Check price observations, local snapshot gates, quarterly statement rows, and primary-report review counts.",
+  },
+  benchmark: {
+    target: "benchmark-refresh-status",
+    label: "Benchmarks",
+    check: "Confirm peer-group review status, sector KPI source context, and missing-data gates.",
+  },
+  events: {
+    target: "event-refresh-status",
+    label: "News/Events",
+    check: "Review NewsWeb fetch states, digest errors, duplicate/correction grouping, and manual event rows.",
+  },
+  sources: {
+    target: "sources-refresh-status",
+    label: "Sources",
+    check: "Use this tab as the source-quality reference before sharing a beta view.",
+  },
+};
 const technicalIndicatorGuide = [
   {
     key: "rsi14",
@@ -105,6 +142,18 @@ function shortDate(value) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
   return parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+}
+
+function dateTime(value) {
+  if (!value) return "time n/a";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function shortChartDate(value) {
@@ -267,6 +316,97 @@ async function api(path, options = {}) {
   return data;
 }
 
+function refreshStorageKey(key) {
+  return `osloRefreshStatus:${key}`;
+}
+
+function getStoredRefreshStatus(key) {
+  try {
+    return JSON.parse(localStorage.getItem(refreshStorageKey(key)) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function persistRefreshStatus(key, status) {
+  try {
+    localStorage.setItem(refreshStorageKey(key), JSON.stringify(status));
+  } catch {
+    // Local storage is a convenience only. The visible status still updates.
+  }
+}
+
+function latestTimestamp(values) {
+  const timestamps = values
+    .filter(Boolean)
+    .map((value) => {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : { raw: value, time: parsed.getTime() };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.time - a.time);
+  return timestamps[0]?.raw || "";
+}
+
+function latestRowTimestamp(rows, fields) {
+  return latestTimestamp((rows || []).flatMap((row) => fields.map((field) => row?.[field])));
+}
+
+function setRefreshStatus(key, next = {}) {
+  const config = refreshStatusConfig[key];
+  if (!config) return;
+  const previous = getStoredRefreshStatus(key);
+  const state = next.state || "success";
+  const now = new Date().toISOString();
+  const status = {
+    ...previous,
+    ...next,
+    state,
+    label: config.label,
+    updatedAt: now,
+    lastSuccessAt: ["success", "warning"].includes(state) ? now : previous.lastSuccessAt,
+    check: next.check || config.check,
+  };
+  if (["success", "warning"].includes(state)) {
+    status.lastSummary = next.summary || previous.lastSummary || "";
+    status.lastSourceAt = next.sourceAt || previous.lastSourceAt || "";
+  }
+  persistRefreshStatus(key, status);
+  renderRefreshStatus(key, status);
+}
+
+function refreshStateLabel(state) {
+  if (state === "loading") return "Refreshing";
+  if (state === "warning") return "Needs review";
+  if (state === "error") return "Needs review";
+  return "Updated";
+}
+
+function renderRefreshStatus(key, status = getStoredRefreshStatus(key)) {
+  const config = refreshStatusConfig[key];
+  const target = config ? document.getElementById(config.target) : null;
+  if (!target) return;
+  const state = status.state || "idle";
+  const errors = status.errors || [];
+  const details = status.details || [];
+  target.innerHTML = `
+    <div class="refresh-status refresh-status-${escapeHtml(state)}">
+      <div>
+        <span class="signal-badge ${state === "error" ? "signal-sell" : ["loading", "warning"].includes(state) ? "signal-draft" : "signal-source"}">${escapeHtml(refreshStateLabel(state))}</span>
+        <strong>${escapeHtml(status.label || config.label)}</strong>
+        <span class="muted">${escapeHtml(status.summary || status.lastSummary || "Refresh state has not been recorded yet.")}</span>
+      </div>
+      <div class="refresh-meta">
+        <span><em>Last success</em><strong>${escapeHtml(dateTime(status.lastSuccessAt))}</strong></span>
+        <span><em>Source time</em><strong>${escapeHtml(dateTime(status.sourceAt || status.lastSourceAt))}</strong></span>
+        <span><em>Check</em><strong>${escapeHtml(status.check || config.check)}</strong></span>
+      </div>
+      ${details.length ? `<div class="refresh-detail">${details.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
+      ${errors.length ? `<div class="refresh-errors">${errors.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>` : ""}
+    </div>
+  `;
+}
+
 function setupTabs() {
   document.querySelectorAll(".tab").forEach((button) => {
     button.addEventListener("click", () => {
@@ -297,66 +437,98 @@ function invalidateLoadedTabs(...tabNames) {
   tabNames.forEach((tabName) => loadedTabs.delete(tabName));
 }
 
+function renderStoredRefreshStatuses() {
+  Object.keys(refreshStatusConfig).forEach((key) => renderRefreshStatus(key));
+}
+
 async function loadWatchlist() {
   document.getElementById("watchlist-table").innerHTML = renderLoadingPanel("Loading watchlist");
-  const data = await api("/api/watchlist-overview");
-  watchlistItems = data.rows;
-  if (data.screenerError) {
-    renderScreenerAlertError(new Error(data.screenerError));
-  } else {
-    const matches = data.rows.filter((row) => row.screenerSignal).map((row) => row.screenerSignal);
-    const bySymbol = new Map(matches.map((item) => [item.symbol, item]));
-    renderScreenerAlerts({
-      matches,
-      bySymbol,
-      matchCount: matches.length,
-      screenerCount: matches.length,
-      sourceReliability: "Parsed from the published RSI14 screener dashboard.",
-      cacheStatus: "overview",
+  setRefreshStatus("watchlist", { state: "loading", summary: "Loading watchlist overview and cached source rows." });
+  try {
+    const data = await api("/api/watchlist-overview");
+    watchlistItems = data.rows;
+    if (data.screenerError) {
+      renderScreenerAlertError(new Error(data.screenerError));
+    } else {
+      const matches = data.rows.filter((row) => row.screenerSignal).map((row) => row.screenerSignal);
+      const bySymbol = new Map(matches.map((item) => [item.symbol, item]));
+      renderScreenerAlerts({
+        matches,
+        bySymbol,
+        matchCount: matches.length,
+        screenerCount: matches.length,
+        sourceReliability: "Parsed from the published RSI14 screener dashboard.",
+        cacheStatus: "overview",
+      });
+    }
+    const rows = data.rows
+      .map(
+        (row) => {
+          const alert = row.screenerSignal;
+          return `
+          <tr class="${alert ? "watchlist-hit" : ""}">
+            <td>${renderWatchlistCompany(row)}</td>
+            <td>${renderPriceCell(row.priceSummary || row)}</td>
+            <td>${renderRsiScreenerCell(alert)}</td>
+            <td>${renderTechnicalWatchlistCell(row)}</td>
+            <td>${renderFundamentalHighlight(row)}</td>
+            <td>${renderOwnHistoryWatchlistCell(row)}</td>
+            <td>${renderPeerContext(row)}</td>
+            <td>${renderConsensusTargetCell(row)}</td>
+            <td>${renderConsensusRatingCell(row)}</td>
+            <td>${renderEventCell(row.eventAlert, row.symbol)}</td>
+            <td>${renderActionsCell(row)}</td>
+          </tr>
+        `;
+        },
+      )
+      .join("");
+    document.getElementById("watchlist-table").innerHTML = `
+      <table class="watchlist-synthesis">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th class="number">Last price</th>
+            <th>RSI14 screener</th>
+            <th>Technical</th>
+            <th>Multiples</th>
+            <th>Own history</th>
+            <th>Peer context</th>
+            <th>Target range</th>
+            <th>Rating</th>
+            <th>Updates</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows || `<tr><td colspan="11">No watchlist items yet.</td></tr>`}</tbody>
+      </table>
+    `;
+    setRefreshStatus("watchlist", {
+      state: "success",
+      summary: `${data.rows.length} watchlist row${data.rows.length === 1 ? "" : "s"} loaded.`,
+      sourceAt: latestTimestamp(
+        data.rows.flatMap((row) => [
+          row.fetchedAt,
+          row.updatedAt,
+          row.priceSummary?.fetchedAt,
+          row.historicalContext?.priceWindow?.fetchedAt,
+          row.historicalContext?.quarterlyStatementHistory?.fetchedAt,
+        ]),
+      ),
+      details: [
+        `${data.rows.filter((row) => row.screenerSignal).length} RSI14 dashboard match${data.rows.filter((row) => row.screenerSignal).length === 1 ? "" : "es"}`,
+        data.screenerError ? `RSI14 dashboard error: ${data.screenerError}` : "RSI14 dashboard parsed for watchlist matches",
+      ],
+      errors: data.screenerError ? [data.screenerError] : [],
     });
+  } catch (error) {
+    setRefreshStatus("watchlist", {
+      state: "error",
+      summary: "Watchlist refresh failed; previously rendered rows may be stale.",
+      errors: [error.message],
+    });
+    throw error;
   }
-  const rows = data.rows
-    .map(
-      (row) => {
-        const alert = row.screenerSignal;
-        return `
-        <tr class="${alert ? "watchlist-hit" : ""}">
-          <td>${renderWatchlistCompany(row)}</td>
-          <td>${renderPriceCell(row.priceSummary || row)}</td>
-          <td>${renderRsiScreenerCell(alert)}</td>
-          <td>${renderTechnicalWatchlistCell(row)}</td>
-          <td>${renderFundamentalHighlight(row)}</td>
-          <td>${renderOwnHistoryWatchlistCell(row)}</td>
-          <td>${renderPeerContext(row)}</td>
-          <td>${renderConsensusTargetCell(row)}</td>
-          <td>${renderConsensusRatingCell(row)}</td>
-          <td>${renderEventCell(row.eventAlert, row.symbol)}</td>
-          <td>${renderActionsCell(row)}</td>
-        </tr>
-      `;
-      },
-    )
-    .join("");
-  document.getElementById("watchlist-table").innerHTML = `
-    <table class="watchlist-synthesis">
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th class="number">Last price</th>
-          <th>RSI14 screener</th>
-          <th>Technical</th>
-          <th>Multiples</th>
-          <th>Own history</th>
-          <th>Peer context</th>
-          <th>Target range</th>
-          <th>Rating</th>
-          <th>Updates</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>${rows || `<tr><td colspan="11">No watchlist items yet.</td></tr>`}</tbody>
-    </table>
-  `;
 }
 
 async function handleWatchlistTableClick(event) {
@@ -1259,61 +1431,86 @@ async function loadTechnicalIndicators(refresh = false) {
   document.getElementById("technical-table").innerHTML = renderLoadingPanel(
     refresh ? "Refreshing technical indicators" : "Loading technical indicators",
   );
-  const data = await api(`/api/technical-indicators?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
-  document.getElementById("technical-errors").innerHTML = data.screenerError
-    ? `<div class="error-box">Dashboard highlight unavailable: ${escapeHtml(data.screenerError)}</div>`
-    : "";
-  renderTechnicalSummary(data);
-  renderTechnicalGuide();
-  const rows = data.rows
-    .map(
-      (row) => `
-        <tr data-technical-symbol="${escapeHtml(row.symbol)}" class="${row.inDashboardScreener ? "watchlist-hit" : ""}">
-          <td>
-            <strong>${escapeHtml(row.symbol)}</strong><br>
-            <span class="muted">${escapeHtml(row.date || "date n/a")}</span>
-            ${row.inDashboardScreener ? `<br><span class="tag dashboard-tag">Dashboard alert</span>` : ""}
-          </td>
-          <td><span class="signal-badge ${signalClass(row.signal)}">${escapeHtml(row.signal || "NEUTRAL")}</span></td>
-          <td class="number">${value(row.close)}</td>
-          <td>${renderTechnicalMetricGroup([
-            ["RSI14", "rsi14", row.rsi14],
-            ["RSI6", "rsi6", row.rsi6],
-            ["RSI dir", "rsiDirection", row.rsiDirection, { signed: true }],
-            ["MFI14", "mfi14", row.mfi14],
-          ], row)}</td>
-          <td>${renderTechnicalMetricGroup([
-            ["MACD hist", "macdHistogram", row.macdHistogram],
-            ["SMA50", "sma50", row.sma50],
-            ["Vs SMA50", "pctAboveSma50", row.pctAboveSma50, { suffix: "%", signed: true }],
-            ["ADX14", "adx14", row.adx14],
-          ], row)}</td>
-          <td>${renderMetricGroup([
-            ["Primary count", value(row.primaryCount)],
-            ["Risk", row.risk || "n/a"],
-            ["Stop loss", value(row.stopLossPct, "%")],
-            ["Position", value(row.positionPct, "%")],
-          ])}</td>
-        </tr>
-      `,
-    )
-    .join("");
-  document.getElementById("technical-table").innerHTML = `
-    <table class="technical-table">
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Signal</th>
-          <th class="number">Close</th>
-          <th>Momentum</th>
-          <th>Trend</th>
-          <th>Risk / sizing</th>
-        </tr>
-      </thead>
-      <tbody>${rows || `<tr><td colspan="6">No technical indicator rows loaded.</td></tr>`}</tbody>
-    </table>
-  `;
-  markLoaded("technical");
+  setRefreshStatus("technical", {
+    state: "loading",
+    summary: `Loading ${universe === "all" ? "full screener CSV" : "watchlist"} technical rows.`,
+  });
+  try {
+    const data = await api(`/api/technical-indicators?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
+    document.getElementById("technical-errors").innerHTML = data.screenerError
+      ? `<div class="error-box">Dashboard highlight unavailable: ${escapeHtml(data.screenerError)}</div>`
+      : "";
+    renderTechnicalSummary(data);
+    renderTechnicalGuide();
+    const rows = data.rows
+      .map(
+        (row) => `
+          <tr data-technical-symbol="${escapeHtml(row.symbol)}" class="${row.inDashboardScreener ? "watchlist-hit" : ""}">
+            <td>
+              <strong>${escapeHtml(row.symbol)}</strong><br>
+              <span class="muted">${escapeHtml(row.date || "date n/a")}</span>
+              ${row.inDashboardScreener ? `<br><span class="tag dashboard-tag">Dashboard alert</span>` : ""}
+            </td>
+            <td><span class="signal-badge ${signalClass(row.signal)}">${escapeHtml(row.signal || "NEUTRAL")}</span></td>
+            <td class="number">${value(row.close)}</td>
+            <td>${renderTechnicalMetricGroup([
+              ["RSI14", "rsi14", row.rsi14],
+              ["RSI6", "rsi6", row.rsi6],
+              ["RSI dir", "rsiDirection", row.rsiDirection, { signed: true }],
+              ["MFI14", "mfi14", row.mfi14],
+            ], row)}</td>
+            <td>${renderTechnicalMetricGroup([
+              ["MACD hist", "macdHistogram", row.macdHistogram],
+              ["SMA50", "sma50", row.sma50],
+              ["Vs SMA50", "pctAboveSma50", row.pctAboveSma50, { suffix: "%", signed: true }],
+              ["ADX14", "adx14", row.adx14],
+            ], row)}</td>
+            <td>${renderMetricGroup([
+              ["Primary count", value(row.primaryCount)],
+              ["Risk", row.risk || "n/a"],
+              ["Stop loss", value(row.stopLossPct, "%")],
+              ["Position", value(row.positionPct, "%")],
+            ])}</td>
+          </tr>
+        `,
+      )
+      .join("");
+    document.getElementById("technical-table").innerHTML = `
+      <table class="technical-table">
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Signal</th>
+            <th class="number">Close</th>
+            <th>Momentum</th>
+            <th>Trend</th>
+            <th>Risk / sizing</th>
+          </tr>
+        </thead>
+        <tbody>${rows || `<tr><td colspan="6">No technical indicator rows loaded.</td></tr>`}</tbody>
+      </table>
+    `;
+    setRefreshStatus("technical", {
+      state: data.screenerError ? "warning" : "success",
+      summary: `${data.rows.length} ${data.universe || universe} row${data.rows.length === 1 ? "" : "s"} shown from ${data.count ?? 0} latest.csv row${data.count === 1 ? "" : "s"}.`,
+      sourceAt: data.sourceGeneratedAt || data.fetchedAt || data.sourceDate,
+      details: [
+        `Source date ${data.sourceDate || "n/a"}`,
+        `Generated ${dateTime(data.sourceGeneratedAt)}`,
+        `Fetched ${dateTime(data.fetchedAt)}`,
+        `Cache ${data.cacheStatus || "n/a"}`,
+      ],
+      errors: data.screenerError ? [data.screenerError] : [],
+    });
+    markLoaded("technical");
+  } catch (error) {
+    setRefreshStatus("technical", {
+      state: "error",
+      summary: "Technical indicator refresh failed; latest.csv or dashboard context may be stale.",
+      errors: [error.message],
+    });
+    throw error;
+  }
 }
 
 function renderTechnicalMetricGroup(items, row) {
@@ -1411,63 +1608,90 @@ async function loadFundamentals(refresh = false) {
   document.getElementById("fundamentals-table").innerHTML = renderLoadingPanel(
     refresh ? "Refreshing fundamentals" : "Loading fundamentals",
   );
-  const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
-  document.getElementById("fundamental-errors").innerHTML = data.errors?.length
-    ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
-    : "";
-  renderFundamentalMetricGuide(data.metricGuide || [], data.dataValidation || {});
-  const rows = data.rows
-    .map(
-      (row) => `
-      <tr data-fundamental-symbol="${escapeHtml(row.symbol)}">
-        <td>${renderFundamentalCompany(row)}</td>
-        <td>${renderFundamentalPriceSize(row)}</td>
-        <td>${renderMetricGroup([
-          ["TTM P/E", value(row.trailingPE, "x")],
-          ["Fwd P/E", value(row.forwardPE, "x")],
-          ["P/B", value(row.priceToBook, "x")],
-          ["P/NAV", value(row.pnAv, "x")],
-          ["EV/EBITDA", value(row.enterpriseToEbitda, "x")],
-          ["EV/EBIT", value(row.evToEbit, "x")],
-        ])}</td>
-        <td>${renderMetricGroup([
-          ["EPS TTM", value(row.epsTrailingTwelveMonths)],
-          ["Div yield", value(row.dividendYield, "%")],
-        ])}</td>
-        <td>${renderFundamentalConsensus(row)}</td>
-        <td>${renderFundamentalSource(row)}</td>
-        <td>${renderFundamentalLinks(row)}</td>
-      </tr>
-    `,
-    )
-    .join("");
-  document.getElementById("fundamentals-table").innerHTML = `
-    <table class="fundamentals-table">
-      <colgroup>
-        <col class="fund-col-company">
-        <col class="fund-col-price">
-        <col class="fund-col-multiples">
-        <col class="fund-col-earnings">
-        <col class="fund-col-consensus">
-        <col class="fund-col-source">
-        <col class="fund-col-links">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Price & size</th>
-          <th>Valuation multiples</th>
-          <th>Earnings & yield</th>
-          <th>Consensus refs</th>
-          <th>Source</th>
-          <th>Links</th>
+  setRefreshStatus("fundamentals", {
+    state: "loading",
+    summary: `Loading ${universe === "all" ? "ticker database" : "watchlist"} fundamentals.`,
+  });
+  try {
+    const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
+    document.getElementById("fundamental-errors").innerHTML = data.errors?.length
+      ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
+      : "";
+    renderFundamentalMetricGuide(data.metricGuide || [], data.dataValidation || {});
+    const rows = data.rows
+      .map(
+        (row) => `
+        <tr data-fundamental-symbol="${escapeHtml(row.symbol)}">
+          <td>${renderFundamentalCompany(row)}</td>
+          <td>${renderFundamentalPriceSize(row)}</td>
+          <td>${renderMetricGroup([
+            ["TTM P/E", value(row.trailingPE, "x")],
+            ["Fwd P/E", value(row.forwardPE, "x")],
+            ["P/B", value(row.priceToBook, "x")],
+            ["P/NAV", value(row.pnAv, "x")],
+            ["EV/EBITDA", value(row.enterpriseToEbitda, "x")],
+            ["EV/EBIT", value(row.evToEbit, "x")],
+          ])}</td>
+          <td>${renderMetricGroup([
+            ["EPS TTM", value(row.epsTrailingTwelveMonths)],
+            ["Div yield", value(row.dividendYield, "%")],
+          ])}</td>
+          <td>${renderFundamentalConsensus(row)}</td>
+          <td>${renderFundamentalSource(row)}</td>
+          <td>${renderFundamentalLinks(row)}</td>
         </tr>
-      </thead>
-      <tbody>${rows || `<tr><td colspan="7">No fundamentals loaded.</td></tr>`}</tbody>
-    </table>
-  `;
-  await loadConsensusRows();
-  markLoaded("fundamentals");
+      `,
+      )
+      .join("");
+    document.getElementById("fundamentals-table").innerHTML = `
+      <table class="fundamentals-table">
+        <colgroup>
+          <col class="fund-col-company">
+          <col class="fund-col-price">
+          <col class="fund-col-multiples">
+          <col class="fund-col-earnings">
+          <col class="fund-col-consensus">
+          <col class="fund-col-source">
+          <col class="fund-col-links">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Price & size</th>
+            <th>Valuation multiples</th>
+            <th>Earnings & yield</th>
+            <th>Consensus refs</th>
+            <th>Source</th>
+            <th>Links</th>
+          </tr>
+        </thead>
+        <tbody>${rows || `<tr><td colspan="7">No fundamentals loaded.</td></tr>`}</tbody>
+      </table>
+    `;
+    await loadConsensusRows();
+    const validation = data.dataValidation || {};
+    const missingFields = (validation.fieldCoverage || []).filter((item) => item.missing > 0).length;
+    setRefreshStatus("fundamentals", {
+      state: data.errors?.length ? "warning" : "success",
+      summary: `${data.rows.length} fundamental row${data.rows.length === 1 ? "" : "s"} loaded; ${missingFields} displayed field${missingFields === 1 ? "" : "s"} have gaps.`,
+      sourceAt: validation.fetchedAtNewest || latestRowTimestamp(data.rows, ["fetchedAt"]),
+      details: [
+        `Source ${validation.source || "Yahoo/yfinance"}`,
+        `Fetched range ${shortDate(validation.fetchedAtOldest)} to ${shortDate(validation.fetchedAtNewest)}`,
+        `Cache ${Object.entries(validation.cacheStatuses || {}).map(([status, count]) => `${status}: ${count}`).join("; ") || "n/a"}`,
+        "Provider/source rows are not verified consensus",
+      ],
+      errors: (data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+    });
+    markLoaded("fundamentals");
+  } catch (error) {
+    setRefreshStatus("fundamentals", {
+      state: "error",
+      summary: "Fundamentals refresh failed; cached fields may be stale.",
+      errors: [error.message],
+    });
+    throw error;
+  }
 }
 
 async function loadOwnHistory(refresh = false) {
@@ -1475,48 +1699,86 @@ async function loadOwnHistory(refresh = false) {
   document.getElementById("own-history-table").innerHTML = renderLoadingPanel(
     refresh ? "Refreshing own history" : "Loading own history",
   );
-  const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
-  document.getElementById("own-history-errors").innerHTML = data.errors?.length
-    ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
-    : "";
-  const rows = data.rows
-    .map(
-      (row) => `
-      <tr data-own-history-symbol="${escapeHtml(row.symbol)}">
-        <td>${renderFundamentalCompany(row)}</td>
-        <td>${renderOwnHistorySignalCell(row)}</td>
-        <td>${renderOwnHistoryPriceCell(row)}</td>
-        <td>${renderOwnHistorySnapshotCell(row)}</td>
-        <td>${renderOwnHistorySourceCell(row)}</td>
-        <td>${renderOwnHistoryDetailCell(row)}</td>
-      </tr>
-    `,
-    )
-    .join("");
-  document.getElementById("own-history-table").innerHTML = `
-    <table class="own-history-table">
-      <colgroup>
-        <col class="own-col-company">
-        <col class="own-col-signal">
-        <col class="own-col-price">
-        <col class="own-col-snapshot">
-        <col class="own-col-source">
-        <col class="own-col-detail">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Context signal</th>
-          <th>Price history</th>
-          <th>Local snapshots</th>
-          <th>Source / gate</th>
-          <th>Detail</th>
+  setRefreshStatus("ownHistory", {
+    state: "loading",
+    summary: `Loading ${universe === "all" ? "ticker database" : "watchlist"} own-history context.`,
+  });
+  try {
+    const data = await api(`/api/fundamentals?universe=${encodeURIComponent(universe)}&refresh=${refresh ? "1" : "0"}`);
+    document.getElementById("own-history-errors").innerHTML = data.errors?.length
+      ? `<div class="error-box">${data.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>`
+      : "";
+    const rows = data.rows
+      .map(
+        (row) => `
+        <tr data-own-history-symbol="${escapeHtml(row.symbol)}">
+          <td>${renderFundamentalCompany(row)}</td>
+          <td>${renderOwnHistorySignalCell(row)}</td>
+          <td>${renderOwnHistoryPriceCell(row)}</td>
+          <td>${renderOwnHistorySnapshotCell(row)}</td>
+          <td>${renderOwnHistorySourceCell(row)}</td>
+          <td>${renderOwnHistoryDetailCell(row)}</td>
         </tr>
-      </thead>
-      <tbody>${rows || `<tr><td colspan="6">No own-history rows loaded.</td></tr>`}</tbody>
-    </table>
-  `;
-  markLoaded("own-history");
+      `,
+      )
+      .join("");
+    document.getElementById("own-history-table").innerHTML = `
+      <table class="own-history-table">
+        <colgroup>
+          <col class="own-col-company">
+          <col class="own-col-signal">
+          <col class="own-col-price">
+          <col class="own-col-snapshot">
+          <col class="own-col-source">
+          <col class="own-col-detail">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Company</th>
+            <th>Context signal</th>
+            <th>Price history</th>
+            <th>Local snapshots</th>
+            <th>Source / gate</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>${rows || `<tr><td colspan="6">No own-history rows loaded.</td></tr>`}</tbody>
+      </table>
+    `;
+    const reviewedMatches = data.rows.reduce((sum, row) => {
+      const verification = row.historicalContext?.quarterlyStatementHistory?.primaryReportVerification || {};
+      return sum + (Number(verification.reviewedMatchCount) || 0);
+    }, 0);
+    const statementPeriods = data.rows.reduce((sum, row) => {
+      const history = row.historicalContext?.quarterlyStatementHistory || {};
+      return sum + (Number(history.periodCount) || 0);
+    }, 0);
+    setRefreshStatus("ownHistory", {
+      state: data.errors?.length ? "warning" : "success",
+      summary: `${data.rows.length} own-history row${data.rows.length === 1 ? "" : "s"} loaded; ${reviewedMatches} / ${statementPeriods} quarterly period${statementPeriods === 1 ? "" : "s"} primary-reviewed.`,
+      sourceAt: latestTimestamp(
+        data.rows.flatMap((row) => [
+          row.fetchedAt,
+          row.historicalContext?.priceWindow?.fetchedAt,
+          row.historicalContext?.quarterlyStatementHistory?.fetchedAt,
+        ]),
+      ),
+      details: [
+        "Price windows and yfinance statement rows remain screening-grade",
+        "Missing statement fields stay missing",
+        "Primary reviews track source quality only",
+      ],
+      errors: (data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+    });
+    markLoaded("own-history");
+  } catch (error) {
+    setRefreshStatus("ownHistory", {
+      state: "error",
+      summary: "Own-history refresh failed; price/history context may be stale.",
+      errors: [error.message],
+    });
+    throw error;
+  }
 }
 
 function renderOwnHistorySourceCell(row) {
@@ -1945,11 +2207,38 @@ async function loadBenchmark(refresh = false) {
   if (!symbol) return;
   const target = document.getElementById("benchmark-content");
   target.innerHTML = renderLoadingPanel(refresh ? "Refreshing benchmark" : "Loading benchmark");
+  setRefreshStatus("benchmark", {
+    state: "loading",
+    summary: `Loading peer and sector context for ${symbol}.`,
+  });
   try {
     const data = await api(`/api/benchmarks?symbol=${encodeURIComponent(symbol)}&refresh=${refresh ? "1" : "0"}`);
     target.innerHTML = renderBenchmark(data);
+    const group = data.groups?.[0] || {};
+    const minimum = data.minimumData || group.minimumData || {};
+    const kpis = data.sectorContext?.sectorKpis || group.sectorContext?.sectorKpis || {};
+    setRefreshStatus("benchmark", {
+      state: "success",
+      summary: `${data.groups?.length || 0} benchmark group${data.groups?.length === 1 ? "" : "s"} loaded for ${symbol}; status ${data.status || group.status || "n/a"}.`,
+      sourceAt: latestTimestamp([
+        group.updated_at,
+        group.created_at,
+        ...(group.peers || []).map((peer) => peer.fetchedAt),
+      ]),
+      details: [
+        `Peer review ${minimum.peerReviewStatus || group.status || "n/a"}`,
+        `Loaded peers ${minimum.loadedPeerRows ?? group.peers?.length ?? 0}`,
+        `Sector KPI policy ${kpis.policy || "reviewed/trusted source-linked inputs required"}`,
+        "No valuation verdict is produced",
+      ],
+    });
     markLoaded("benchmarks");
   } catch (error) {
+    setRefreshStatus("benchmark", {
+      state: "error",
+      summary: `Benchmark refresh failed for ${symbol}.`,
+      errors: [error.message],
+    });
     target.innerHTML = `<div class="error-box">Benchmark could not load for ${escapeHtml(symbol)}: ${escapeHtml(error.message)}</div>`;
   }
 }
@@ -2616,12 +2905,43 @@ function populateEventEditor(data) {
 
 async function loadEventMonitoring(refresh = false) {
   document.getElementById("event-table").innerHTML = renderLoadingPanel(refresh ? "Refreshing NewsWeb" : "Loading News/Events");
-  const data = await api(`/api/event-monitoring?refresh=${refresh ? "1" : "0"}`);
-  document.getElementById("event-source-policy").innerHTML = renderEventSourcePolicy(data.sourcePolicy || {});
-  document.getElementById("event-summary").innerHTML = `${renderEventSummary(data)}${renderDailyDigest(data.dailyDigest || {})}${renderEventErrors(data.errors || [])}`;
-  document.getElementById("event-table").innerHTML = renderEventRows(data.rows || []);
-  populateEventEditor(data);
-  markLoaded("events");
+  setRefreshStatus("events", {
+    state: "loading",
+    summary: refresh ? "Fetching NewsWeb rows on demand for the watchlist." : "Loading cached NewsWeb/manual event context.",
+  });
+  try {
+    const data = await api(`/api/event-monitoring?refresh=${refresh ? "1" : "0"}`);
+    document.getElementById("event-source-policy").innerHTML = renderEventSourcePolicy(data.sourcePolicy || {});
+    document.getElementById("event-summary").innerHTML = `${renderEventSummary(data)}${renderDailyDigest(data.dailyDigest || {})}${renderEventErrors(data.errors || [])}`;
+    document.getElementById("event-table").innerHTML = renderEventRows(data.rows || []);
+    populateEventEditor(data);
+    const digest = data.dailyDigest || {};
+    const fetchErrors = (data.rows || [])
+      .filter((row) => row.newswebFetch?.error)
+      .map((row) => `${row.symbol}: ${row.newswebFetch.error}`);
+    setRefreshStatus("events", {
+      state: (data.errors?.length || fetchErrors.length) ? "warning" : "success",
+      summary: `${data.coverage?.trackedEventCount ?? 0} NewsWeb/manual row${data.coverage?.trackedEventCount === 1 ? "" : "s"} loaded; daily digest has ${digest.digestEventCount ?? 0} row${digest.digestEventCount === 1 ? "" : "s"}.`,
+      sourceAt: digest.generatedAt || latestTimestamp((data.rows || []).flatMap((row) => [
+        row.newswebFetch?.fetchedAt,
+        ...(row.events || []).map((event) => event.published_at || event.created_at),
+      ])),
+      details: [
+        `${digest.symbolsWithFetchErrors ?? 0} digest symbol fetch error${digest.symbolsWithFetchErrors === 1 ? "" : "s"}`,
+        `${digest.deduplicatedCount ?? 0} duplicate/correction row${digest.deduplicatedCount === 1 ? "" : "s"} collapsed`,
+        data.sourcePolicy?.digestStatus || "Daily digest remains on demand",
+      ],
+      errors: [...(data.errors || []), ...fetchErrors],
+    });
+    markLoaded("events");
+  } catch (error) {
+    setRefreshStatus("events", {
+      state: "error",
+      summary: "News/Events refresh failed; use direct NewsWeb links for issuer checks.",
+      errors: [error.message],
+    });
+    throw error;
+  }
 }
 
 function renderEventErrors(errors) {
@@ -2663,22 +2983,40 @@ async function saveEvent(event) {
 }
 
 async function loadSources() {
-  const data = await api("/api/sources");
-  document.getElementById("sources-content").innerHTML = Object.entries(data)
-    .map(
-      ([name, item]) => `
-        <article class="source-card">
-          <h3>${escapeHtml(name)}</h3>
-          ${item.url ? `<a class="link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a>` : ""}
-          ${Object.entries(item)
-            .filter(([key]) => key !== "url")
-            .map(([key, val]) => `<p><strong>${escapeHtml(key)}:</strong> ${escapeHtml(val)}</p>`)
-            .join("")}
-        </article>
-      `,
-    )
-    .join("");
-  markLoaded("sources");
+  setRefreshStatus("sources", {
+    state: "loading",
+    summary: "Loading source-quality reference cards.",
+  });
+  try {
+    const data = await api("/api/sources");
+    document.getElementById("sources-content").innerHTML = Object.entries(data)
+      .map(
+        ([name, item]) => `
+          <article class="source-card">
+            <h3>${escapeHtml(name)}</h3>
+            ${item.url ? `<a class="link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">${escapeHtml(item.url)}</a>` : ""}
+            ${Object.entries(item)
+              .filter(([key]) => key !== "url")
+              .map(([key, val]) => `<p><strong>${escapeHtml(key)}:</strong> ${escapeHtml(val)}</p>`)
+              .join("")}
+          </article>
+        `,
+      )
+      .join("");
+    setRefreshStatus("sources", {
+      state: "success",
+      summary: `${Object.keys(data).length} source-quality card${Object.keys(data).length === 1 ? "" : "s"} loaded.`,
+      details: ["Use source cards to confirm limitations and screening-grade boundaries before sharing."],
+    });
+    markLoaded("sources");
+  } catch (error) {
+    setRefreshStatus("sources", {
+      state: "error",
+      summary: "Source-quality cards could not load.",
+      errors: [error.message],
+    });
+    throw error;
+  }
 }
 
 async function handleBenchmarkContentClick(event) {
@@ -2717,6 +3055,7 @@ async function handleOwnHistoryTableSubmit(event) {
 
 async function boot() {
   setupTabs();
+  renderStoredRefreshStatuses();
   document.querySelectorAll("[data-start-watchlist]").forEach((button) => {
     button.addEventListener("click", () => activateTab("watchlist"));
   });

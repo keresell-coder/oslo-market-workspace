@@ -23,6 +23,7 @@
 - Sharing/deployment notes: `docs/deployment-sharing.md`
 - Go-live readiness notes: `docs/go-live-readiness.md`
 - Primary report verification notes: `docs/primary-report-verification.md`
+- Operator refresh checklist: `docs/operator-refresh-checklist.md`
 - Runtime config example: `.env.example`
 - Hosted runtime config example: `deploy/oslo-stock.env.example`
 - Hosted systemd service template: `deploy/oslo-stock.service`
@@ -37,6 +38,7 @@
 - `docs/project-handoff.md`
 - `docs/links-and-resources.md`
 - `docs/go-live-readiness.md`
+- `docs/operator-refresh-checklist.md`
 - `scripts/open_in_safari.sh`
 - `scripts/backup_database.sh`
 - `scripts/restore_database.sh`

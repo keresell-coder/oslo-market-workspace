@@ -66,6 +66,16 @@
               <p>Peer groups use local curation status, sector benchmark components are explicit but still need reviewed KPI inputs, NewsWeb is fetched on demand, and target/rating methodology is not verified across providers.</p>
             </article>
           </section>
+          <details class="operator-checklist" open>
+            <summary>Operator refresh checklist</summary>
+            <div class="checklist-grid">
+              <span>Refresh Watchlist, Fundamentals, Own history, Technical indicators, and News/Events intentionally before sharing a beta view.</span>
+              <span>Check each refresh status strip for last successful refresh, source timestamp, stale/error wording, and missing-data caveats.</span>
+              <span>Review primary-report rows, consensus/source rows, peer groups, sector KPI inputs, and manual events before treating them as reviewed context.</span>
+              <span>Confirm the separate RSI14 screener tab shows the expected dashboard date and source-generation freshness.</span>
+              <span>Keep the NewsWeb daily digest on demand; scheduled NewsWeb automation remains out of scope.</span>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -80,6 +90,7 @@
             <button id="refresh-watchlist" class="secondary">Refresh</button>
           </div>
         </div>
+        <div id="watchlist-refresh-status" class="refresh-status-wrap"></div>
         <div id="screener-alerts" class="alert-panel"></div>
         <div id="watchlist-table" class="table-wrap"></div>
         <details class="editor-panel add-watchlist-panel">
@@ -106,6 +117,7 @@
             <button id="refresh-technical">Refresh indicators</button>
           </div>
         </div>
+        <div id="technical-refresh-status" class="refresh-status-wrap"></div>
         <div id="technical-summary" class="alert-panel"></div>
         <div id="technical-errors"></div>
         <div id="technical-table" class="table-wrap"></div>
@@ -126,6 +138,7 @@
             <button id="refresh-fundamentals">Refresh data</button>
           </div>
         </div>
+        <div id="fundamental-refresh-status" class="refresh-status-wrap"></div>
         <div id="fundamental-errors"></div>
         <div id="fundamentals-table" class="table-wrap"></div>
         <details class="editor-panel info-panel">
@@ -232,6 +245,7 @@
             <button id="refresh-own-history">Refresh data</button>
           </div>
         </div>
+        <div id="own-history-refresh-status" class="refresh-status-wrap"></div>
         <div id="own-history-errors"></div>
         <div id="own-history-table" class="table-wrap"></div>
       </section>
@@ -248,6 +262,7 @@
             <button type="button" id="refresh-benchmark" class="secondary">Refresh data</button>
           </form>
         </div>
+        <div id="benchmark-refresh-status" class="refresh-status-wrap"></div>
         <div id="benchmark-content"></div>
       </section>
 
@@ -261,6 +276,7 @@
             <button id="refresh-events" class="secondary">Refresh NewsWeb</button>
           </div>
         </div>
+        <div id="event-refresh-status" class="refresh-status-wrap"></div>
         <div id="event-source-policy" class="alert-panel"></div>
         <div id="event-summary" class="alert-panel"></div>
         <div id="event-table" class="table-wrap"></div>
@@ -352,6 +368,7 @@
           <h2>Source Quality</h2>
           <button id="reload-sources" class="secondary">Reload</button>
         </div>
+        <div id="sources-refresh-status" class="refresh-status-wrap"></div>
         <div id="sources-content" class="source-grid"></div>
       </section>
     </main>

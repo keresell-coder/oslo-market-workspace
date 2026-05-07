@@ -29,6 +29,7 @@ Completed MVP pieces:
 - Benchmarks tab with editable peer groups, peer statuses, role labels, peer notes, sector benchmark components, reviewed/source-linked sector KPI input slots, and minimum-data checks.
 - Manual consensus/source table and watchlist-first significant-event table/API with event categories, source-quality metadata, and an on-demand 24-hour NewsWeb daily digest grouped by watchlist symbol/category.
 - Environment-based sharing-prep config for host, port, database path, optional Basic Auth, hosted service/reverse-proxy templates, and public deployment verification; non-local unauthenticated binds are blocked by default.
+- Operator refresh checklist plus refresh status strips for Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources.
 - GitHub Actions CI checks for Python compile and frontend syntax.
 - Source quality tab and loading indicators.
 - GitHub repository connected at `keresell-coder/oslo-market-workspace`.
@@ -448,6 +449,34 @@ Verified:
   screener tab with no console errors.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
+### Data Refresh And Source-Quality Readiness
+
+- Added a Start-tab operator refresh checklist for the beta refresh/review
+  routine.
+- Added `docs/operator-refresh-checklist.md` with refresh order, source-quality
+  checks, and out-of-scope items.
+- Added refresh status strips to Watchlist, Fundamentals, Own history,
+  Benchmarks, News/Events, Technical indicators, and Sources.
+- Status strips show loading/success/warning/error state, last successful app
+  refresh, source timestamp when available, source/cache details, errors or
+  warnings, and the relevant operator check before sharing.
+- Kept NewsWeb daily digest on demand, preserved all missing-data behavior,
+  added no recommendation logic, added no standalone valuation labels, and did
+  not edit Oslo Screener repos.
+
+Verified:
+
+- Ran backend/frontend syntax checks.
+- Ran shell syntax checks for app utility scripts.
+- Ran README API checks against the local app.
+- Ran `scripts/drill_restore_database.sh`.
+- Verified backup mirroring with a temporary mirror directory.
+- Used the in-app browser to verify the Start checklist, refresh status strips
+  across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
+  Technical indicators, Sources, and the separate RSI14 screener tab with no
+  console errors.
+- Opened the app in Safari at `http://127.0.0.1:8765`.
+
 ## Next Sprint
 
 ### Public Access Foundation
@@ -462,18 +491,12 @@ Verified:
 - Run backup, mirror copy, and restore drill on the host.
 - Run README API checks and `scripts/verify_public_deployment.sh` against the hosted URL.
 - Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and RSI14 screener from another device.
+- Run `docs/operator-refresh-checklist.md` against the hosted instance before sharing a beta view.
 - Keep quarterly statement history screening-grade until reviewed primary-report values are explicitly added.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Continue without adding recommendation logic.
 
 ## Later Sprints
-
-### Data Refresh And Source-Quality Readiness
-
-- Review every tab's refresh control, last-successful refresh, source failures,
-  stale states, and confidence/limitation wording.
-- Add a short operator refresh/review checklist for MVP use.
-- Keep scheduled NewsWeb automation separate unless explicitly scoped.
 
 ### Beta Release Hardening
 

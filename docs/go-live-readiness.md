@@ -64,6 +64,17 @@ Before public MVP, the refresh behavior should be made more operator-friendly:
   sharing with users
 - avoid scheduled NewsWeb automation unless explicitly scoped
 
+Repo/UI foundation completed for this step:
+
+- Start tab includes an operator refresh checklist.
+- Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical
+  indicators, and Sources have refresh status strips with last successful app
+  refresh, source timestamp where available, source/cache details, and warnings
+  or errors.
+- `docs/operator-refresh-checklist.md` records the pre-sharing refresh order and
+  source-quality checks.
+- NewsWeb daily digest remains on demand.
+
 ## Data Quality Boundary
 
 The MVP can be credible, but not authoritative.
@@ -131,6 +142,12 @@ Exit criteria:
 
 Goal: make the data update workflow clear enough to use before and during beta.
 
+Repo/UI foundation completed:
+
+- visible refresh status strips added to the refreshable tabs
+- Start-tab and document-based operator refresh checklist added
+- scheduled NewsWeb automation remains out of scope
+
 Tasks:
 
 - review every tab's refresh control and stale/error wording
@@ -191,7 +208,11 @@ backup/restore confidence, and cross-device UI checks before relying on it.
 
 ## Suggested Next Sprint
 
-Start with Sprint 1: Public Access Foundation.
+The repo-side Sprint 1 foundation and Sprint 2 data-refresh/source-quality
+foundation are complete. The next hosted work remains the operator side of
+Sprint 1: provide the real domain/subdomain, DNS access, host credentials, and
+mounted off-host/encrypted backup destination, then install and verify the app
+on that host.
 
 Do not broaden data automation or valuation logic until the app is reachable,
 backed up, access-controlled, and verified from another device.

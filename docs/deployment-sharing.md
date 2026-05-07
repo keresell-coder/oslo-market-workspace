@@ -291,6 +291,8 @@ Before external sharing:
 - `OSLO_APP_BACKUP_MIRROR_DIR` points to a mounted off-host/encrypted backup destination and a mirror copy exists.
 - Source/freshness/confidence/limitation and missing-data language remains
   visible.
+- `docs/operator-refresh-checklist.md` has been run against the hosted instance
+  before sharing a beta view.
 - Quarterly statement history remains screening-grade until primary
   company-report verification is added.
 - Sector index/proxy rows remain explicit reviewed peer rows only.
