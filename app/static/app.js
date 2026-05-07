@@ -352,6 +352,21 @@ function latestRowTimestamp(rows, fields) {
   return latestTimestamp((rows || []).flatMap((row) => fields.map((field) => row?.[field])));
 }
 
+function refreshErrorMessages(rows) {
+  return (rows || [])
+    .filter((row) => row?.sourceRefreshError)
+    .map((row) => `${row.symbol || "Source"}: ${row.sourceRefreshError}`);
+}
+
+function cacheStatusSummary(rows) {
+  const counts = {};
+  (rows || []).forEach((row) => {
+    const status = row?.cacheStatus || "unknown";
+    counts[status] = (counts[status] || 0) + 1;
+  });
+  return Object.entries(counts).map(([status, count]) => `${status}: ${count}`).join("; ") || "n/a";
+}
+
 function setRefreshStatus(key, next = {}) {
   const config = refreshStatusConfig[key];
   if (!config) return;
@@ -441,11 +456,14 @@ function renderStoredRefreshStatuses() {
   Object.keys(refreshStatusConfig).forEach((key) => renderRefreshStatus(key));
 }
 
-async function loadWatchlist() {
+async function loadWatchlist(refresh = false) {
   document.getElementById("watchlist-table").innerHTML = renderLoadingPanel("Loading watchlist");
-  setRefreshStatus("watchlist", { state: "loading", summary: "Loading watchlist overview and cached source rows." });
+  setRefreshStatus("watchlist", {
+    state: "loading",
+    summary: refresh ? "Refreshing watchlist sources: yfinance, RSI14 dashboard, latest.csv, and on-demand NewsWeb." : "Loading watchlist overview and cached source rows.",
+  });
   try {
-    const data = await api("/api/watchlist-overview");
+    const data = await api(`/api/watchlist-overview?refresh=${refresh ? "1" : "0"}`);
     watchlistItems = data.rows;
     if (data.screenerError) {
       renderScreenerAlertError(new Error(data.screenerError));
@@ -503,23 +521,35 @@ async function loadWatchlist() {
         <tbody>${rows || `<tr><td colspan="11">No watchlist items yet.</td></tr>`}</tbody>
       </table>
     `;
+    const rowRefreshErrors = refreshErrorMessages(data.rows);
+    const backendErrors = (data.errors || []).map((err) => `${err.symbol || err.source || "Source"}: ${err.error}`);
+    const visibleErrors = [...backendErrors, ...rowRefreshErrors];
     setRefreshStatus("watchlist", {
-      state: "success",
-      summary: `${data.rows.length} watchlist row${data.rows.length === 1 ? "" : "s"} loaded.`,
+      state: visibleErrors.length || data.screenerError || data.technicalError ? "warning" : "success",
+      summary: `${data.rows.length} watchlist row${data.rows.length === 1 ? "" : "s"} loaded${refresh ? " after source refresh" : ""}.`,
       sourceAt: latestTimestamp(
         data.rows.flatMap((row) => [
           row.fetchedAt,
+          row.sourceRefreshAttemptedAt,
           row.updatedAt,
           row.priceSummary?.fetchedAt,
+          row.newswebFetch?.fetchedAt,
+          row.newswebFetch?.attemptedAt,
           row.historicalContext?.priceWindow?.fetchedAt,
           row.historicalContext?.quarterlyStatementHistory?.fetchedAt,
         ]),
       ),
       details: [
+        `Cache ${cacheStatusSummary(data.rows)}`,
         `${data.rows.filter((row) => row.screenerSignal).length} RSI14 dashboard match${data.rows.filter((row) => row.screenerSignal).length === 1 ? "" : "es"}`,
         data.screenerError ? `RSI14 dashboard error: ${data.screenerError}` : "RSI14 dashboard parsed for watchlist matches",
+        data.technicalError ? `latest.csv error: ${data.technicalError}` : "latest.csv parsed for technical watchlist rows",
       ],
-      errors: data.screenerError ? [data.screenerError] : [],
+      errors: [
+        ...(data.screenerError ? [data.screenerError] : []),
+        ...(data.technicalError ? [data.technicalError] : []),
+        ...visibleErrors,
+      ],
     });
   } catch (error) {
     setRefreshStatus("watchlist", {
@@ -1490,17 +1520,24 @@ async function loadTechnicalIndicators(refresh = false) {
         <tbody>${rows || `<tr><td colspan="6">No technical indicator rows loaded.</td></tr>`}</tbody>
       </table>
     `;
+    const technicalSourceErrors = [
+      ...(data.sourceRefreshError ? [data.sourceRefreshError] : []),
+      ...(data.sourceErrors || []).map((item) => `${item.url}: ${item.error}`),
+    ];
     setRefreshStatus("technical", {
-      state: data.screenerError ? "warning" : "success",
+      state: data.screenerError || technicalSourceErrors.length || data.cacheStatus === "stale-after-error" ? "warning" : "success",
       summary: `${data.rows.length} ${data.universe || universe} row${data.rows.length === 1 ? "" : "s"} shown from ${data.count ?? 0} latest.csv row${data.count === 1 ? "" : "s"}.`,
-      sourceAt: data.sourceGeneratedAt || data.fetchedAt || data.sourceDate,
+      sourceAt: data.sourceGeneratedAt || data.fetchedAt || data.sourceRefreshAttemptedAt || data.sourceDate,
       details: [
         `Source date ${data.sourceDate || "n/a"}`,
         `Generated ${dateTime(data.sourceGeneratedAt)}`,
         `Fetched ${dateTime(data.fetchedAt)}`,
         `Cache ${data.cacheStatus || "n/a"}`,
       ],
-      errors: data.screenerError ? [data.screenerError] : [],
+      errors: [
+        ...(data.screenerError ? [data.screenerError] : []),
+        ...technicalSourceErrors,
+      ],
     });
     markLoaded("technical");
   } catch (error) {
@@ -1671,17 +1708,21 @@ async function loadFundamentals(refresh = false) {
     await loadConsensusRows();
     const validation = data.dataValidation || {};
     const missingFields = (validation.fieldCoverage || []).filter((item) => item.missing > 0).length;
+    const rowErrors = refreshErrorMessages(data.rows);
     setRefreshStatus("fundamentals", {
-      state: data.errors?.length ? "warning" : "success",
+      state: data.errors?.length || rowErrors.length ? "warning" : "success",
       summary: `${data.rows.length} fundamental row${data.rows.length === 1 ? "" : "s"} loaded; ${missingFields} displayed field${missingFields === 1 ? "" : "s"} have gaps.`,
-      sourceAt: validation.fetchedAtNewest || latestRowTimestamp(data.rows, ["fetchedAt"]),
+      sourceAt: validation.fetchedAtNewest || latestRowTimestamp(data.rows, ["fetchedAt", "sourceRefreshAttemptedAt"]),
       details: [
         `Source ${validation.source || "Yahoo/yfinance"}`,
         `Fetched range ${shortDate(validation.fetchedAtOldest)} to ${shortDate(validation.fetchedAtNewest)}`,
         `Cache ${Object.entries(validation.cacheStatuses || {}).map(([status, count]) => `${status}: ${count}`).join("; ") || "n/a"}`,
         "Provider/source rows are not verified consensus",
       ],
-      errors: (data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+      errors: [
+        ...(data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+        ...rowErrors,
+      ],
     });
     markLoaded("fundamentals");
   } catch (error) {
@@ -1753,12 +1794,14 @@ async function loadOwnHistory(refresh = false) {
       const history = row.historicalContext?.quarterlyStatementHistory || {};
       return sum + (Number(history.periodCount) || 0);
     }, 0);
+    const rowErrors = refreshErrorMessages(data.rows);
     setRefreshStatus("ownHistory", {
-      state: data.errors?.length ? "warning" : "success",
+      state: data.errors?.length || rowErrors.length ? "warning" : "success",
       summary: `${data.rows.length} own-history row${data.rows.length === 1 ? "" : "s"} loaded; ${reviewedMatches} / ${statementPeriods} quarterly period${statementPeriods === 1 ? "" : "s"} primary-reviewed.`,
       sourceAt: latestTimestamp(
         data.rows.flatMap((row) => [
           row.fetchedAt,
+          row.sourceRefreshAttemptedAt,
           row.historicalContext?.priceWindow?.fetchedAt,
           row.historicalContext?.quarterlyStatementHistory?.fetchedAt,
         ]),
@@ -1768,7 +1811,10 @@ async function loadOwnHistory(refresh = false) {
         "Missing statement fields stay missing",
         "Primary reviews track source quality only",
       ],
-      errors: (data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+      errors: [
+        ...(data.errors || []).map((err) => `${err.symbol}: ${err.error}`),
+        ...rowErrors,
+      ],
     });
     markLoaded("own-history");
   } catch (error) {
@@ -2217,20 +2263,25 @@ async function loadBenchmark(refresh = false) {
     const group = data.groups?.[0] || {};
     const minimum = data.minimumData || group.minimumData || {};
     const kpis = data.sectorContext?.sectorKpis || group.sectorContext?.sectorKpis || {};
+    const benchmarkRows = (data.groups || []).flatMap((item) => item.items || item.peers || []);
+    const benchmarkRefreshErrors = refreshErrorMessages(benchmarkRows);
     setRefreshStatus("benchmark", {
-      state: "success",
+      state: benchmarkRefreshErrors.length ? "warning" : "success",
       summary: `${data.groups?.length || 0} benchmark group${data.groups?.length === 1 ? "" : "s"} loaded for ${symbol}; status ${data.status || group.status || "n/a"}.`,
       sourceAt: latestTimestamp([
         group.updated_at,
         group.created_at,
-        ...(group.peers || []).map((peer) => peer.fetchedAt),
+        ...benchmarkRows.map((peer) => peer.fetchedAt),
+        ...benchmarkRows.map((peer) => peer.sourceRefreshAttemptedAt),
       ]),
       details: [
         `Peer review ${minimum.peerReviewStatus || group.status || "n/a"}`,
-        `Loaded peers ${minimum.loadedPeerRows ?? group.peers?.length ?? 0}`,
+        `Loaded peers ${minimum.loadedPeerRows ?? benchmarkRows.length ?? 0}`,
+        `Cache ${cacheStatusSummary(benchmarkRows)}`,
         `Sector KPI policy ${kpis.policy || "reviewed/trusted source-linked inputs required"}`,
         "No valuation verdict is produced",
       ],
+      errors: benchmarkRefreshErrors,
     });
     markLoaded("benchmarks");
   } catch (error) {
@@ -3079,12 +3130,12 @@ async function boot() {
     });
   });
   document.getElementById("refresh-watchlist").addEventListener("click", async (event) => {
-    await withLoading("Refreshing watchlist", event.currentTarget, loadWatchlist);
+    await withLoading("Refreshing watchlist", event.currentTarget, () => loadWatchlist(true));
   });
   document.getElementById("refresh-screener-alerts").addEventListener("click", async () => {
     await withLoading("Refreshing RSI14", document.getElementById("refresh-screener-alerts"), async () => {
       await loadScreenerAlerts(true);
-      await loadWatchlist();
+      await loadWatchlist(false);
     });
   });
   document.getElementById("benchmark-form").addEventListener("submit", async (event) => {

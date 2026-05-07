@@ -27,6 +27,15 @@ if [[ -n "$USERNAME" || -n "$PASSWORD" ]]; then
   AUTH_ARGS=(-u "$USERNAME:$PASSWORD")
 fi
 
+curl_json() {
+  local url="$1"
+  if [[ "${#AUTH_ARGS[@]}" -gt 0 ]]; then
+    curl -fsS "${AUTH_ARGS[@]}" "$url"
+  else
+    curl -fsS "$url"
+  fi
+}
+
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/oslo-public-verify.XXXXXX")"
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -34,7 +43,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "Checking health endpoint..."
-curl -fsS "${AUTH_ARGS[@]}" "$URL/api/health" | python3 -m json.tool > "$TMP_DIR/health.json"
+curl_json "$URL/api/health" | python3 -m json.tool > "$TMP_DIR/health.json"
 
 if [[ "${#AUTH_ARGS[@]}" -gt 0 ]]; then
   echo "Checking unauthenticated access is blocked..."
@@ -49,7 +58,7 @@ check_json() {
   local path="$1"
   local name="$2"
   echo "Checking $name..."
-  curl -fsS "${AUTH_ARGS[@]}" "$URL$path" | python3 -m json.tool > "$TMP_DIR/$name.json"
+  curl_json "$URL$path" | python3 -m json.tool > "$TMP_DIR/$name.json"
 }
 
 check_json "/api/watchlist-overview" "watchlist-overview"
@@ -57,22 +66,26 @@ check_json "/api/fundamentals?symbols=MOWI.OL" "fundamentals-mowi"
 check_json "/api/technical-indicators?universe=watchlist" "technical-indicators"
 check_json "/api/event-monitoring" "event-monitoring"
 
-python3 - "$TMP_DIR/health.json" <<'PY'
+python3 - "$TMP_DIR/health.json" "$URL" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
 health = json.loads(Path(sys.argv[1]).read_text())
+url = sys.argv[2]
 sharing = health.get("sharing") or {}
 problems = []
 if not health.get("ok"):
     problems.append("health ok flag is missing")
-if not sharing.get("authRequired"):
-    problems.append("health sharing.authRequired is not true")
-if not sharing.get("databasePathConfigured"):
-    problems.append("health sharing.databasePathConfigured is not true")
-if not sharing.get("localOnly"):
-    problems.append("health sharing.localOnly is not true; app may not be bound to localhost")
+hosted_checks_required = not (os.environ.get("OSLO_ALLOW_HTTP_VERIFY") == "1" and url.startswith("http://"))
+if hosted_checks_required:
+    if not sharing.get("authRequired"):
+        problems.append("health sharing.authRequired is not true")
+    if not sharing.get("databasePathConfigured"):
+        problems.append("health sharing.databasePathConfigured is not true")
+    if not sharing.get("localOnly"):
+        problems.append("health sharing.localOnly is not true; app may not be bound to localhost")
 if problems:
     raise SystemExit("; ".join(problems))
 PY

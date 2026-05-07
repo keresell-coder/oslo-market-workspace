@@ -8,7 +8,9 @@ investment advice, or turn provider rows into verified consensus.
 ## Refresh Order
 
 1. Open the Start tab and review the operator refresh checklist.
-2. Refresh Watchlist.
+2. Refresh Watchlist. This requests fresh yfinance rows, RSI14 dashboard
+   parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows where
+   supported.
 3. Refresh Fundamentals for the watchlist universe.
 4. Refresh Own history for the watchlist universe.
 5. Refresh Technical indicators for the watchlist universe.
@@ -22,6 +24,9 @@ investment advice, or turn provider rows into verified consensus.
 - Each refreshed tab should show a refresh status strip with last successful app
   refresh, source timestamp when available, source/cache details, and errors or
   warnings.
+- `stale-after-error` means a live source refresh failed but an older cached row
+  remains visible. Treat those rows as stale until the source is checked or a
+  later refresh succeeds.
 - Fundamentals/yfinance errors mean affected rows remain screening-grade or
   stale until checked against primary/company sources.
 - Own-history quarterly statement periods remain not-primary-verified until a
@@ -41,4 +46,3 @@ investment advice, or turn provider rows into verified consensus.
 - Buy/sell/hold recommendation logic.
 - Cheap/expensive/fair/neutral standalone valuation labels.
 - Editing Oslo Screener repositories.
-

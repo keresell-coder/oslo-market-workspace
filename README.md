@@ -115,10 +115,12 @@ Local folder:
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
 - Remaining major gaps: primary-source value entry/import for quarterly statements, optional sector index/proxy curation, optional scheduled NewsWeb digest automation, selecting the real mounted off-host backup destination, and any actual external deployment.
-- Public MVP gap: the repo now has hosted service/reverse-proxy templates and a
-  hosted verification script, but the app still needs a real domain/subdomain,
-  a provisioned single host, DNS/HTTPS setup, a real off-host backup mirror,
-  hosted restore drill, and cross-device smoke testing before release.
+- Public MVP gap: the repo now has hosted service/reverse-proxy templates, a
+  hosted verification script, and verified true-refresh paths for the app's
+  refresh buttons. Actual external deployment still needs a real
+  domain/subdomain, a provisioned single host, DNS/HTTPS setup, a real off-host
+  backup mirror, hosted restore drill, and cross-device smoke testing before
+  release.
 
 ## Verification
 
@@ -148,6 +150,31 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Hosted Public Access Completion: Refresh And Verification Hardening**
+
+- Added true-source refresh support to `/api/watchlist-overview?refresh=1`.
+  The Watchlist refresh now requests live yfinance fundamentals, RSI14
+  dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows for
+  the watchlist instead of only reloading cached synthesis rows.
+- Added `stale-after-error` fallbacks for yfinance fundamentals, RSI14 dashboard
+  parsing, and technical-indicator CSV refreshes when an older cached payload is
+  available. Refresh status strips now surface source refresh errors rather than
+  silently reusing old rows.
+- Extended refresh status strips for Watchlist, Fundamentals, Own history,
+  Benchmarks, and Technical indicators to show cache/source-refresh errors and
+  cache-status summaries where applicable.
+- Fixed `scripts/verify_public_deployment.sh` so local dry runs without auth
+  work while real hosted HTTPS runs still require authenticated/local-only
+  sharing checks.
+- Confirmed actual hosted deployment remains blocked until a real
+  domain/subdomain, DNS access, single-host SSH/deployment access, and mounted
+  off-host/encrypted backup destination are provided.
+- Verified backend/frontend/script syntax, README API checks, explicit
+  `refresh=1` checks for Watchlist, MOWI fundamentals, Technical indicators,
+  News/Events, and MOWI benchmarks, restore drill, local dry run of the hosted
+  verification script, in-app browser tabs with no console errors, and Safari
+  launch.
 
 **Beta Release Plan Lock**
 

@@ -59,7 +59,7 @@
 
 ## Codex Chats
 
-- Current sprint branch: `codex/sharing-prep-follow-up`
+- Current sprint branch: `codex/hosted-public-access-completion`
 - Related chat requested for this project: Add GitHub account to Codex.
 - The related chat exists locally and was created against the same original generated workspace path. No supported Codex project/chat membership tool was exposed in this session, so move it manually in the Codex UI if it is not grouped under Oslo Stock web-app after the folder rename.
 
@@ -71,7 +71,12 @@
 - `POST /api/watchlist`
 - `DELETE /api/watchlist`
 - `GET /api/watchlist-overview`
+  - accepts `refresh=1` to refresh the upstream/source paths used by the
+    Watchlist synthesis view: yfinance fundamentals, RSI14 dashboard parsing,
+    Oslo Screener `latest.csv`, and on-demand NewsWeb rows
 - `GET /api/fundamentals`
+  - accepts `refresh=1`; when yfinance refresh fails and a cached row exists,
+    the row can be shown as `stale-after-error` with `sourceRefreshError`
   - also backs the dedicated Own History tab
 - `GET /api/consensus`
   - returns provider/manual source rows with row type, review status, as-of date, target currency, source URL, method note, limitation note, freshness, and overlap caveats
@@ -84,6 +89,8 @@
 - `GET /api/screener-alerts`
 - `GET /api/screener-signals`
 - `GET /api/technical-indicators`
+  - accepts `refresh=1`; failed CSV refreshes can return cached
+    `stale-after-error` data with source errors when available
 - `GET /api/events`
 - `POST /api/events`
 - `GET /api/event-monitoring`
@@ -114,7 +121,7 @@ Non-local bind hosts are refused by default unless Basic Auth credentials are co
 - Render persistent disks: https://render.com/docs/disks
 - Fly.io volumes: https://fly.io/docs/volumes/
 
-Current decision as of 06 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. Repo templates now exist for that single-host path, but no external deployment has been performed because no real domain/subdomain, DNS access, host credential, or mounted off-host backup destination is present in this workspace.
+Current decision as of 07 May 2026: keep local/private use as default; Tailscale/LAN is suitable only for a small trusted pilot; any external sharing should use one small EU VPS or equivalent single-host target with the app bound to localhost behind HTTPS reverse proxy, a persistent SQLite path, and off-host backups. Repo templates and true-refresh verification support now exist for that single-host path, but no external deployment has been performed because no real domain/subdomain, DNS access, host credential, or mounted off-host backup destination is present in this workspace.
 
 ## External Sources In Use
 

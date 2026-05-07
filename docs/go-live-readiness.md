@@ -77,6 +77,11 @@ Repo/UI foundation completed for this step:
   indicators, and Sources have refresh status strips with last successful app
   refresh, source timestamp where available, source/cache details, and warnings
   or errors.
+- Watchlist refresh now calls the upstream/source refresh paths it summarizes:
+  yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`,
+  and on-demand NewsWeb rows. yfinance, RSI14 dashboard, and technical CSV
+  refresh failures can surface as `stale-after-error` when cached fallback rows
+  remain available.
 - `docs/operator-refresh-checklist.md` records the pre-sharing refresh order and
   source-quality checks.
 - NewsWeb daily digest remains on demand.
@@ -138,6 +143,10 @@ Repo foundation completed:
   reverse proxy, and daily backup cron
 - `scripts/verify_public_deployment.sh` now checks HTTPS/API/auth basics against
   a public URL
+- `scripts/verify_public_deployment.sh` also supports a local HTTP dry run for
+  endpoint/script validation without weakening the hosted HTTPS checks
+- true-refresh behavior has been fixed and locally verified for the app refresh
+  buttons where the backend supports upstream/source refreshes
 - actual public deployment remains pending because no real domain/subdomain,
   DNS access, host credential, or mounted off-host backup destination is present
   in the local repo
@@ -153,9 +162,8 @@ Tasks:
 - set real `OSLO_APP_BACKUP_MIRROR_DIR`
 - run backup, mirror copy, and restore drill on the host
 - run README API checks on the hosted instance
-- verify and fix every refresh button so refresh actions perform true upstream
-  or source refreshes where supported, rather than only reprocessing old cached
-  data
+- rerun true-refresh checks on the hosted instance and confirm stale/error
+  wording survives real hosted source failures or rate limits
 - verify all tabs from another device
 
 Exit criteria:

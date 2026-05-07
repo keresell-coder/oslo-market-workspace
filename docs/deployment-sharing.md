@@ -86,10 +86,19 @@ single-host path:
   subdomain proxying to `127.0.0.1:8765`.
 - `deploy/oslo-stock-backup.cron.example`: daily backup cron template.
 - `scripts/verify_public_deployment.sh`: hosted smoke test for HTTPS, Basic
-  Auth blocking, `/api/health`, and the README API endpoints.
+  Auth blocking, `/api/health`, and the README API endpoints. For local script
+  validation only, `OSLO_ALLOW_HTTP_VERIFY=1` allows an HTTP dry run without
+  weakening the hosted HTTPS checks.
 
 These files do not create the DNS record, provision the VPS, mount the off-host
 backup destination, or verify another-device browser access by themselves.
+
+As of 07 May 2026, true-refresh behavior has been locally fixed and verified for
+the refreshable app surfaces. Watchlist refresh calls live yfinance, RSI14
+dashboard, `latest.csv`, and NewsWeb paths where supported; yfinance, RSI14, and
+technical CSV refresh failures show `stale-after-error` when cached fallback
+data remains visible. Re-run the same checks against the hosted URL before
+sharing a beta view.
 
 Recommended sprint count from the current state:
 

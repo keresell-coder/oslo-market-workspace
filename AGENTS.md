@@ -128,6 +128,7 @@ Consensus Quality is complete:
 - Go-live direction: controlled public MVP at a public HTTPS address, behind authentication, on one hosted app instance with persistent SQLite and off-host backups. Estimated from current state: 2 sprints minimum, 3 sprints recommended.
 - Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 - Data Refresh And Source-Quality Readiness has visible refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources, plus a Start-tab/operator checklist; NewsWeb digest remains on demand.
+- Hosted Public Access Completion refresh hardening is partly complete: Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14 dashboard, and technical CSV refresh failures surface as `stale-after-error` when cached fallback rows remain visible; the hosted verification script supports local dry runs while keeping real HTTPS checks strict.
 
 ## Next Sprint Priority
 
@@ -138,7 +139,7 @@ Hosted Public Access Completion:
 - configure Basic Auth or stronger upstream access control
 - set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`
 - run hosted backup, mirror copy, restore drill, README API checks, `scripts/verify_public_deployment.sh`, and external-device tab verification
-- verify and fix all refresh buttons so refresh actions perform true upstream/source refreshes where supported, rather than only reprocessing old cached data
+- rerun refresh-button verification on the hosted URL and confirm true upstream/source refreshes plus visible cached/stale/rate-limited/error states
 - run `docs/operator-refresh-checklist.md` against the hosted instance before sharing a beta view
 - keep optional sector index/proxy curation explicit and reviewed
 - keep all output descriptive and non-advisory

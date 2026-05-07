@@ -2806,6 +2806,16 @@ def normalize_dashboard_ticker(ticker: str) -> str:
     return value
 
 
+def stale_cached_payload(cached: dict | None, error: str) -> dict | None:
+    if not cached:
+        return None
+    payload = dict(cached)
+    payload["cacheStatus"] = "stale-after-error"
+    payload["sourceRefreshError"] = error
+    payload["sourceRefreshAttemptedAt"] = utc_now()
+    return payload
+
+
 def fetch_screener_signals(refresh: bool = False) -> dict:
     now_epoch = int(time.time())
     cached = SCREENER_CACHE.get("payload")
@@ -2817,9 +2827,15 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
     if requests is None or BeautifulSoup is None:
         raise RuntimeError("requests and beautifulsoup4 are required for screener signal extraction")
 
-    response = requests.get(SCREENER_URL, timeout=20)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
+    try:
+        response = requests.get(SCREENER_URL, timeout=20)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+    except Exception as exc:
+        stale = stale_cached_payload(cached, f"RSI14 dashboard refresh failed: {exc}")
+        if stale:
+            return stale
+        raise
 
     signals = []
     for card in soup.select(".stock-card"):
@@ -2966,7 +2982,12 @@ def fetch_technical_indicators(refresh: bool = False) -> dict:
             return result
         except Exception as exc:
             errors.append({"url": url, "error": str(exc)})
-    raise RuntimeError("; ".join(f"{item['url']}: {item['error']}" for item in errors))
+    error_summary = "; ".join(f"{item['url']}: {item['error']}" for item in errors)
+    stale = stale_cached_payload(cached, f"Technical indicator refresh failed: {error_summary}")
+    if stale:
+        stale["sourceErrors"] = errors
+        return stale
+    raise RuntimeError(error_summary)
 
 
 def technical_indicators(
@@ -3003,10 +3024,10 @@ def technical_indicators(
     }
 
 
-def safe_technical_indicator_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+def safe_technical_indicator_map(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
     try:
-        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=False)
-        return {item["symbol"]: item for item in payload.get("rows", [])}, None
+        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=refresh)
+        return {item["symbol"]: item for item in payload.get("rows", [])}, payload.get("sourceRefreshError")
     except Exception as exc:
         return {}, str(exc)
 
@@ -3044,19 +3065,21 @@ def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict
         "fetchedAt": screener["fetchedAt"],
         "url": screener["url"],
         "cacheStatus": screener.get("cacheStatus"),
+        "sourceRefreshError": screener.get("sourceRefreshError"),
+        "sourceRefreshAttemptedAt": screener.get("sourceRefreshAttemptedAt"),
         "sourceReliability": screener["sourceReliability"],
     }
 
 
-def safe_screener_alert_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+def safe_screener_alert_map(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
     try:
-        alerts = screener_alerts(name=name, refresh=False)
-        return {item["symbol"]: item for item in alerts.get("matches", [])}, None
+        alerts = screener_alerts(name=name, refresh=refresh)
+        return {item["symbol"]: item for item in alerts.get("matches", [])}, alerts.get("sourceRefreshError")
     except Exception as exc:
         return {}, str(exc)
 
 
-def watchlist_overview(name: str = "Core Watchlist") -> dict:
+def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> dict:
     with connect() as con:
         items = rows_to_dicts(
             con.execute(
@@ -3071,20 +3094,23 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
             ).fetchall()
         )
 
-    screener_map, screener_error = safe_screener_alert_map(name)
-    technical_map, technical_error = safe_technical_indicator_map(name)
+    screener_map, screener_error = safe_screener_alert_map(name, refresh=refresh)
+    technical_map, technical_error = safe_technical_indicator_map(name, refresh=refresh)
     rows = []
     errors = []
     for item in items:
         symbol = item["symbol"]
         try:
-            fundamental = cached_fundamental(symbol, refresh=False)
+            fundamental = cached_fundamental(symbol, refresh=refresh)
         except Exception as exc:
             fundamental = {}
             errors.append({"symbol": symbol, "error": str(exc)})
 
         consensus = consensus_for_symbol(symbol)
-        events = significant_events_for_symbol(symbol, include_newsweb=True)
+        events = significant_events_for_symbol(symbol, include_newsweb=True, refresh_newsweb=refresh)
+        newsweb_fetch = newsweb_fetch_status(symbol)
+        if refresh and newsweb_fetch.get("error"):
+            errors.append({"symbol": symbol, "error": newsweb_fetch["error"], "source": "NewsWeb"})
         price_summary = stock_price_summary(fundamental)
         target_summary = consensus_target_summary(fundamental, consensus)
         rating_summary = consensus_rating_summary(consensus)
@@ -3105,6 +3131,10 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "consensusTarget": fundamental.get("targetMeanPrice"),
                 "consensusTargetSource": fundamental.get("targetPriceSource"),
                 "consensusTargetMethod": fundamental.get("targetPriceMethod"),
+                "cacheStatus": fundamental.get("cacheStatus"),
+                "fetchedAt": fundamental.get("fetchedAt"),
+                "sourceRefreshError": fundamental.get("sourceRefreshError"),
+                "sourceRefreshAttemptedAt": fundamental.get("sourceRefreshAttemptedAt"),
                 "consensusTargetAcrossSources": consensus.get("targetMeanAcrossSources"),
                 "targetUpsidePct": fundamental.get("targetUpsidePct"),
                 "price": fundamental.get("price"),
@@ -3116,6 +3146,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "consensusSources": consensus.get("sources", []),
                 "significantEvents": events,
                 "eventAlert": event_alert_summary(events),
+                "newswebFetch": newsweb_fetch,
                 "links": {
                     "yahoo": f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}",
                     "newsweb": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
@@ -3130,6 +3161,7 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "errors": errors,
         "screenerError": screener_error,
         "technicalError": technical_error,
+        "refreshRequested": refresh,
         "sourceNotes": {
             "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
@@ -3155,7 +3187,18 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
                 payload["cacheStatus"] = "cached"
                 return payload
 
-        payload = fetch_yfinance(symbol)
+        try:
+            payload = fetch_yfinance(symbol)
+        except Exception as exc:
+            if row:
+                payload = json.loads(row["payload"])
+                payload.pop("valuationFlag", None)
+                payload = enrich_fundamental_payload(payload)
+                payload["cacheStatus"] = "stale-after-error"
+                payload["sourceRefreshError"] = f"Yahoo/yfinance refresh failed for {symbol}: {exc}"
+                payload["sourceRefreshAttemptedAt"] = utc_now()
+                return payload
+            raise
         payload.pop("valuationFlag", None)
         payload = enrich_fundamental_payload(payload)
         con.execute(
@@ -4388,7 +4431,8 @@ class AppHandler(SimpleHTTPRequestHandler):
     def handle_watchlist_overview(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         name = qs.get("name", ["Core Watchlist"])[0]
-        send_json(self, watchlist_overview(name))
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        send_json(self, watchlist_overview(name, refresh=refresh))
 
     def handle_watchlist_post(self) -> None:
         body = get_json_body(self)

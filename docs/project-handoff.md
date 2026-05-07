@@ -33,7 +33,7 @@ Local git status:
 
 ```text
 default branch: main
-current sprint branch: codex/sharing-prep-follow-up
+current sprint branch: codex/hosted-public-access-completion
 ```
 
 Local app:
@@ -98,8 +98,10 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
   - optional `OSLO_APP_BACKUP_MIRROR_DIR` mirrors backup files and checksums to a mounted off-host path
   - `deploy/oslo-stock.env.example`, `deploy/oslo-stock.service`, `deploy/Caddyfile.example`, and `deploy/oslo-stock-backup.cron.example` provide the single-host service/reverse-proxy/backup templates for the public-access path
   - `scripts/verify_public_deployment.sh` checks HTTPS, Basic Auth blocking, `/api/health`, and the README API endpoints against a hosted URL
+  - `scripts/verify_public_deployment.sh` also supports local HTTP dry runs with `OSLO_ALLOW_HTTP_VERIFY=1` for script/endpoint validation only
   - Start tab plus `docs/operator-refresh-checklist.md` provide the beta refresh/review routine
   - refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources show last successful app refresh, source timestamp when available, source/cache details, and warnings/errors
+  - Watchlist refresh uses true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14, and technical CSV failures can show `stale-after-error` when old cached rows remain visible
   - `.env.example` and `docs/deployment-sharing.md` document the current sharing guardrails, backup workflow, target comparison, HTTPS/reverse-proxy expectations, and production access-control checklist
   - `docs/go-live-readiness.md` explains the 2-sprint minimum / 3-sprint recommended path to public MVP
   - GitHub Actions CI checks backend compile and frontend syntax
@@ -162,6 +164,7 @@ https://raw.githubusercontent.com/keresell-coder/oslo-screener/main/latest.csv
 - The app must not imply majority, analyst-count weighted, or deduplicated BUY/HOLD/SELL consensus.
 - Scheduled NewsWeb automation is not implemented. Current NewsWeb use is ticker search links, on-demand NewsWeb rows, an on-demand daily watchlist digest, and manual/source-reviewed significant-event rows.
 - Basic Auth is a sharing-prep gate, not a full production security model. Backup/restore/drill, optional backup mirroring, hosted service/reverse-proxy templates, HTTPS/reverse-proxy expectations, target comparison, a hosted verification script, and an access-control checklist are now documented, but actual external deployment still needs a real domain/subdomain, DNS access, host credential, and mounted off-host backup destination.
+- Actual hosted Sprint 1 deployment remains blocked until the operator provides a real domain/subdomain, DNS access, single-host SSH/deployment access, and a mounted off-host/encrypted backup destination.
 - The app can go live soon as a controlled, authenticated MVP. It is not ready today for public access, and free/open data remains screening-grade rather than fully guaranteed/authoritative.
 - NewsWeb source-path status as of 06 May 2026: official Euronext Oslo page identifies NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers `api3.oslo.oslobors.no` via `urls.json`, and ticker queries return issuer announcements from `/v1/newsreader/customQuery`.
 - Peer groups are editable; initial focus groups are reviewed but not trusted.
@@ -211,6 +214,28 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, `docs/links-and-resources.md`, and `AGENTS.md` stay aligned with completed work and next plans.
 
 ## Completed This Sprint
+
+- Added Hosted Public Access Completion refresh/verification hardening:
+  - `/api/watchlist-overview?refresh=1` now refreshes the source paths used by
+    the Watchlist synthesis view instead of only reloading cached rows.
+  - Watchlist refresh asks for fresh yfinance fundamentals, RSI14 dashboard
+    parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows.
+  - yfinance, RSI14 dashboard parsing, and technical CSV refreshes now return
+    visible `stale-after-error` cached fallback payloads when a live refresh
+    fails after a previous successful fetch.
+  - Watchlist, Fundamentals, Own history, Benchmarks, and Technical indicators
+    refresh strips surface cache summaries and source-refresh errors where the
+    API exposes them.
+  - `scripts/verify_public_deployment.sh` local dry runs no longer fail on an
+    empty auth argument array and keep real hosted HTTPS checks strict.
+- Confirmed actual public URL deployment, hosted backup mirror setup, hosted
+  restore drill, and another-device verification are still blocked pending real
+  domain/DNS/host/backup-mount details.
+- Verification passed for backend/frontend/script syntax, README API checks,
+  explicit `refresh=1` checks, restore drill, local hosted-verification dry run,
+  in-app browser tab checks with no console errors, and Safari launch.
+
+## Completed Previous Sprint
 
 - Added Data Refresh And Source-Quality Readiness UI:
   - Start-tab operator refresh checklist
@@ -324,14 +349,14 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: Hosted Public Access Completion.
+Next priority: complete the host-side half of Hosted Public Access Completion.
 
 Goal:
 
 - Make the dashboard/application available from other devices through a controlled public HTTPS URL.
-- Verify and fix every refresh button so refresh actions perform true
-  upstream/source refreshes where supported, rather than only reprocessing old
-  cached data.
+- Re-run the true-refresh checks against the hosted URL and confirm stale/error
+  wording is visible when a hosted source is cached, rate-limited, failing, or
+  missing.
 
 Tasks:
 
@@ -343,7 +368,7 @@ Tasks:
   `OSLO_APP_BACKUP_MIRROR_DIR`.
 - Run hosted backup, mirror copy, restore drill, README API checks,
   `scripts/verify_public_deployment.sh`, and external-device tab verification.
-- Run refresh-button true-refresh verification/fixes across all tabs.
+- Run hosted refresh-button verification across all tabs.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 
