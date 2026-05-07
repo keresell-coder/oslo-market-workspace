@@ -12,6 +12,19 @@ Local folder:
 
 It is a local-first Oslo Bors research workspace.
 
+Beta release target:
+
+```text
+Beta v0.1.0
+```
+
+Remaining beta-release sprints:
+
+```text
+1. Hosted Public Access Completion
+2. Beta Release Hardening
+```
+
 Primary app:
 
 ```bash
@@ -118,13 +131,14 @@ Consensus Quality is complete:
 
 ## Next Sprint Priority
 
-Public Access Foundation:
+Hosted Public Access Completion:
 
 - provide or create real domain/subdomain, DNS access, single-host target, SSH/deployment access, and mounted off-host/encrypted backup destination
 - install the `deploy/` templates on the host with the Python app bound to localhost behind HTTPS reverse proxy
 - configure Basic Auth or stronger upstream access control
 - set persistent hosted `OSLO_APP_DB_PATH` and real `OSLO_APP_BACKUP_MIRROR_DIR`
 - run hosted backup, mirror copy, restore drill, README API checks, `scripts/verify_public_deployment.sh`, and external-device tab verification
+- verify and fix all refresh buttons so refresh actions perform true upstream/source refreshes where supported, rather than only reprocessing old cached data
 - run `docs/operator-refresh-checklist.md` against the hosted instance before sharing a beta view
 - keep optional sector index/proxy curation explicit and reviewed
 - keep all output descriptive and non-advisory

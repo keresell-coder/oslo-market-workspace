@@ -3,6 +3,7 @@
 ## Project Links
 
 - Project name: Oslo Stock web-app
+- Beta release target: Beta v0.1.0
 - Local folder: `/Users/ke/Documents/Oslo Stock web-app`
 - Repository: https://github.com/keresell-coder/oslo-market-workspace
 - Published RSI14/Oslo Screener Dashboard: https://keresell-coder.github.io/oslo-screener-dashboard/

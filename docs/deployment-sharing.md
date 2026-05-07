@@ -2,8 +2,8 @@
 
 This document records the current sharing decision as of 06 May 2026. It is
 prep work only; it does not deploy the app externally. The next go-live target
-is a controlled public MVP with HTTPS and authentication, not public
-unauthenticated access.
+is **Beta v0.1.0**: a controlled public MVP with HTTPS and authentication, not
+public unauthenticated access.
 
 The default app run is local-only:
 
@@ -289,6 +289,9 @@ Before external sharing:
 - `OSLO_APP_DB_PATH` points to persistent storage outside the git checkout.
 - Backup and restore have been tested on a copy.
 - `OSLO_APP_BACKUP_MIRROR_DIR` points to a mounted off-host/encrypted backup destination and a mirror copy exists.
+- All refresh buttons have been verified and fixed so refresh actions perform
+  true upstream/source refreshes where supported, rather than only reprocessing
+  old cached data.
 - Source/freshness/confidence/limitation and missing-data language remains
   visible.
 - `docs/operator-refresh-checklist.md` has been run against the hosted instance

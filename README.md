@@ -63,9 +63,10 @@ Beta/operator routine:
 - `docs/operator-refresh-checklist.md`: refresh order and source-quality checks
   before sharing a beta view.
 
-Current go-live assessment: the app can go live soon as a controlled,
-authenticated MVP, but not as a public unauthenticated site and not as a fully
-validated research platform. See `docs/go-live-readiness.md`.
+Current release target: **Beta v0.1.0**. Two beta-release sprints remain:
+Hosted Public Access Completion, then Beta Release Hardening. After those,
+pause broad feature work and start using the app for real beta experience. See
+`docs/go-live-readiness.md`.
 
 Repository: `keresell-coder/oslo-market-workspace`
 
@@ -77,6 +78,7 @@ Local folder:
 
 ## Current App
 
+- **Header**: visible **Beta v0.1.0** warning label and screening-grade reminder.
 - **Start**: concise intent, source/metric summary, operator refresh checklist, limitations, and not-investment-advice disclaimer.
 - **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
 - **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, and expanded consensus/source row editor.
@@ -146,6 +148,17 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Beta Release Plan Lock**
+
+- Set the application headline label to **Beta v0.1.0**.
+- Locked the remaining path to two beta-release sprints:
+  1. Hosted Public Access Completion.
+  2. Beta Release Hardening.
+- Added the explicit Sprint 1 requirement to verify and fix all refresh buttons
+  so refresh actions perform real upstream/source fetches where the API promises
+  refresh behavior, rather than only reprocessing stale cached data.
+- Kept no-advice/no-standalone-verdict guardrails unchanged.
 
 **Data Refresh And Source-Quality Readiness**
 
@@ -308,9 +321,9 @@ After each completed task, update the relevant docs so they reflect what changed
 - Frontend tab loading now avoids repeat fetches after a tab is already loaded, and dynamic Watchlist/Benchmark controls use delegated handlers instead of rebinding after every render.
 - Two unused frontend helpers were removed. Future continuation should keep `README.md` and `docs/roadmap.md` as the default context and open deeper docs only for a specific implementation need.
 
-## Next Sprint
+## Remaining Beta Release Sprints
 
-**Public Access Foundation**
+**Sprint 1: Hosted Public Access Completion**
 
 - Provide or create the real domain/subdomain, DNS access, single-host target,
   SSH/deployment access, and mounted off-host/encrypted backup destination.
@@ -319,11 +332,23 @@ After each completed task, update the relevant docs so they reflect what changed
 - Set the live `OSLO_APP_DB_PATH` and `OSLO_APP_BACKUP_MIRROR_DIR`, run hosted
   backup/mirror/restore drill, then run README API checks plus
   `scripts/verify_public_deployment.sh` against the public URL.
+- Verify and fix every refresh button in every tab so each refresh path does a
+  true upstream/source refresh where supported, and clearly reports when a
+  source remains cached, stale, rate-limited, or missing.
 - Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
-  Technical indicators, and RSI14 screener from another device.
+  Technical indicators, Sources, and RSI14 screener from another device.
 - Run the operator refresh checklist against the hosted instance before sharing
   a beta view.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Continue without adding recommendation logic.
+
+**Sprint 2: Beta Release Hardening**
+
+- Run complete hosted smoke testing from another device.
+- Check mobile/tablet usability for tables and detail panels.
+- Document rollback/restore steps using the hosted backup path.
+- Create a known-good pre-beta off-host backup.
+- Confirm Beta v0.1.0 caveats are visible, then start using the app for real
+  beta experience.
 
 See `docs/roadmap.md` for the broader sprint plan.

@@ -20,7 +20,8 @@ Audience is primarily personal use, later shareable with friends/investment-club
 Completed MVP pieces:
 
 - Local Python/SQLite app with static frontend.
-- Start page with disclaimer, intent, metric/source summary, and limitations.
+- Header with visible `Beta v0.1.0` label and screening-grade reminder.
+- Start page with disclaimer, intent, metric/source summary, operator refresh checklist, and limitations.
 - Editable SQLite-backed Watchlist with inline notes, add/remove flow, price, RSI14 screener alert, technical indicators, multiples, own-history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
 - Published RSI14/Oslo Screener dashboard embedded and parsed for dashboard-alert matches; dashboard HTML was refreshed to 05 May 2026 after the Pages branch lagged the current CSV.
 - Published Oslo Screener `latest.csv` parsed through `/api/technical-indicators` for broader technical indicator coverage.
@@ -477,9 +478,17 @@ Verified:
   console errors.
 - Opened the app in Safari at `http://127.0.0.1:8765`.
 
-## Next Sprint
+## Remaining Beta Release Sprints
 
-### Public Access Foundation
+There are exactly two remaining beta-release sprints before Beta v0.1.0 should
+be used for real experience:
+
+1. Hosted Public Access Completion.
+2. Beta Release Hardening.
+
+Do not add broad product features before these are complete.
+
+### Sprint 1: Hosted Public Access Completion
 
 - Provide or create the real domain/subdomain, DNS access, single-host target,
   SSH/deployment access, and mounted off-host/encrypted backup destination.
@@ -490,21 +499,24 @@ Verified:
 - Set real hosted `OSLO_APP_BACKUP_MIRROR_DIR`.
 - Run backup, mirror copy, and restore drill on the host.
 - Run README API checks and `scripts/verify_public_deployment.sh` against the hosted URL.
-- Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and RSI14 screener from another device.
+- Verify and fix every refresh button in every tab so refresh actions perform
+  true upstream/source refreshes where supported, rather than only reprocessing
+  old cached data; stale, cached, rate-limited, error, and missing states must
+  remain visible.
+- Verify Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, Sources, and RSI14 screener from another device.
 - Run `docs/operator-refresh-checklist.md` against the hosted instance before sharing a beta view.
 - Keep quarterly statement history screening-grade until reviewed primary-report values are explicitly added.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Continue without adding recommendation logic.
 
-## Later Sprints
-
-### Beta Release Hardening
+### Sprint 2: Beta Release Hardening
 
 - Run complete hosted smoke test from another device.
 - Check mobile/tablet table usability and detail panels.
 - Document beta operating routine and rollback/restore steps.
 - Create a known-good pre-beta off-host backup.
-- Pause broad feature work while the MVP is used for feedback.
+- Confirm Beta v0.1.0 caveats are visible.
+- Pause broad feature work while the beta is used for feedback.
 
 ## Deferred
 

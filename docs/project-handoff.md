@@ -4,6 +4,19 @@
 
 The project is **Oslo Stock web-app**, a working local MVP for an Oslo Bors research workspace.
 
+Beta release target:
+
+```text
+Beta v0.1.0
+```
+
+Remaining beta-release sprints:
+
+```text
+1. Hosted Public Access Completion
+2. Beta Release Hardening
+```
+
 Local folder:
 
 ```text
@@ -311,11 +324,14 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 
 ## Next Sprint Brief
 
-Next priority: Public Access Foundation.
+Next priority: Hosted Public Access Completion.
 
 Goal:
 
 - Make the dashboard/application available from other devices through a controlled public HTTPS URL.
+- Verify and fix every refresh button so refresh actions perform true
+  upstream/source refreshes where supported, rather than only reprocessing old
+  cached data.
 
 Tasks:
 
@@ -327,6 +343,7 @@ Tasks:
   `OSLO_APP_BACKUP_MIRROR_DIR`.
 - Run hosted backup, mirror copy, restore drill, README API checks,
   `scripts/verify_public_deployment.sh`, and external-device tab verification.
+- Run refresh-button true-refresh verification/fixes across all tabs.
 - Keep optional sector index/proxy curation explicit and reviewed.
 - Preserve no-advice/no-verdict language, missing-data discipline, Technical indicators, and the separate RSI14 screener tab.
 

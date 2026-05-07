@@ -2,8 +2,14 @@
 
 ## Current Answer
 
-The app can go live soon as a controlled, authenticated MVP, but it is not
-ready today to be placed on a public address.
+The app is targeted for **Beta v0.1.0**. Two beta-release sprints remain before
+it should be released for real private beta use:
+
+1. Hosted Public Access Completion.
+2. Beta Release Hardening.
+
+After those two sprints, pause broad feature work and start using the app to
+gain real experience.
 
 The realistic target is a private beta public URL: a real domain over HTTPS,
 Basic Auth or stronger access control, one app instance, one persistent SQLite
@@ -96,13 +102,33 @@ Do not infer peer groups, sector KPIs, sector index/proxy rows, NAV/fleet,
 EBIT/kg, backlog, ROE/CET1, LTV/WAULT, or statement history from generic sector
 labels.
 
+## Beta v0.1.0 End State
+
+Beta v0.1.0 is release-ready when:
+
+- the app headline clearly shows `Beta v0.1.0`
+- public HTTPS URL works from another device
+- unauthenticated access is blocked
+- the Python app binds only to localhost behind the reverse proxy
+- persistent hosted `OSLO_APP_DB_PATH` is outside the git checkout
+- real hosted `OSLO_APP_BACKUP_MIRROR_DIR` points to an off-host/encrypted
+  backup destination
+- hosted backup, mirror copy, and restore drill pass
+- all refresh buttons have been verified and fixed so refresh paths perform true
+  upstream/source refreshes where supported, and clearly report cached, stale,
+  rate-limited, error, or missing states
+- README API checks and `scripts/verify_public_deployment.sh` pass against the
+  hosted URL
+- Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical
+  indicators, Sources, and the separate RSI14 screener work from another device
+- `docs/operator-refresh-checklist.md` has been run against the hosted instance
+- no recommendation logic or standalone valuation verdict labels have been added
+
 ## Sprint Count
 
-Minimum path to a controlled public MVP: 2 sprints.
+Remaining beta-release path: 2 sprints.
 
-Recommended path: 3 sprints.
-
-### Sprint 1: Public Access Foundation
+### Sprint 1: Hosted Public Access Completion
 
 Goal: make the app reachable at a public HTTPS address with controlled access.
 
@@ -127,6 +153,9 @@ Tasks:
 - set real `OSLO_APP_BACKUP_MIRROR_DIR`
 - run backup, mirror copy, and restore drill on the host
 - run README API checks on the hosted instance
+- verify and fix every refresh button so refresh actions perform true upstream
+  or source refreshes where supported, rather than only reprocessing old cached
+  data
 - verify all tabs from another device
 
 Exit criteria:
@@ -136,9 +165,11 @@ Exit criteria:
 - HTTPS is valid
 - local-only app bind is preserved behind proxy
 - backups and restore drill pass
+- refresh buttons have evidence-backed true-refresh behavior or explicit stale/
+  cached/error wording where a source cannot refresh
 - no source-quality/no-advice guardrails regress
 
-### Sprint 2: Data Refresh And Source-Quality Readiness
+### Completed Repo/UI Foundation: Data Refresh And Source-Quality Readiness
 
 Goal: make the data update workflow clear enough to use before and during beta.
 
@@ -148,25 +179,7 @@ Repo/UI foundation completed:
 - Start-tab and document-based operator refresh checklist added
 - scheduled NewsWeb automation remains out of scope
 
-Tasks:
-
-- review every tab's refresh control and stale/error wording
-- make last-successful refresh and source failure states easier to scan
-- verify yfinance, NewsWeb, Oslo Screener CSV/dashboard, manual review rows, and
-  local snapshots behave correctly after refresh
-- add a short operator refresh/review checklist
-- keep scheduled NewsWeb automation out unless explicitly scoped
-- preserve all no-advice/no-verdict guardrails
-
-Exit criteria:
-
-- user can refresh data intentionally
-- stale/error/source limitations are visible
-- daily digest remains on demand
-- primary-review/manual/source-linked paths are understandable
-- README verification and browser tab checks pass on hosted instance
-
-### Sprint 3: Beta Release Hardening
+### Sprint 2: Beta Release Hardening
 
 Goal: reduce avoidable operational risk before you use the MVP for a while.
 
@@ -187,14 +200,6 @@ Exit criteria:
 - beta caveats are documented
 - MVP is ready for real use and feedback collection
 
-## Can We Skip Sprint 3?
-
-Yes, if the goal is a small private beta and the user accepts more operational
-risk. The minimum two-sprint path can get the app publicly reachable and usable.
-
-The three-sprint path is safer because it leaves time for hosted smoke testing,
-backup/restore confidence, and cross-device UI checks before relying on it.
-
 ## Not In Go-Live Scope Unless Explicitly Added
 
 - buy/sell/hold recommendation logic
@@ -208,11 +213,8 @@ backup/restore confidence, and cross-device UI checks before relying on it.
 
 ## Suggested Next Sprint
 
-The repo-side Sprint 1 foundation and Sprint 2 data-refresh/source-quality
-foundation are complete. The next hosted work remains the operator side of
-Sprint 1: provide the real domain/subdomain, DNS access, host credentials, and
-mounted off-host/encrypted backup destination, then install and verify the app
-on that host.
+Start Sprint 1: Hosted Public Access Completion. Include the refresh-button
+true-refresh verification/fix in this sprint.
 
 Do not broaden data automation or valuation logic until the app is reachable,
 backed up, access-controlled, and verified from another device.
