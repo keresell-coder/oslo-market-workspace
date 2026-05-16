@@ -53,6 +53,10 @@ model.
 - Scheduled NewsWeb/fundamentals refreshes replace live/on-demand backend
   refreshes, with weekday pre-open, weekday post-close/evening, one Saturday,
   one Sunday, and manual-dispatch runs.
+- First static beta implementation is now present: curated YAML inputs under
+  `data/`, generated endpoint-shaped JSON under `docs/data/`, copied Pages
+  assets under `docs/`, and scheduled/manual generation through
+  `.github/workflows/static-data.yml`.
 
 See `docs/static-github-pages-remake.md` for the plan and copy/paste prompt for
 the next implementation chat.
@@ -118,7 +122,7 @@ Local folder:
 
 - **Header**: visible **Beta v0.1.0** warning label and screening-grade reminder.
 - **Start**: concise intent, source/metric summary, operator refresh checklist, limitations, and not-investment-advice disclaimer.
-- **Watchlist**: main scan table with collapsed note editing, add/remove symbols, price, RSI14 dashboard alert, technical indicators, multiples, own history entry point, peer context status/counts, provider target/rating source rows, updates, and actions.
+- **Watchlist**: compact synthesis table with one-line conclusions from Fundamentals, Own history, Technical indicators, Benchmarks, News/Events, and Sources; dense source/caveat details live in an expandable row drawer, and row buttons open the deeper tabs.
 - **Fundamentals**: cached Yahoo/yfinance fields in grouped columns, metric guide/data-validation panel below the primary table, and expanded consensus/source row editor.
 - **Own history**: dedicated tab for descriptive price-history context, compact price charts, local snapshot trend charts/rows, yfinance dated quarterly statement rows where available, primary-report review tracking, source/freshness/confidence metadata, and missing-data gates.
 - **Technical indicators**: `/api/technical-indicators` parses Oslo Screener `latest.csv` for RSI14, RSI6, MACD histogram, SMA50 distance, ADX14, MFI14, source signal, risk, stop-loss, and position sizing fields; the indicator guide sits behind a collapsed details control.
@@ -146,15 +150,57 @@ Local folder:
 
 - Price history uses Yahoo/yfinance 1-year daily closes with observation count, range, percentile, sampled chart points, source, freshness, confidence, and limitations.
 - Quarterly statement history uses yfinance quarterly income statement, balance sheet, and cash-flow tables only when they return dated quarter-end columns; values are not inferred from current summary fields, missing rows stay missing, and each period stays not-primary-verified until a source-linked company-report review row is stored.
+- EV/EBITDA is source-gated. Fresh rows compute it from yfinance enterprise
+  value, yfinance TTM EBITDA, and FX conversion where currencies differ. The
+  raw Yahoo/yfinance `enterpriseToEbitda` provider field is retained separately
+  as audit data and is not displayed as the main value when the calculation gate
+  fails.
 - Own-history uses local `fundamentals_snapshots`; Watchlist signals and compact snapshot charts require minimum observations.
 - Fundamentals table default columns are grouped: company, price/size, valuation multiples, earnings/yield, consensus/source refs, source, and links.
-- Fundamentals metric guide and validation panel explain fields, coverage, source quality, and missing-data caveats behind progressive disclosure below the main scan table.
+- Fundamentals metric guide and validation panel explain fields, coverage, source quality, multiple classifications, and missing-data caveats behind progressive disclosure below the main scan table.
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: convert SQLite/runtime state to repo input files, build
-  static JSON generation, adapt the frontend away from `/api/*`, configure
-  scheduled/manual GitHub Actions, and publish through GitHub Pages.
+- Remaining major gaps: enable GitHub Pages from `docs/`, run and observe the
+  first scheduled Action refresh on GitHub, verify the public Pages URL from
+  another device, and decide how far to expand static all-universe output
+  beyond the watchlist-focused beta.
+- Release check on 16 May 2026: the static build validates locally and both
+  local `/api/*` mode and local static `docs/data/*.json` mode browser-check
+  across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
+  Technical indicators, Sources, and the separate RSI14 screener tab. GitHub
+  Pages is still disabled/404 for this repository, and `origin/main` does not
+  yet contain the static workflow, builder, YAML inputs, or generated `docs/`
+  app assets. Keep beta v0.1.0 watchlist-focused until Pages and the first real
+  static-data refresh are verified.
+- Completed UX sprint: Watchlist rows now show compact conclusions from deeper
+  tabs, with source/freshness/confidence/caveat details moved into an
+  expandable row drawer and source chips kept visible in the main scan.
+- Planned research sprint: add a **Fundamental frameworks** tab for
+  source-gated Piotroski F-Score, Mohanram G-Score, DuPont, Ohlson O-Score, and
+  Sloan Accruals Ratio context. These are descriptive screening frameworks only;
+  missing inputs stay missing and outputs must not become advice or valuation
+  verdicts.
+- Fundamental Multiples And Technical Coverage Verification is complete:
+  TTM P/E, forward P/E, P/B, P/S, EV/revenue, EV/EBITDA, dividend yield,
+  target-derived fields, P/NAV, and EV/EBIT now carry classification,
+  method/input/source metadata; raw provider fields are retained separately
+  where displayed values are computed or gated.
+- Technical indicators coverage is explicit: `/api/technical-indicators`,
+  `docs/data/technical-indicators-watchlist.json`, the Watchlist, and the
+  Technical indicators tab list watchlist symbols missing from the current
+  Oslo Screener `latest.csv`/report output rather than silently dropping them.
+- Oslo Screener coverage reconciliation on 16 May 2026 confirmed HAFNI.OL,
+  KMAR.OL, LINK.OL, PUBLI.OL, and VEND.OL are absent from published
+  `latest.csv`, raw `main/latest.csv`, the latest committed `report_*.csv`,
+  `summaries/latest.md`, `tickers.txt`, `valid_tickers.txt`, and
+  `raw_tickers.txt`. `invalid_tickers.csv` only mentions old VENDA.OL/VENDB.OL,
+  so the current gap is the screener input universe, not frontend filtering.
+- Screener-side fix is pending as draft PR
+  https://github.com/keresell-coder/oslo-screener/pull/12. The PR adds the five
+  symbols to the active screener input list, aligns validation with the
+  30-observation screener gate, preserves the existing `latest.csv` schema, and
+  keeps KMAR.OL in `invalid_tickers.csv` until enough history exists.
 - Public MVP gap: the hosted backend path is intentionally paused. The next
   public MVP should be a static GitHub Pages dashboard with scheduled/manual
   generated data and explicit source/freshness/error states.
@@ -187,6 +233,70 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 After each completed task, update the relevant docs so they reflect what changed, what was verified, and what remains planned. Default continuation context is this `README.md` plus `docs/roadmap.md`; use more detailed docs only when needed.
 
 ## Recently Completed
+
+**Oslo Screener Coverage Reconciliation**
+
+- Checked public `oslo-screener` artifacts and confirmed the five missing
+  watchlist names were absent from the current screener input universe/report
+  output, not lost by the Oslo Stock app parser or frontend.
+- Opened draft `oslo-screener` PR #12 to add HAFNI.OL, KMAR.OL, LINK.OL,
+  PUBLI.OL, and VEND.OL to the active input list while preserving downstream
+  CSV compatibility for the ChatGPT screener and `oslo-screener-dashboard`.
+- Verified locally that HAFNI.OL, LINK.OL, PUBLI.OL, and VEND.OL produce
+  technical rows, while KMAR.OL is correctly history-gated until at least 30
+  observations are available.
+
+**Fundamental Multiples And Technical Coverage Verification**
+
+- Added `multipleSourceMetadata` to fundamentals rows so displayed/generated
+  multiples are classified as source-gated computed, provider-derived/manual,
+  unavailable, or intentionally not implemented.
+- Computed TTM P/E, forward P/E, P/B, P/S, EV/revenue, EV/EBITDA, and dividend
+  yield only from explicit yfinance inputs where available; raw provider fields
+  such as `providerTrailingPE`, `providerEnterpriseToRevenue`, and
+  `providerDividendYield` remain available for audit.
+- Kept P/NAV and EV/EBIT intentionally unavailable until source-linked inputs
+  exist, and kept target-derived fields labeled as provider/source-row context.
+- Added watchlist technical coverage metadata and missing coverage rows for
+  HAFNI.OL, KMAR.OL, LINK.OL, PUBLI.OL, and VEND.OL because they are absent
+  from the current Oslo Screener `latest.csv`/report output; no fallback
+  technical calculation is mixed into Oslo Screener source labels.
+- Regenerated static JSON under `docs/data/` and copied Pages assets under
+  `docs/` so local `/api/*` and static mode remain aligned.
+
+**Watchlist Synthesis Streamlining**
+
+- Reworked the Watchlist table into a compact synthesis view with columns for
+  Fundamentals, Own history, Technical indicators, Benchmarks, News/Events,
+  Sources, and Actions.
+- Moved dense provider/source-row, technical-source, NewsWeb fetch, cache, and
+  caveat text into an expandable per-row source-detail drawer.
+- Kept static GitHub Pages mode aligned by regenerating copied Pages assets and
+  generated JSON under `docs/data/`.
+
+**EV/EBITDA Source-Gate Fix**
+
+- Replaced direct display of Yahoo/yfinance `enterpriseToEbitda` with a
+  source-gated calculation using enterprise value, TTM EBITDA, and FX conversion
+  where currencies differ.
+- Kept raw provider EV/EBITDA separately as `providerEnterpriseToEbitda` and
+  exposed method/input details in Fundamentals source limits.
+- Regenerated static JSON and refreshed the local watchlist cache so local
+  `/api/*` and static `docs/data/*.json` use the fixed method.
+
+**Static GitHub Pages First Build**
+
+- Added repo-owned YAML inputs for watchlist, manual consensus/source rows,
+  peer groups, sector KPI rows, manual events, and quarterly review status.
+- Added `scripts/build_static_site_data.py` with strict YAML validation,
+  temporary build staging, optional local cache reuse, generated JSON under
+  `docs/data/`, copied Pages assets, manifest metadata, and a no-token
+  watchlist edit policy.
+- Added `.github/workflows/static-data.yml` for weekday pre-open, weekday
+  evening, Saturday, Sunday, and manual-dispatch generation.
+- Updated the frontend so the local app still uses `/api/*`, while the copied
+  Pages app reads static JSON and replaces watchlist mutation controls with a
+  GitHub edit link plus a copy/paste Codex PR prompt.
 
 **Static GitHub Pages Remake Decision**
 
@@ -426,19 +536,7 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-**Static GitHub Pages Remake**
-
-- Create repo input files under `data/` for watchlist, peer groups,
-  manual/source rows, sector KPIs, events, and quarterly review status.
-- Build static JSON outputs for the frontend.
-- Add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday,
-  and manual-dispatch GitHub Actions generation.
-- Adapt frontend data loading away from `/api/*`.
-- Implement first watchlist edit path as a GitHub web-editor link or
-  draft/export diff helper, not direct browser writes.
-- Publish through GitHub Pages and verify from another device.
-- Keep optional sector index/proxy curation explicit and reviewed.
-- Continue without adding recommendation logic.
-
-See `docs/static-github-pages-remake.md` and `docs/roadmap.md` for the broader
-sprint plan.
+Return to the remaining static-release tasks: enable GitHub Pages from `docs/`,
+observe the first real static-data GitHub Actions refresh, verify the public
+Pages URL from another device, and decide how far to expand static all-universe
+output beyond the watchlist-focused beta.

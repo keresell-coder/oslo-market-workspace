@@ -1,0 +1,612 @@
+{
+  "groups": [],
+  "message": "No peer group is configured for this symbol yet.",
+  "minimumData": {
+    "blockers": [
+      "Peer group reviewed",
+      "Minimum peer rows",
+      "Peer metric coverage",
+      "Price-history observations"
+    ],
+    "checks": [
+      {
+        "detail": "Current peer status: missing.",
+        "key": "peer_status",
+        "label": "Peer group reviewed",
+        "met": false
+      },
+      {
+        "detail": "0 loaded peer row(s); minimum 3.",
+        "key": "peer_count",
+        "label": "Minimum peer rows",
+        "met": false
+      },
+      {
+        "detail": "0 metric(s) have focus value plus enough peer observations.",
+        "key": "peer_metric_coverage",
+        "label": "Peer metric coverage",
+        "met": false
+      },
+      {
+        "detail": "0 daily close observation(s); minimum 120.",
+        "key": "price_history",
+        "label": "Price-history observations",
+        "met": false
+      },
+      {
+        "detail": "46 local snapshot(s); minimum 5.",
+        "key": "snapshot_history",
+        "label": "Local multiple snapshots",
+        "met": true
+      },
+      {
+        "detail": "Sector KPI placeholders may remain missing; reviewed/trusted manual or source-linked inputs with source context are required before sector KPI-derived fields are used.",
+        "key": "sector_kpis",
+        "label": "Sector KPI inputs",
+        "met": true
+      }
+    ],
+    "policy": "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, own-history coverage, source quality, and sector KPI inputs meet minimum requirements.",
+    "requirements": {
+      "minimumPeerStatusForDerivedScore": "reviewed",
+      "peerMetricMinimumPeers": 3,
+      "policy": "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, own-history coverage, source quality, and sector KPI inputs meet minimum requirements.",
+      "priceWindowMinimumObservations": 120,
+      "snapshotMinimumObservations": 5
+    },
+    "status": "not considered",
+    "valuationScoreEnabled": false
+  },
+  "ownHistory": {
+    "firstSnapshotAt": "2026-04-27T11:30:16+00:00",
+    "lastSnapshotAt": "2026-05-16T19:18:46+00:00",
+    "metrics": [
+      {
+        "current": null,
+        "historyMax": null,
+        "historyMedian": null,
+        "historyMin": null,
+        "key": "trailingPE",
+        "label": "TTM P/E",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 0,
+        "percentileInOwnHistory": null,
+        "unit": "x"
+      },
+      {
+        "current": 23.586570359739312,
+        "historyMax": 25.673788,
+        "historyMedian": 23.919975,
+        "historyMin": 22.827105,
+        "key": "forwardPE",
+        "label": "Forward P/E",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 47.82608695652174,
+        "unit": "x"
+      },
+      {
+        "current": 2.048217386862805,
+        "historyMax": 2.1691012,
+        "historyMedian": 2.0677970500000002,
+        "historyMin": 1.9681956,
+        "key": "priceToBook",
+        "label": "P/B",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 47.82608695652174,
+        "unit": "x"
+      },
+      {
+        "current": 7.949555932524042,
+        "historyMax": 8.48444,
+        "historyMedian": 8.0696285,
+        "historyMin": 7.693727,
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 32.608695652173914,
+        "unit": "x"
+      },
+      {
+        "current": 7.6711435219927475,
+        "historyMax": 8.787,
+        "historyMedian": 7.834,
+        "historyMin": 7.6711435219927475,
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 8.695652173913043,
+        "unit": "x"
+      },
+      {
+        "current": 27.153,
+        "historyMax": 33.418,
+        "historyMedian": 27.726,
+        "historyMin": 27.153,
+        "key": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 41,
+        "percentileInOwnHistory": 14.634146341463413,
+        "unit": "x"
+      },
+      {
+        "current": 1.0390689941812137,
+        "historyMax": 98.0,
+        "historyMedian": 1.0395344970906069,
+        "historyMin": 1.02,
+        "key": "dividendYield",
+        "label": "Dividend yield",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 50.0,
+        "unit": "%"
+      },
+      {
+        "current": 25.697655860349133,
+        "historyMax": 38.130255190311416,
+        "historyMedian": 25.697655860349133,
+        "historyMin": 20.430592621664047,
+        "key": "targetUpsidePct",
+        "label": "Target upside",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 46,
+        "percentileInOwnHistory": 71.73913043478261,
+        "unit": "%"
+      }
+    ],
+    "minimumObservations": 5,
+    "requirement": "Own-history valuation context needs several dated observations. Local snapshots start accumulating when fundamentals are refreshed.",
+    "snapshotCount": 46,
+    "status": "usable history",
+    "symbol": "VEND.OL",
+    "trendCharts": [
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": null,
+        "firstObservationAt": null,
+        "key": "trailingPE",
+        "label": "TTM P/E",
+        "lastObservationAt": null,
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 0,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "forwardPE",
+        "label": "Forward P/E",
+        "lastObservationAt": "2026-05-16T19:18:46+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 46,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 22.906092
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 22.827105
+          },
+          {
+            "date": "2026-05-02T18:23:33+00:00",
+            "value": 25.673788
+          },
+          {
+            "date": "2026-05-05T18:47:32+00:00",
+            "value": 23.919975
+          },
+          {
+            "date": "2026-05-07T05:25:42+00:00",
+            "value": 24.057125
+          },
+          {
+            "date": "2026-05-07T06:19:55+00:00",
+            "value": 24.057125
+          },
+          {
+            "date": "2026-05-16T14:20:46+00:00",
+            "value": 23.58657
+          },
+          {
+            "date": "2026-05-16T19:18:46+00:00",
+            "value": 23.586570359739312
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "priceToBook",
+        "label": "P/B",
+        "lastObservationAt": "2026-05-16T19:18:46+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 46,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 1.9750059
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 1.9681956
+          },
+          {
+            "date": "2026-05-02T18:23:33+00:00",
+            "value": 2.1691012
+          },
+          {
+            "date": "2026-05-05T18:47:32+00:00",
+            "value": 2.0771613
+          },
+          {
+            "date": "2026-05-07T05:25:42+00:00",
+            "value": 2.0890794
+          },
+          {
+            "date": "2026-05-07T06:19:55+00:00",
+            "value": 2.0890794
+          },
+          {
+            "date": "2026-05-16T14:20:46+00:00",
+            "value": 2.0482173
+          },
+          {
+            "date": "2026-05-16T19:18:46+00:00",
+            "value": 2.048217386862805
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "lastObservationAt": "2026-05-16T19:18:46+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 46,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 7.760282
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 7.693727
+          },
+          {
+            "date": "2026-05-02T18:23:33+00:00",
+            "value": 8.48444
+          },
+          {
+            "date": "2026-05-05T18:47:32+00:00",
+            "value": 8.092789
+          },
+          {
+            "date": "2026-05-07T05:25:42+00:00",
+            "value": 8.139223
+          },
+          {
+            "date": "2026-05-07T06:19:55+00:00",
+            "value": 8.139223
+          },
+          {
+            "date": "2026-05-16T14:20:46+00:00",
+            "value": 7.9508095
+          },
+          {
+            "date": "2026-05-16T19:18:46+00:00",
+            "value": 7.949555932524042
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "lastObservationAt": "2026-05-16T19:18:46+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 46,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 8.075
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 8.075
+          },
+          {
+            "date": "2026-05-02T18:23:33+00:00",
+            "value": 8.787
+          },
+          {
+            "date": "2026-05-05T18:47:32+00:00",
+            "value": 8.259
+          },
+          {
+            "date": "2026-05-07T05:25:42+00:00",
+            "value": 7.834
+          },
+          {
+            "date": "2026-05-07T06:19:55+00:00",
+            "value": 7.834
+          },
+          {
+            "date": "2026-05-16T14:20:46+00:00",
+            "value": 7.672
+          },
+          {
+            "date": "2026-05-16T19:18:46+00:00",
+            "value": 7.6711435219927475
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T14:21:21+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "lastObservationAt": "2026-05-16T14:21:21+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 41,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 30.71
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 30.71
+          },
+          {
+            "date": "2026-04-28T20:52:19+00:00",
+            "value": 30.346
+          },
+          {
+            "date": "2026-05-04T05:14:34+00:00",
+            "value": 28.848
+          },
+          {
+            "date": "2026-05-06T16:44:10+00:00",
+            "value": 27.559
+          },
+          {
+            "date": "2026-05-07T05:57:10+00:00",
+            "value": 27.726
+          },
+          {
+            "date": "2026-05-07T06:24:11+00:00",
+            "value": 27.726
+          },
+          {
+            "date": "2026-05-16T14:21:21+00:00",
+            "value": 27.153
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "firstObservationAt": "2026-04-27T11:30:16+00:00",
+        "key": "dividendYield",
+        "label": "Dividend yield",
+        "lastObservationAt": "2026-05-16T19:18:46+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 46,
+        "points": [
+          {
+            "date": "2026-04-27T11:30:16+00:00",
+            "value": 1.07
+          },
+          {
+            "date": "2026-04-27T17:11:18+00:00",
+            "value": 1.07
+          },
+          {
+            "date": "2026-05-02T18:23:33+00:00",
+            "value": 1.03
+          },
+          {
+            "date": "2026-05-05T18:47:32+00:00",
+            "value": 97.0
+          },
+          {
+            "date": "2026-05-07T05:25:42+00:00",
+            "value": 1.02
+          },
+          {
+            "date": "2026-05-07T06:19:55+00:00",
+            "value": 1.02
+          },
+          {
+            "date": "2026-05-16T14:20:46+00:00",
+            "value": 1.04
+          },
+          {
+            "date": "2026-05-16T19:18:46+00:00",
+            "value": 1.0390689941812137
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "%"
+      }
+    ],
+    "trendRows": [
+      {
+        "dividendYield": 1.04,
+        "enterpriseToEbitda": 27.153,
+        "enterpriseToRevenue": 7.672,
+        "fetchedAt": "2026-05-16T14:18:57+00:00",
+        "forwardPE": 23.58657,
+        "priceToBook": 2.0482173,
+        "priceToSalesTrailing12Months": 7.9508095,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.04,
+        "enterpriseToEbitda": 27.153,
+        "enterpriseToRevenue": 7.672,
+        "fetchedAt": "2026-05-16T14:20:46+00:00",
+        "forwardPE": 23.58657,
+        "priceToBook": 2.0482173,
+        "priceToSalesTrailing12Months": 7.9508095,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.04,
+        "enterpriseToEbitda": 27.153,
+        "enterpriseToRevenue": 7.672,
+        "fetchedAt": "2026-05-16T14:21:21+00:00",
+        "forwardPE": 23.58657,
+        "priceToBook": 2.0482173,
+        "priceToSalesTrailing12Months": 7.9508095,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.04,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": 7.672,
+        "fetchedAt": "2026-05-16T14:32:44+00:00",
+        "forwardPE": 23.58657,
+        "priceToBook": 2.0482173,
+        "priceToSalesTrailing12Months": 7.9508095,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.0390689941812137,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": 7.6711435219927475,
+        "fetchedAt": "2026-05-16T15:13:51+00:00",
+        "forwardPE": 23.586570359739312,
+        "priceToBook": 2.048217386862805,
+        "priceToSalesTrailing12Months": 7.949555932524042,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.0390689941812137,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": 7.6711435219927475,
+        "fetchedAt": "2026-05-16T19:15:40+00:00",
+        "forwardPE": 23.586570359739312,
+        "priceToBook": 2.048217386862805,
+        "priceToSalesTrailing12Months": 7.949555932524042,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.0390689941812137,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": 7.6711435219927475,
+        "fetchedAt": "2026-05-16T19:17:06+00:00",
+        "forwardPE": 23.586570359739312,
+        "priceToBook": 2.048217386862805,
+        "priceToSalesTrailing12Months": 7.949555932524042,
+        "trailingPE": null
+      },
+      {
+        "dividendYield": 1.0390689941812137,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": 7.6711435219927475,
+        "fetchedAt": "2026-05-16T19:18:46+00:00",
+        "forwardPE": 23.586570359739312,
+        "priceToBook": 2.048217386862805,
+        "priceToSalesTrailing12Months": 7.949555932524042,
+        "trailingPE": null
+      }
+    ]
+  },
+  "sectorContext": {
+    "components": [
+      {
+        "configuredCount": 0,
+        "requirement": "Configure and review an Oslo peer group before this component can support benchmark context.",
+        "status": "missing",
+        "symbols": [],
+        "type": "Oslo peer group"
+      },
+      {
+        "configuredCount": 0,
+        "requirement": "Add reviewed Nordic, European, or international peers where they are business-model relevant.",
+        "status": "missing",
+        "symbols": [],
+        "type": "International peer group"
+      },
+      {
+        "configuredCount": 0,
+        "requirement": "Optional sector index/proxy must be explicitly added as a peer item; it is never inferred from sector labels.",
+        "status": "missing",
+        "symbols": [],
+        "type": "Sector index/proxy"
+      }
+    ],
+    "exchange": "Oslo Bors",
+    "industry": "Internet Content & Information",
+    "limitations": "No sector index/proxy is inferred automatically. Backend-assisted peer groups remain draft until reviewed.",
+    "message": "Sector benchmark model is explicit: Oslo peers, international peers, and optional sector index/proxy are separate components.",
+    "name": "VEND MARKETPLACES ASA",
+    "requirement": "Sector context should use reviewed peer components and source-linked sector KPIs before any derived valuation score is considered.",
+    "sector": "Communication Services",
+    "sectorKpis": {
+      "categories": [],
+      "policy": "Sector KPI placeholders are explicit input slots only. Missing values stay missing until manually entered or source-linked and reviewed.",
+      "rows": [],
+      "status": "not applicable"
+    },
+    "source": "Local peer-group roles and manual/source-linked sector KPI input slots.",
+    "status": "not configured",
+    "symbol": "VEND.OL"
+  },
+  "status": "missing",
+  "symbol": "VEND.OL"
+}

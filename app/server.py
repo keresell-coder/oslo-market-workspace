@@ -69,6 +69,8 @@ NEWSWEB_CACHE_TTL_SECONDS = 60 * 15
 NEWSWEB_DIGEST_LOOKBACK_SECONDS = 60 * 60 * 24
 NEWSWEB_DIGEST_LIMIT_PER_SYMBOL = 12
 NEWSWEB_CACHE: dict[str, dict] = {}
+FX_CACHE_TTL_SECONDS = 60 * 60 * 6
+FX_RATE_CACHE: dict[str, dict] = {}
 EVENT_CATEGORIES = [
     {
         "key": "earnings",
@@ -179,6 +181,20 @@ BENCHMARK_METRICS = [
         "positiveOnly": True,
     },
     {
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "unit": "x",
+        "positionNote": "Revenue multiples need margin, growth, accounting, and sector context before comparison.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "unit": "x",
+        "positionNote": "Enterprise-value revenue context is sector dependent and should be paired with margins.",
+        "positiveOnly": True,
+    },
+    {
         "key": "enterpriseToEbitda",
         "label": "EV/EBITDA",
         "unit": "x",
@@ -201,7 +217,15 @@ BENCHMARK_METRICS = [
     },
 ]
 
-OWN_HISTORY_METRIC_KEYS = {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda", "dividendYield"}
+OWN_HISTORY_METRIC_KEYS = {
+    "trailingPE",
+    "forwardPE",
+    "priceToBook",
+    "priceToSalesTrailing12Months",
+    "enterpriseToRevenue",
+    "enterpriseToEbitda",
+    "dividendYield",
+}
 
 QUARTERLY_STATEMENT_FIELDS = [
     {
@@ -457,36 +481,65 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Valuation multiples",
         "metric": "TTM P/E",
         "field": "trailingPE",
-        "sourceField": "trailingPE from Yahoo/yfinance",
+        "sourceField": "computed from cached price and EPS TTM; raw trailingPE from Yahoo/yfinance retained separately",
         "shows": "Price relative to trailing twelve-month earnings.",
         "usefulFor": "Initial context for profitable, less cyclical companies when compared with peers and own history.",
         "caveats": "Weak for losses, one-off earnings, cyclicals, banks, and asset-heavy shipping cycles.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Missing or non-positive earnings should stay n/a.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs",
+        "classification": "source-gated computed; raw providerTrailingPE retained separately",
+        "missingData": "Missing or non-positive EPS stays n/a; raw provider P/E is not used as a fallback.",
         "placement": "default table",
     },
     {
         "group": "Valuation multiples",
         "metric": "Forward P/E",
         "field": "forwardPE",
-        "sourceField": "forwardPE from Yahoo/yfinance",
+        "sourceField": "computed from cached price and forward EPS; raw forwardPE from Yahoo/yfinance retained separately",
         "shows": "Price relative to forward earnings estimates.",
         "usefulFor": "Estimate-backed context where analyst coverage is broad enough to review.",
         "caveats": "Depends on third-party estimates and methodology that this app does not verify.",
-        "sourceQuality": "low to screening-grade yfinance estimate field",
-        "missingData": "Leave missing when the provider has no estimate.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance estimate inputs",
+        "classification": "source-gated computed; raw providerForwardPE retained separately",
+        "missingData": "Leave missing when forward EPS is absent or non-positive; raw provider P/E is audit data only.",
         "placement": "default table",
     },
     {
         "group": "Valuation multiples",
         "metric": "P/B",
         "field": "priceToBook",
-        "sourceField": "priceToBook from Yahoo/yfinance",
+        "sourceField": "computed from cached price and bookValue; raw priceToBook from Yahoo/yfinance retained separately",
         "shows": "Price relative to accounting book value.",
         "usefulFor": "Banks, insurers, asset-heavy sectors, and capital-intensive companies when paired with ROE and asset quality.",
         "caveats": "Book value is not NAV, replacement value, or fleet value. Intangibles and accounting timing matter.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Do not use P/B as a substitute for P/NAV.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs",
+        "classification": "source-gated computed; raw providerPriceToBook retained separately",
+        "missingData": "Leave missing when book value per share is absent or non-positive. Do not use P/B as a substitute for P/NAV.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "P/S",
+        "field": "priceToSalesTrailing12Months",
+        "sourceField": "computed from yfinance marketCap and yfinance TTM revenue when currency conversion is available; raw provider ratio is retained separately",
+        "shows": "Market capitalization relative to trailing-twelve-month revenue.",
+        "usefulFor": "Initial revenue-multiple context only when paired with margins, growth, and sector economics.",
+        "caveats": "Revenue multiples can be misleading across sectors and margin profiles. Source revenue rows can be provider-normalized.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerPriceToSalesTrailing12Months retained separately",
+        "missingData": "Leave missing when market cap, TTM revenue, or required FX conversion is unavailable or unusable.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "EV/revenue",
+        "field": "enterpriseToRevenue",
+        "sourceField": "computed from yfinance enterpriseValue and yfinance TTM revenue when currency conversion is available; raw provider ratio is retained separately",
+        "shows": "Enterprise value relative to trailing-twelve-month revenue.",
+        "usefulFor": "Capital-structure-aware revenue context when compared with margins and peers.",
+        "caveats": "Margin structure, leases/debt, cyclicality, and revenue recognition make standalone interpretation unsafe.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerEnterpriseToRevenue retained separately",
+        "missingData": "Leave missing when enterprise value, TTM revenue, or required FX conversion is unavailable or unusable.",
         "placement": "default table",
     },
     {
@@ -505,12 +558,13 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Valuation multiples",
         "metric": "EV/EBITDA",
         "field": "enterpriseToEbitda",
-        "sourceField": "enterpriseToEbitda from Yahoo/yfinance",
-        "shows": "Enterprise value relative to EBITDA.",
+        "sourceField": "computed from yfinance enterpriseValue and yfinance TTM EBITDA when currency conversion is available; raw Yahoo/yfinance provider ratio is retained separately",
+        "shows": "Enterprise value relative to trailing-twelve-month EBITDA.",
         "usefulFor": "Capital structure-aware screening for many industrial and asset-heavy businesses.",
-        "caveats": "Lease/debt treatment, cyclicality, negative EBITDA, and one-offs can make it misleading.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Leave missing when EV or EBITDA is unavailable or unusable.",
+        "caveats": "Requires EV, TTM EBITDA, and matching or converted currencies. Lease/debt treatment, cyclicality, negative EBITDA, one-offs, and provider-normalized statement rows can make it misleading.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerEnterpriseToEbitda retained separately",
+        "missingData": "Leave missing when EV, TTM EBITDA, or required FX conversion is unavailable or unusable. Do not fall back to the raw provider ratio.",
         "placement": "default table",
     },
     {
@@ -541,12 +595,13 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Earnings and yield",
         "metric": "Dividend yield",
         "field": "dividendYield",
-        "sourceField": "dividendYield from Yahoo/yfinance",
+        "sourceField": "computed from dividendRate and cached price when available; raw dividendYield from Yahoo/yfinance retained separately",
         "shows": "Provider dividend yield, normalized to percent in this app.",
         "usefulFor": "Income-screening context before reviewing payout, balance sheet, and cyclicality.",
         "caveats": "Can reflect historical dividends, special dividends, or stale provider data.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Missing does not mean no dividend; verify before relying on it.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs when dividendRate and price are available",
+        "classification": "source-gated computed; raw providerDividendYield retained separately",
+        "missingData": "Missing dividendRate stays n/a and does not mean no dividend; verify before relying on it.",
         "placement": "default table",
     },
     {
@@ -582,6 +637,7 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "usefulFor": "Source review and comparison across provider rows when manually added.",
         "caveats": "Counts can overlap and are not deduplicated. Rating labels are not weighted or converted into app recommendations.",
         "sourceQuality": "low until manually reviewed across providers",
+        "classification": "provider-derived/source-row; not computed consensus",
         "missingData": "Missing or single-provider rows stay source-row data and should not be treated as verified consensus.",
         "placement": "default table with editor and source notes",
     },
@@ -593,7 +649,9 @@ FUNDAMENTAL_VALIDATION_FIELDS = [
     ("TTM P/E", "trailingPE"),
     ("Forward P/E", "forwardPE"),
     ("P/B", "priceToBook"),
+    ("P/S", "priceToSalesTrailing12Months"),
     ("P/NAV", "pnAv"),
+    ("EV/revenue", "enterpriseToRevenue"),
     ("EV/EBITDA", "enterpriseToEbitda"),
     ("EV/EBIT", "evToEbit"),
     ("EPS TTM", "epsTrailingTwelveMonths"),
@@ -1410,10 +1468,8 @@ def fetch_yfinance(symbol: str) -> dict:
     if current_price and target:
         upside = (target / current_price - 1) * 100
 
-    dividend_yield = pick_number(info, "dividendYield")
-    if dividend_yield is not None and dividend_yield < 1:
-        dividend_yield *= 100
-
+    ev_ebitda = enterprise_to_ebitda_summary(ticker, info, now)
+    multiple_summaries = fundamental_multiple_summaries(ticker, info, current_price, ev_ebitda, now)
     payload = {
         "symbol": symbol,
         "name": info.get("shortName") or info.get("longName") or symbol,
@@ -1424,15 +1480,33 @@ def fetch_yfinance(symbol: str) -> dict:
         "price": current_price,
         "marketCap": pick_number(info, "marketCap"),
         "enterpriseValue": pick_number(info, "enterpriseValue"),
-        "trailingPE": pick_number(info, "trailingPE"),
-        "forwardPE": pick_number(info, "forwardPE"),
-        "priceToBook": pick_number(info, "priceToBook"),
-        "priceToSalesTrailing12Months": pick_number(info, "priceToSalesTrailing12Months"),
-        "enterpriseToRevenue": pick_number(info, "enterpriseToRevenue"),
-        "enterpriseToEbitda": pick_number(info, "enterpriseToEbitda"),
+        "trailingPE": multiple_summaries["trailingPE"].get("value"),
+        "providerTrailingPE": multiple_summaries["trailingPE"].get("providerValue"),
+        "forwardPE": multiple_summaries["forwardPE"].get("value"),
+        "providerForwardPE": multiple_summaries["forwardPE"].get("providerValue"),
+        "priceToBook": multiple_summaries["priceToBook"].get("value"),
+        "providerPriceToBook": multiple_summaries["priceToBook"].get("providerValue"),
+        "bookValue": pick_number(info, "bookValue"),
+        "priceToSalesTrailing12Months": multiple_summaries["priceToSalesTrailing12Months"].get("value"),
+        "providerPriceToSalesTrailing12Months": multiple_summaries["priceToSalesTrailing12Months"].get("providerValue"),
+        "enterpriseToRevenue": multiple_summaries["enterpriseToRevenue"].get("value"),
+        "providerEnterpriseToRevenue": multiple_summaries["enterpriseToRevenue"].get("providerValue"),
+        "enterpriseToEbitda": ev_ebitda.get("value"),
+        "providerEnterpriseToEbitda": ev_ebitda.get("providerEnterpriseToEbitda"),
+        "enterpriseToEbitdaStatus": ev_ebitda.get("status"),
+        "enterpriseToEbitdaSource": ev_ebitda.get("source"),
+        "enterpriseToEbitdaMethod": ev_ebitda.get("method"),
+        "enterpriseToEbitdaLimitation": ev_ebitda.get("limitation"),
+        "enterpriseToEbitdaConfidence": ev_ebitda.get("confidence"),
+        "enterpriseToEbitdaInputs": ev_ebitda,
+        "ttmEbitda": ev_ebitda.get("ttmEbitda"),
+        "ttmEbitdaCurrency": ev_ebitda.get("ttmEbitdaCurrency"),
+        "ttmEbitdaPeriodEnd": ev_ebitda.get("ttmEbitdaPeriodEnd"),
         "epsTrailingTwelveMonths": pick_number(info, "epsTrailingTwelveMonths", "trailingEps"),
         "epsForward": pick_number(info, "forwardEps"),
-        "dividendYield": dividend_yield,
+        "dividendRate": multiple_summaries["dividendYield"].get("inputs", {}).get("annualDividendRate"),
+        "dividendYield": multiple_summaries["dividendYield"].get("value"),
+        "providerDividendYield": multiple_summaries["dividendYield"].get("providerValue"),
         "targetMeanPrice": target,
         "targetHighPrice": pick_number(info, "targetHighPrice"),
         "targetLowPrice": pick_number(info, "targetLowPrice"),
@@ -1445,6 +1519,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "recommendationScale": "Yahoo/yfinance rating-label fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
         "pnAv": None,
         "evToEbit": None,
+        "multipleSourceMetadata": multiple_summaries,
         "source": "Yahoo Finance via yfinance",
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
@@ -1950,6 +2025,687 @@ def pick_number(info: dict, *keys: str) -> float | None:
         if numeric is not None:
             return numeric
     return None
+
+
+def ttm_statement_value(ticker, row_labels: list[str]) -> tuple[float | None, str | None, str | None]:
+    try:
+        frame = ticker.ttm_income_stmt
+    except Exception:
+        return None, None, None
+    if not dataframe_has_rows(frame):
+        return None, None, None
+    columns = list(getattr(frame, "columns", []))
+    if not columns:
+        return None, None, None
+    value, source_row = statement_frame_value(frame, row_labels, columns[0])
+    return value, source_row, history_index_date(columns[0])
+
+
+def fx_pair_symbol(from_currency: str, to_currency: str) -> str:
+    return f"{from_currency.upper()}{to_currency.upper()}=X"
+
+
+def yfinance_fx_rate(from_currency: str, to_currency: str) -> dict:
+    from_currency = (from_currency or "").upper()
+    to_currency = (to_currency or "").upper()
+    if not from_currency or not to_currency:
+        return {
+            "rate": None,
+            "pair": "",
+            "source": "Yahoo Finance via yfinance FX",
+            "status": "missing-currency",
+            "error": "Quote currency or financial currency is missing.",
+        }
+    if from_currency == to_currency:
+        return {
+            "rate": 1.0,
+            "pair": f"{from_currency}/{to_currency}",
+            "source": "same currency",
+            "status": "same-currency",
+            "fetchedAt": utc_now(),
+        }
+
+    cache_key = f"{from_currency}:{to_currency}"
+    cached = FX_RATE_CACHE.get(cache_key)
+    now_epoch = int(time.time())
+    if cached and now_epoch - int(cached.get("fetched_at_epoch", 0)) < FX_CACHE_TTL_SECONDS:
+        return dict(cached["payload"])
+
+    if yf is None:
+        return {
+            "rate": None,
+            "pair": fx_pair_symbol(from_currency, to_currency),
+            "source": "Yahoo Finance via yfinance FX",
+            "status": "missing-yfinance",
+            "error": "yfinance is not installed.",
+        }
+
+    fetched_at = utc_now()
+    errors = []
+    direct_pair = fx_pair_symbol(from_currency, to_currency)
+    reverse_pair = fx_pair_symbol(to_currency, from_currency)
+    for pair, invert in [(direct_pair, False), (reverse_pair, True)]:
+        try:
+            history = yf.Ticker(pair).history(period="5d")
+            if not dataframe_has_rows(history) or "Close" not in getattr(history, "columns", []):
+                errors.append(f"{pair}: no close rows")
+                continue
+            close_values = [finite_float(value) for value in history["Close"].tolist()]
+            close_values = [value for value in close_values if value is not None and value > 0]
+            if not close_values:
+                errors.append(f"{pair}: no usable close")
+                continue
+            rate = close_values[-1]
+            if invert:
+                rate = 1 / rate
+            payload = {
+                "rate": rate,
+                "pair": pair,
+                "source": "Yahoo Finance via yfinance FX",
+                "status": "fresh",
+                "fetchedAt": fetched_at,
+                "inverted": invert,
+            }
+            FX_RATE_CACHE[cache_key] = {"fetched_at_epoch": now_epoch, "payload": payload}
+            return payload
+        except Exception as exc:
+            errors.append(f"{pair}: {exc}")
+
+    return {
+        "rate": None,
+        "pair": direct_pair,
+        "source": "Yahoo Finance via yfinance FX",
+        "status": "error",
+        "fetchedAt": fetched_at,
+        "error": "; ".join(errors),
+    }
+
+
+def source_gated_ratio_summary(
+    *,
+    field: str,
+    label: str,
+    provider_field: str,
+    provider_value: float | None,
+    numerator: float | None,
+    numerator_label: str,
+    denominator: float | None,
+    denominator_label: str,
+    source: str,
+    method: str,
+    fetched_at: str,
+    unit: str = "x",
+    numerator_currency: str | None = None,
+    denominator_currency: str | None = None,
+    denominator_period_end: str | None = None,
+    denominator_source_row: str | None = None,
+    limitation_note: str = "",
+) -> dict:
+    value = None
+    status = "computed"
+    limitation = limitation_note
+    if numerator is None or numerator <= 0:
+        status = "gated-missing-numerator"
+        limitation = f"{numerator_label} is missing or non-positive."
+    elif denominator is None:
+        status = "gated-missing-denominator"
+        limitation = f"{denominator_label} is missing."
+    elif denominator <= 0:
+        status = "gated-nonpositive-denominator"
+        limitation = f"{denominator_label} is zero or negative."
+    else:
+        value = numerator / denominator
+        if not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = f"{label} calculation produced an unusable value."
+            value = None
+
+    return {
+        "field": field,
+        "label": label,
+        "unit": unit,
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "source": source,
+        "method": method,
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "providerField": provider_field,
+        "providerValue": provider_value,
+        "providerDifferencePct": pct_diff(provider_value, value) if provider_value is not None and value is not None else None,
+        "inputs": {
+            "numerator": numerator,
+            "numeratorLabel": numerator_label,
+            "numeratorCurrency": numerator_currency,
+            "denominator": denominator,
+            "denominatorLabel": denominator_label,
+            "denominatorCurrency": denominator_currency,
+            "denominatorPeriodEnd": denominator_period_end,
+            "denominatorSourceRow": denominator_source_row,
+        },
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def source_gated_ttm_statement_ratio_summary(
+    *,
+    ticker,
+    info: dict,
+    field: str,
+    label: str,
+    provider_field: str,
+    provider_value: float | None,
+    numerator: float | None,
+    numerator_label: str,
+    row_labels: list[str],
+    denominator_label: str,
+    fetched_at: str,
+    limitation_note: str,
+) -> dict:
+    quote_currency = info.get("currency") or "NOK"
+    financial_currency = info.get("financialCurrency") or ""
+    ttm_value, source_row, period_end = ttm_statement_value(ticker, row_labels)
+    fx = yfinance_fx_rate(financial_currency, quote_currency)
+    rate = fx.get("rate")
+    denominator = None
+    status_prefix = ""
+    extra_limitation = limitation_note
+    if ttm_value is not None and ttm_value > 0:
+        if rate is None or rate <= 0:
+            status_prefix = "gated-missing-fx-rate"
+            extra_limitation = "Currency conversion is required but no usable FX rate was returned."
+        else:
+            denominator = ttm_value * rate
+
+    summary = source_gated_ratio_summary(
+        field=field,
+        label=label,
+        provider_field=provider_field,
+        provider_value=provider_value,
+        numerator=numerator,
+        numerator_label=numerator_label,
+        numerator_currency=quote_currency,
+        denominator=denominator if status_prefix != "gated-missing-fx-rate" else None,
+        denominator_label=denominator_label,
+        denominator_currency=quote_currency if denominator is not None else financial_currency,
+        denominator_period_end=period_end,
+        denominator_source_row=source_row,
+        source="Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+        method=f"Computed as {numerator_label} divided by yfinance TTM {denominator_label} converted to the quote currency.",
+        fetched_at=fetched_at,
+        limitation_note=extra_limitation,
+    )
+    if status_prefix:
+        summary["status"] = status_prefix
+        summary["limitation"] = extra_limitation
+    summary["inputs"].update(
+        {
+            "rawTtmValue": ttm_value,
+            "rawTtmCurrency": financial_currency,
+            "fxRate": rate,
+            "fxPair": fx.get("pair"),
+            "fxSource": fx.get("source"),
+            "fxStatus": fx.get("status"),
+            "fxFetchedAt": fx.get("fetchedAt"),
+            "fxError": fx.get("error"),
+        }
+    )
+    return summary
+
+
+def dividend_yield_summary(info: dict, current_price: float | None, fetched_at: str) -> dict:
+    provider_value = pick_number(info, "dividendYield")
+    if provider_value is not None and provider_value < 1:
+        provider_value *= 100
+    annual_dividend = pick_number(info, "dividendRate", "trailingAnnualDividendRate")
+    value = None
+    status = "computed"
+    limitation = "Dividend yield uses yfinance annual dividend rate divided by the cached price when both inputs are available."
+    if current_price is None or current_price <= 0:
+        status = "gated-missing-price"
+        limitation = "Cached price is missing or non-positive."
+    elif annual_dividend is None:
+        status = "gated-missing-dividend-rate"
+        limitation = "Annual dividend rate was not returned by yfinance. Missing does not prove no dividend."
+    elif annual_dividend < 0:
+        status = "gated-negative-dividend-rate"
+        limitation = "Annual dividend rate is negative or unusable."
+    else:
+        value = annual_dividend / current_price * 100
+        if not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = "Dividend-yield calculation produced an unusable value."
+            value = None
+    return {
+        "field": "dividendYield",
+        "label": "Dividend yield",
+        "unit": "%",
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "source": "Yahoo Finance via yfinance dividendRate and cached price",
+        "method": "Computed as annual dividend rate divided by cached price, shown as percent.",
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "providerField": "dividendYield",
+        "providerValue": provider_value,
+        "providerDifferencePct": pct_diff(provider_value, value) if provider_value is not None and value is not None else None,
+        "inputs": {
+            "annualDividendRate": annual_dividend,
+            "price": current_price,
+            "currency": info.get("currency") or "NOK",
+        },
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def enterprise_to_ebitda_summary(ticker, info: dict, fetched_at: str) -> dict:
+    quote_currency = info.get("currency") or "NOK"
+    financial_currency = info.get("financialCurrency") or ""
+    enterprise_value = pick_number(info, "enterpriseValue")
+    provider_ratio = pick_number(info, "enterpriseToEbitda")
+    ttm_ebitda, ttm_source_row, ttm_period_end = ttm_statement_value(ticker, ["EBITDA", "Normalized EBITDA"])
+    fx = yfinance_fx_rate(financial_currency, quote_currency)
+    value = None
+    status = "computed"
+    limitation = ""
+    ebitda_in_quote_currency = None
+    rate = fx.get("rate")
+
+    if enterprise_value is None or enterprise_value <= 0:
+        status = "gated-missing-enterprise-value"
+        limitation = "Enterprise value is missing or non-positive."
+    elif ttm_ebitda is None:
+        status = "gated-missing-ttm-ebitda"
+        limitation = "TTM EBITDA was not returned by yfinance ttm_income_stmt."
+    elif ttm_ebitda <= 0:
+        status = "gated-nonpositive-ttm-ebitda"
+        limitation = "TTM EBITDA is zero or negative, so EV/EBITDA is not displayed."
+    elif rate is None or rate <= 0:
+        status = "gated-missing-fx-rate"
+        limitation = "Currency conversion is required but no usable FX rate was returned."
+    else:
+        ebitda_in_quote_currency = ttm_ebitda * rate
+        value = enterprise_value / ebitda_in_quote_currency if ebitda_in_quote_currency > 0 else None
+        if value is None or not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = "EV/EBITDA calculation produced an unusable value."
+            value = None
+
+    provider_difference_pct = pct_diff(provider_ratio, value) if provider_ratio is not None and value is not None else None
+    method = (
+        "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. "
+        "The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails."
+    )
+    return {
+        "field": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "unit": "x",
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "method": method,
+        "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "enterpriseValue": enterprise_value,
+        "enterpriseValueCurrency": quote_currency,
+        "ttmEbitda": ttm_ebitda,
+        "ttmEbitdaCurrency": financial_currency,
+        "ttmEbitdaSourceRow": ttm_source_row,
+        "ttmEbitdaPeriodEnd": ttm_period_end,
+        "fxRate": rate,
+        "fxPair": fx.get("pair"),
+        "fxSource": fx.get("source"),
+        "fxStatus": fx.get("status"),
+        "fxFetchedAt": fx.get("fetchedAt"),
+        "fxError": fx.get("error"),
+        "ebitdaInEnterpriseValueCurrency": ebitda_in_quote_currency,
+        "providerEnterpriseToEbitda": provider_ratio,
+        "providerDifferencePct": provider_difference_pct,
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def unavailable_multiple_summary(field: str, label: str, reason: str, fetched_at: str, unit: str = "x") -> dict:
+    return {
+        "field": field,
+        "label": label,
+        "unit": unit,
+        "value": None,
+        "classification": "intentionally not implemented",
+        "status": "intentionally-not-implemented",
+        "source": "not implemented",
+        "method": reason,
+        "fetchedAt": fetched_at,
+        "limitation": reason,
+        "providerField": None,
+        "providerValue": None,
+        "inputs": {},
+        "confidence": "missing",
+    }
+
+
+def target_derived_summary(payload: dict, fetched_at: str) -> dict:
+    return {
+        "field": "targetUpsidePct",
+        "label": "Target-derived fields",
+        "unit": "%",
+        "value": payload.get("targetUpsidePct"),
+        "classification": "provider-derived",
+        "status": "provider-row" if payload.get("targetMeanPrice") is not None else "missing-provider-target",
+        "source": payload.get("targetPriceSource") or "Yahoo Finance via yfinance",
+        "method": payload.get("targetPriceMethod") or "Provider target divided by cached price; source rows are not verified consensus.",
+        "fetchedAt": fetched_at,
+        "limitation": "Target rows are provider/manual source rows. Reported analyst references may overlap and are not deduplicated.",
+        "providerField": "targetMeanPrice",
+        "providerValue": payload.get("targetMeanPrice"),
+        "inputs": {
+            "targetMeanPrice": payload.get("targetMeanPrice"),
+            "targetHighPrice": payload.get("targetHighPrice"),
+            "targetLowPrice": payload.get("targetLowPrice"),
+            "price": payload.get("price"),
+            "currency": payload.get("currency"),
+        },
+        "confidence": "low to screening-grade provider row",
+    }
+
+
+def fundamental_multiple_summaries(ticker, info: dict, current_price: float | None, ev_ebitda: dict, fetched_at: str) -> dict:
+    eps_ttm = pick_number(info, "epsTrailingTwelveMonths", "trailingEps")
+    eps_forward = pick_number(info, "forwardEps")
+    book_value = pick_number(info, "bookValue")
+    market_cap = pick_number(info, "marketCap")
+    enterprise_value = pick_number(info, "enterpriseValue")
+    quote_currency = info.get("currency") or "NOK"
+
+    summaries = {
+        "trailingPE": source_gated_ratio_summary(
+            field="trailingPE",
+            label="TTM P/E",
+            provider_field="trailingPE",
+            provider_value=pick_number(info, "trailingPE"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=eps_ttm,
+            denominator_label="TTM EPS",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and EPS fields",
+            method="Computed as cached share price divided by yfinance trailing EPS.",
+            fetched_at=fetched_at,
+            limitation_note="Trailing EPS can differ from company adjusted EPS and may include one-offs.",
+        ),
+        "forwardPE": source_gated_ratio_summary(
+            field="forwardPE",
+            label="Forward P/E",
+            provider_field="forwardPE",
+            provider_value=pick_number(info, "forwardPE"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=eps_forward,
+            denominator_label="forward EPS estimate",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and forward EPS estimate fields",
+            method="Computed as cached share price divided by yfinance forward EPS estimate.",
+            fetched_at=fetched_at,
+            limitation_note="Forward EPS is an estimate field with unverified methodology and contributor coverage.",
+        ),
+        "priceToBook": source_gated_ratio_summary(
+            field="priceToBook",
+            label="P/B",
+            provider_field="priceToBook",
+            provider_value=pick_number(info, "priceToBook"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=book_value,
+            denominator_label="book value per share",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and bookValue fields",
+            method="Computed as cached share price divided by yfinance book value per share.",
+            fetched_at=fetched_at,
+            limitation_note="Book value is not NAV, replacement value, fleet value, or reviewed accounting equity.",
+        ),
+        "priceToSalesTrailing12Months": source_gated_ttm_statement_ratio_summary(
+            ticker=ticker,
+            info=info,
+            field="priceToSalesTrailing12Months",
+            label="P/S",
+            provider_field="priceToSalesTrailing12Months",
+            provider_value=pick_number(info, "priceToSalesTrailing12Months"),
+            numerator=market_cap,
+            numerator_label="market cap",
+            row_labels=["Total Revenue", "Operating Revenue"],
+            denominator_label="revenue",
+            fetched_at=fetched_at,
+            limitation_note="Revenue multiples need margin, growth, sector, and accounting context.",
+        ),
+        "enterpriseToRevenue": source_gated_ttm_statement_ratio_summary(
+            ticker=ticker,
+            info=info,
+            field="enterpriseToRevenue",
+            label="EV/revenue",
+            provider_field="enterpriseToRevenue",
+            provider_value=pick_number(info, "enterpriseToRevenue"),
+            numerator=enterprise_value,
+            numerator_label="enterprise value",
+            row_labels=["Total Revenue", "Operating Revenue"],
+            denominator_label="revenue",
+            fetched_at=fetched_at,
+            limitation_note="EV/revenue is margin-sensitive and sector-specific.",
+        ),
+        "enterpriseToEbitda": ev_ebitda,
+        "dividendYield": dividend_yield_summary(info, current_price, fetched_at),
+        "pnAv": unavailable_multiple_summary(
+            "pnAv",
+            "P/NAV",
+            "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+            fetched_at,
+        ),
+        "evToEbit": unavailable_multiple_summary(
+            "evToEbit",
+            "EV/EBIT",
+            "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+            fetched_at,
+        ),
+    }
+    return summaries
+
+
+def normalize_enterprise_to_ebitda_fields(payload: dict) -> dict:
+    if "enterpriseToEbitdaStatus" in payload:
+        return payload
+    provider_ratio = payload.get("enterpriseToEbitda")
+    payload["providerEnterpriseToEbitda"] = provider_ratio
+    payload["enterpriseToEbitda"] = None
+    payload["enterpriseToEbitdaStatus"] = "gated-legacy-provider-field"
+    payload["enterpriseToEbitdaSource"] = "Legacy Yahoo/yfinance provider field"
+    payload["enterpriseToEbitdaMethod"] = (
+        "This cached row predates the source-gated EV/EBITDA calculation. Refresh fundamentals to compute from "
+        "enterprise value, TTM EBITDA, and FX where needed."
+    )
+    payload["enterpriseToEbitdaLimitation"] = "Legacy provider EV/EBITDA is hidden because currency and TTM EBITDA inputs were not validated."
+    payload["enterpriseToEbitdaInputs"] = {
+        "providerEnterpriseToEbitda": provider_ratio,
+        "status": payload["enterpriseToEbitdaStatus"],
+    }
+    return payload
+
+
+def normalize_fundamental_multiple_fields(payload: dict) -> dict:
+    if not payload:
+        return payload
+    metadata = dict(payload.get("multipleSourceMetadata") or {})
+    fetched_at = payload.get("fetchedAt") or utc_now()
+    currency = payload.get("currency") or "NOK"
+
+    def provider_key(field: str) -> str:
+        return {
+            "trailingPE": "providerTrailingPE",
+            "forwardPE": "providerForwardPE",
+            "priceToBook": "providerPriceToBook",
+            "priceToSalesTrailing12Months": "providerPriceToSalesTrailing12Months",
+            "enterpriseToRevenue": "providerEnterpriseToRevenue",
+            "enterpriseToEbitda": "providerEnterpriseToEbitda",
+            "dividendYield": "providerDividendYield",
+        }.get(field, f"provider{field[:1].upper()}{field[1:]}")
+
+    for field in (
+        "trailingPE",
+        "forwardPE",
+        "priceToBook",
+        "priceToSalesTrailing12Months",
+        "enterpriseToRevenue",
+        "enterpriseToEbitda",
+        "dividendYield",
+    ):
+        key = provider_key(field)
+        if key not in payload and field in payload:
+            payload[key] = payload.get(field)
+
+    if "trailingPE" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="trailingPE",
+            label="TTM P/E",
+            provider_field="trailingPE",
+            provider_value=payload.get("providerTrailingPE"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("epsTrailingTwelveMonths"),
+            denominator_label="TTM EPS",
+            denominator_currency=currency,
+            source="Cached yfinance price and EPS fields",
+            method="Computed as cached share price divided by cached trailing EPS.",
+            fetched_at=fetched_at,
+            limitation_note="Cached rows inherit yfinance source limits and may need refresh.",
+        )
+        payload["trailingPE"] = summary["value"]
+        metadata["trailingPE"] = summary
+    if "forwardPE" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="forwardPE",
+            label="Forward P/E",
+            provider_field="forwardPE",
+            provider_value=payload.get("providerForwardPE"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("epsForward"),
+            denominator_label="forward EPS estimate",
+            denominator_currency=currency,
+            source="Cached yfinance price and forward EPS fields",
+            method="Computed as cached share price divided by cached forward EPS estimate.",
+            fetched_at=fetched_at,
+            limitation_note="Forward EPS is an estimate field with unverified methodology.",
+        )
+        payload["forwardPE"] = summary["value"]
+        metadata["forwardPE"] = summary
+    if "priceToBook" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="priceToBook",
+            label="P/B",
+            provider_field="priceToBook",
+            provider_value=payload.get("providerPriceToBook"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("bookValue"),
+            denominator_label="book value per share",
+            denominator_currency=currency,
+            source="Cached yfinance price and bookValue fields",
+            method="Computed as cached share price divided by cached book value per share.",
+            fetched_at=fetched_at,
+            limitation_note="Book value is not NAV, replacement value, or fleet value.",
+        )
+        payload["priceToBook"] = summary["value"]
+        metadata["priceToBook"] = summary
+    if "dividendYield" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="dividendYield",
+            label="Dividend yield",
+            provider_field="dividendYield",
+            provider_value=payload.get("providerDividendYield"),
+            numerator=payload.get("dividendRate"),
+            numerator_label="annual dividend rate",
+            numerator_currency=currency,
+            denominator=payload.get("price"),
+            denominator_label="cached share price",
+            denominator_currency=currency,
+            source="Cached yfinance dividendRate and price fields",
+            method="Computed as annual dividend rate divided by cached price, shown as percent.",
+            fetched_at=fetched_at,
+            unit="%",
+            limitation_note="Missing dividend rate does not prove no dividend.",
+        )
+        if summary["value"] is not None:
+            summary["value"] *= 100
+            provider_value = summary.get("providerValue")
+            summary["providerDifferencePct"] = (
+                pct_diff(provider_value, summary["value"]) if provider_value is not None else None
+            )
+        payload["dividendYield"] = summary["value"]
+        metadata["dividendYield"] = summary
+    for field, label, provider in (
+        ("priceToSalesTrailing12Months", "P/S", "priceToSalesTrailing12Months"),
+        ("enterpriseToRevenue", "EV/revenue", "enterpriseToRevenue"),
+    ):
+        if field not in metadata:
+            payload[field] = None
+            metadata[field] = {
+                "field": field,
+                "label": label,
+                "unit": "x",
+                "value": None,
+                "classification": "unavailable",
+                "status": "gated-missing-ttm-revenue",
+                "source": "cached yfinance row without explicit TTM revenue input",
+                "method": "Refresh fundamentals to compute from market cap or enterprise value divided by yfinance TTM revenue with FX where needed.",
+                "fetchedAt": fetched_at,
+                "limitation": "The raw provider field is preserved separately and hidden until explicit revenue inputs are available.",
+                "providerField": provider,
+                "providerValue": payload.get(provider_key(field)),
+                "inputs": {},
+                "confidence": "gated",
+            }
+    metadata.setdefault(
+        "pnAv",
+        unavailable_multiple_summary(
+            "pnAv",
+            "P/NAV",
+            "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+            fetched_at,
+        ),
+    )
+    metadata.setdefault(
+        "evToEbit",
+        unavailable_multiple_summary(
+            "evToEbit",
+            "EV/EBIT",
+            "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+            fetched_at,
+        ),
+    )
+    metadata["enterpriseToEbitda"] = {
+        **metadata.get("enterpriseToEbitda", {}),
+        "field": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "unit": "x",
+        "value": payload.get("enterpriseToEbitda"),
+        "classification": "source-gated computed" if payload.get("enterpriseToEbitda") is not None else "unavailable",
+        "status": payload.get("enterpriseToEbitdaStatus") or metadata.get("enterpriseToEbitda", {}).get("status") or "gated",
+        "source": payload.get("enterpriseToEbitdaSource") or metadata.get("enterpriseToEbitda", {}).get("source"),
+        "method": payload.get("enterpriseToEbitdaMethod") or metadata.get("enterpriseToEbitda", {}).get("method"),
+        "limitation": payload.get("enterpriseToEbitdaLimitation") or metadata.get("enterpriseToEbitda", {}).get("limitation"),
+        "providerField": "enterpriseToEbitda",
+        "providerValue": payload.get("providerEnterpriseToEbitda"),
+    }
+    metadata["targetUpsidePct"] = target_derived_summary(payload, fetched_at)
+    payload["multipleSourceMetadata"] = metadata
+    return payload
 
 
 def pick_body_number(body: dict, key: str) -> float | None:
@@ -2782,6 +3538,8 @@ def event_monitoring_payload(name: str = "Core Watchlist", refresh_newsweb: bool
 
 
 def enrich_fundamental_payload(payload: dict) -> dict:
+    payload = normalize_enterprise_to_ebitda_fields(payload)
+    payload = normalize_fundamental_multiple_fields(payload)
     payload.setdefault("targetPriceSource", "Yahoo Finance via yfinance")
     payload.setdefault(
         "targetPriceMethod",
@@ -2952,7 +3710,7 @@ def parse_technical_csv(text: str, source_url: str) -> dict:
         "rows": rows,
         "count": len(rows),
         "columns": list(rows[0].keys()) if rows else [],
-        "sourceReliability": "Parsed from oslo-screener latest.csv. Open/free technical data is screening context only and does not create buy/sell advice.",
+        "sourceReliability": "Parsed from the current oslo-screener latest.csv/report output. Open/free technical data is screening context only and does not create buy/sell advice.",
     }
 
 
@@ -2996,8 +3754,12 @@ def technical_indicators(
     refresh: bool = False,
 ) -> dict:
     technical = fetch_technical_indicators(refresh=refresh)
-    rows = list(technical.get("rows", []))
-    watched = set(watchlist_symbols(watchlist))
+    source_rows = list(technical.get("rows", []))
+    watched_symbols = watchlist_symbols(watchlist)
+    watched = set(watched_symbols)
+    source_symbol_set = {row["symbol"] for row in source_rows}
+    missing_watchlist_symbols = [symbol for symbol in watched_symbols if symbol not in source_symbol_set]
+    rows = source_rows
     if universe != "all":
         rows = [row for row in rows if row["symbol"] in watched]
     try:
@@ -3011,15 +3773,59 @@ def technical_indicators(
             {
                 **row,
                 "watchlistMember": row["symbol"] in watched,
+                "coverageStatus": "covered",
+                "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
                 "dashboardSignal": dashboard_signal,
                 "inDashboardScreener": bool(dashboard_signal),
             }
         )
+    if universe != "all":
+        for symbol in missing_watchlist_symbols:
+            dashboard_signal = screener_map.get(symbol)
+            enriched.append(
+                {
+                    "symbol": symbol,
+                    "ticker": symbol.replace(".OL", ""),
+                    "date": None,
+                    "close": None,
+                    "rsi14": None,
+                    "rsiDirection": None,
+                    "macdHistogram": None,
+                    "sma50": None,
+                    "pctAboveSma50": None,
+                    "adx14": None,
+                    "mfi14": None,
+                    "rsi6": None,
+                    "signal": "MISSING",
+                    "signalTone": "missing",
+                    "primaryCount": None,
+                    "stopLossPct": None,
+                    "positionPct": None,
+                    "risk": "not in current report output",
+                    "sourceUrl": technical.get("sourceUrl"),
+                    "watchlistMember": True,
+                    "coverageStatus": "missing-from-latest-csv",
+                    "coverageDetail": "Watchlist symbol was not present in the current oslo-screener latest.csv/report output. Missing rows stay missing; this is not a technical signal.",
+                    "dashboardSignal": dashboard_signal,
+                    "inDashboardScreener": bool(dashboard_signal),
+                }
+            )
+    coverage = {
+        "watchlistSymbols": watched_symbols,
+        "coveredSymbols": [symbol for symbol in watched_symbols if symbol in source_symbol_set],
+        "missingSymbols": missing_watchlist_symbols,
+        "coveredCount": len([symbol for symbol in watched_symbols if symbol in source_symbol_set]),
+        "missingCount": len(missing_watchlist_symbols),
+        "sourceRowCount": len(source_rows),
+        "status": "complete" if not missing_watchlist_symbols else "partial",
+        "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
+    }
     return {
         **{key: value for key, value in technical.items() if key != "rows"},
         "universe": universe,
         "watchlist": watchlist,
         "rows": enriched,
+        "coverage": coverage,
         "screenerError": screener_error,
     }
 
@@ -3028,6 +3834,14 @@ def safe_technical_indicator_map(name: str = "Core Watchlist", refresh: bool = F
     try:
         payload = technical_indicators(universe="watchlist", watchlist=name, refresh=refresh)
         return {item["symbol"]: item for item in payload.get("rows", [])}, payload.get("sourceRefreshError")
+    except Exception as exc:
+        return {}, str(exc)
+
+
+def safe_technical_coverage(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
+    try:
+        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=refresh)
+        return payload.get("coverage") or {}, payload.get("sourceRefreshError")
     except Exception as exc:
         return {}, str(exc)
 
@@ -3096,6 +3910,12 @@ def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> d
 
     screener_map, screener_error = safe_screener_alert_map(name, refresh=refresh)
     technical_map, technical_error = safe_technical_indicator_map(name, refresh=refresh)
+    technical_missing_symbols = [
+        item["symbol"]
+        for item in items
+        if (technical_map.get(item["symbol"]) or {}).get("coverageStatus") == "missing-from-latest-csv"
+        or item["symbol"] not in technical_map
+    ]
     rows = []
     errors = []
     for item in items:
@@ -3161,12 +3981,21 @@ def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> d
         "errors": errors,
         "screenerError": screener_error,
         "technicalError": technical_error,
+        "technicalCoverage": {
+            "watchlistSymbols": [item["symbol"] for item in items],
+            "coveredSymbols": [item["symbol"] for item in items if item["symbol"] not in technical_missing_symbols],
+            "missingSymbols": technical_missing_symbols,
+            "coveredCount": len(items) - len(technical_missing_symbols),
+            "missingCount": len(technical_missing_symbols),
+            "status": "complete" if not technical_missing_symbols else "partial",
+            "missingDataPolicy": "Watchlist symbols absent from the current oslo-screener latest.csv/report output are kept visible as missing coverage, not treated as technical signals.",
+        },
         "refreshRequested": refresh,
         "sourceNotes": {
             "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
             "events": "News/events are watchlist-first NewsWeb on-demand rows plus manual/source-reviewed rows. The daily digest is generated on demand from the same NewsWeb path with visible fetch status and duplicate/correction grouping.",
-            "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
+            "technical": "Technical indicators come from current oslo-screener latest.csv/report output and are screening context only.",
         },
     }
 
@@ -3741,6 +4570,8 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
                 "trailingPE": numeric_metric(payload, "trailingPE", True),
                 "forwardPE": numeric_metric(payload, "forwardPE", True),
                 "priceToBook": numeric_metric(payload, "priceToBook", True),
+                "priceToSalesTrailing12Months": numeric_metric(payload, "priceToSalesTrailing12Months", True),
+                "enterpriseToRevenue": numeric_metric(payload, "enterpriseToRevenue", True),
                 "enterpriseToEbitda": numeric_metric(payload, "enterpriseToEbitda", True),
                 "dividendYield": numeric_metric(payload, "dividendYield", False),
             }
@@ -4906,11 +5737,11 @@ def source_notes() -> dict:
         "technicalIndicators": {
             "url": TECHNICAL_INDICATORS_URLS[0],
             "verification": "The app reads the published oslo-screener latest.csv first and falls back to the GitHub raw file if needed. The embedded dashboard tab remains separate.",
-            "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice.",
+            "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice. A missing watchlist row means the symbol is absent from the current latest.csv/report output, not that no all-name screener report exists.",
         },
         "yfinance": {
-            "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",
-            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
+            "use": "Open/free Yahoo Finance data for price, 52-week daily price history, source-gated EV/EBITDA inputs, other multiples, and analyst target fields where available.",
+            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. EV/EBITDA is computed from enterprise value, TTM EBITDA, and FX when needed; the raw provider EV/EBITDA field is retained separately and not used as the displayed value. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
         },
         "historicalContext": {
             "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes, local dated fundamentals snapshots, and yfinance dated quarterly statement rows where available.",
@@ -5013,6 +5844,48 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
     for row in rows:
         status = row.get("cacheStatus") or "unknown"
         cache_statuses[status] = cache_statuses.get(status, 0) + 1
+    multiple_review_fields = [
+        "trailingPE",
+        "forwardPE",
+        "priceToBook",
+        "priceToSalesTrailing12Months",
+        "enterpriseToRevenue",
+        "enterpriseToEbitda",
+        "evToEbit",
+        "dividendYield",
+        "targetUpsidePct",
+        "pnAv",
+    ]
+    multiple_review = []
+    for field in multiple_review_fields:
+        field_rows = []
+        classifications: dict[str, int] = {}
+        statuses: dict[str, int] = {}
+        for row in rows:
+            metadata = (row.get("multipleSourceMetadata") or {}).get(field) or {}
+            classification = metadata.get("classification") or "unclassified"
+            status = metadata.get("status") or "missing"
+            classifications[classification] = classifications.get(classification, 0) + 1
+            statuses[status] = statuses.get(status, 0) + 1
+            if metadata.get("value") is None or status != "computed":
+                field_rows.append(
+                    {
+                        "symbol": row.get("symbol"),
+                        "status": status,
+                        "classification": classification,
+                        "providerValue": metadata.get("providerValue"),
+                        "limitation": metadata.get("limitation"),
+                    }
+                )
+        multiple_review.append(
+            {
+                "field": field,
+                "label": ((rows[0].get("multipleSourceMetadata") or {}).get(field) or {}).get("label", field) if rows else field,
+                "classifications": classifications,
+                "statuses": statuses,
+                "gatedOrMissingRows": field_rows[:12],
+            }
+        )
     quarterly_coverage = []
     for row in rows:
         history = ((row.get("historicalContext") or {}).get("quarterlyStatementHistory")) or row.get("quarterlyStatements") or {}
@@ -5038,6 +5911,7 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
         "fetchedAtNewest": fetched_values[-1] if fetched_values else None,
         "cacheStatuses": cache_statuses,
         "fieldCoverage": field_coverage,
+        "multipleReview": multiple_review,
         "quarterlyStatementCoverage": quarterly_coverage,
         "shippingSectorGaps": shipping_gaps,
         "minimumDataRequirements": MINIMUM_DATA_REQUIREMENTS,

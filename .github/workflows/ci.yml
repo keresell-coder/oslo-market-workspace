@@ -25,7 +25,9 @@ jobs:
           node-version: "22"
 
       - name: Compile server
-        run: python3 -m py_compile app/server.py
+        run: python3 -m py_compile app/server.py scripts/build_static_site_data.py
 
       - name: Check frontend syntax
-        run: node --check app/static/app.js
+        run: |
+          node --check app/static/app.js
+          node --check docs/app.js

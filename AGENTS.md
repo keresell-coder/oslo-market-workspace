@@ -135,17 +135,24 @@ Consensus Quality is complete:
 - Data Refresh And Source-Quality Readiness has visible refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources, plus a Start-tab/operator checklist; NewsWeb digest remains on demand.
 - Hosted Public Access Completion repo-side support is partly complete: Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14 dashboard, and technical CSV refresh failures surface as `stale-after-error` when cached fallback rows remain visible; the hosted verification script supports local dry runs while keeping real HTTPS checks strict and now checks hosted `refresh=1` paths for Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks; `docs/hosted-public-access-runbook.md` records the host-side install/verification sequence.
 - Static GitHub Pages Remake is now the preferred public beta path: scheduled/manual GitHub Actions should generate committed static JSON under `docs/data/`; GitHub Pages should serve the app publicly; YAML repo files under `data/` should replace SQLite as the editable source of truth and be schema-validated; live backend refresh should become last-generated/source-status UI; public Pages JavaScript must not contain GitHub write tokens.
+- First static build is implemented: `data/*.yml` files hold curated inputs, `scripts/build_static_site_data.py` validates and generates endpoint-shaped JSON under `docs/data/`, `.github/workflows/static-data.yml` defines scheduled/manual refreshes, and copied Pages assets under `docs/` load static JSON with a GitHub/Codex watchlist edit path.
+- Watchlist Synthesis Streamlining is complete: the main Watchlist row is now a compact conclusion layer for Fundamentals, Own history, Technical indicators, Benchmarks, News/Events, and Sources; dense provider/source, cache, technical, NewsWeb, and caveat text lives in expandable per-row detail.
+- EV/EBITDA source-gate fix is complete: displayed EV/EBITDA is computed from yfinance enterprise value, yfinance TTM EBITDA, and FX conversion where needed; the raw Yahoo/yfinance `enterpriseToEbitda` provider field is kept separately as audit data and is not used when required inputs are missing or unusable.
+- Fundamental Multiples And Technical Coverage Verification is complete:
+  fundamentals rows include `multipleSourceMetadata`; displayed TTM P/E,
+  forward P/E, P/B, P/S, EV/revenue, EV/EBITDA, and dividend yield are
+  source-gated where explicit inputs exist; raw provider fields are retained
+  separately; P/NAV and EV/EBIT remain intentionally unavailable; technical
+  watchlist symbols absent from `oslo-screener/latest.csv` appear as explicit
+  missing coverage rows in local API and static JSON.
 
 ## Next Sprint Priority
 
-Static GitHub Pages Remake:
+Static GitHub Pages release tasks:
 
-- use `docs/static-github-pages-remake.md` as the main plan
-- create YAML repo input files under `data/` for watchlist, peer groups, manual/source rows, sector KPIs, events, and quarterly review status
-- build static JSON outputs for the frontend
-- add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday, and manual-dispatch GitHub Actions generation
-- adapt frontend data loading away from `/api/*`
-- implement first watchlist edit path as a phone/iPad-friendly Codex/GitHub PR workflow plus GitHub web-editor link or draft/export diff helper, not direct browser writes
-- publish through GitHub Pages and verify from another device
-- keep optional sector index/proxy curation explicit and reviewed
+- enable GitHub Pages from the `docs/` folder
+- run and observe the first real GitHub Actions static-data refresh
+- verify the public Pages URL from another device
+- decide how far to expand static all-universe output beyond the watchlist beta
+- defer the Fundamental frameworks sprint until the static beta path is verified
 - keep all output descriptive and non-advisory

@@ -97,17 +97,22 @@ docs/static-github-pages-remake.md
 
 Target architecture:
 
-- repo input files under `data/`
+- repo input files under `data/` now exist for watchlist, manual
+  consensus/source rows, peer groups, sector KPI rows, manual events, and
+  quarterly review status
 - YAML curated input files validated by strict schemas
-- scheduled/manual GitHub Actions run Python builders
-- generated static JSON committed under `docs/data/`
-- frontend loads static JSON instead of `/api/*`
+- `scripts/build_static_site_data.py` validates YAML, stages a temporary build
+  database, copies Pages assets, and writes generated JSON under `docs/data/`
+- `.github/workflows/static-data.yml` runs scheduled/manual generation
+- copied Pages frontend under `docs/` loads static JSON instead of `/api/*`;
+  local `app/static/` still supports the Python backend
 - GitHub Pages serves the app
 - refresh buttons become last-generated/source-status indicators
 - NewsWeb rows and the 24-hour digest are generated on weekday pre-open,
   weekday post-close/evening, one Saturday, one Sunday, and manual dispatch
 - watchlist edits start as phone/iPad-friendly Codex/GitHub PR workflows plus a
-  GitHub edit link or draft/export helper, not direct browser writes to the repo
+  GitHub edit link and copy/paste Codex PR prompt, not direct browser writes to
+  the repo
 
 Direct repo writes from a public GitHub Pages app are out of scope for the first
 static remake because safe writes require GitHub authentication and a repository
@@ -140,19 +145,69 @@ JavaScript.
   - `docs/static-github-pages-remake.md` records the GitHub Pages/Actions plan,
     watchlist-editing options, scheduled NewsWeb direction, first sprint scope,
     open decisions, and copy/paste prompt for the next chat
+- Static Pages first build:
+  - `data/*.yml` files are the first repo-owned curated inputs
+  - `scripts/build_static_site_data.py` writes endpoint-shaped JSON under
+    `docs/data/` and copies `app/static` assets into `docs/`
+  - `.github/workflows/static-data.yml` has weekday pre-open, weekday evening,
+    Saturday, Sunday, and manual dispatch schedules
+  - `docs/index.html` sets `window.OSLO_STATIC_SITE = true`, so copied
+    `docs/app.js` reads static JSON and shows no-token watchlist edit guidance
+  - local verification on 16 May 2026 passed for Python/static-builder/frontend
+    syntax checks, generated static JSON, key JSON validation, README API smoke
+    checks, and browser checks of both local `/api/*` mode and local static
+    mode across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
+    Technical indicators, Sources, and the separate RSI14 screener tab
+  - GitHub Pages still needs to be enabled from `docs/` and verified from
+    another device
+- Watchlist streamlining sprint is complete:
+  - verbose Watchlist cells were reduced to compact conclusions from deeper tabs
+  - source/freshness/confidence/missing-data status stays visible as compact
+    chips and one-line summaries
+  - dense caveats and policy text now live in an expandable per-row
+    source-detail drawer or the deeper tabs
+  - wording remains descriptive only: available, missing, stale, reviewed,
+    draft, source label, gated, or needs review
+- Planned Fundamental frameworks sprint, now deferred until the next
+  source-quality review is complete:
+  - add one **Fundamental frameworks** tab first, rather than many new tabs
+  - include source-gated Piotroski F-Score, Mohanram G-Score, DuPont 3-factor
+    first with 5-factor gated, Ohlson O-Score, and Sloan Accruals Ratio
+  - expose component inputs, formula notes, source timestamps, confidence,
+    missing inputs, and sector caveats
+  - no framework output may become buy/sell advice or a cheap/expensive/fair
+    valuation label
 - Watchlist overview endpoint:
   - `/api/watchlist-overview`
+- EV/EBITDA handling:
+  - the app no longer displays the raw Yahoo/yfinance `enterpriseToEbitda`
+    provider field as the primary Fundamentals value
+  - fresh rows compute EV/EBITDA from yfinance enterprise value, yfinance TTM
+    EBITDA, and yfinance FX rates when financial currency differs from quote
+    currency
+  - rows stay missing when EV is unavailable, TTM EBITDA is missing or
+    non-positive, or FX conversion is unavailable
+  - raw provider EV/EBITDA is retained as `providerEnterpriseToEbitda` and the
+    calculation inputs/method are exposed in Fundamentals source details
+- Fundamental multiple handling:
+  - fundamentals rows include `multipleSourceMetadata`
+  - TTM P/E, forward P/E, P/B, P/S, EV/revenue, EV/EBITDA, and dividend yield
+    are displayed only when explicit inputs pass source gates
+  - raw provider fields such as `providerTrailingPE`,
+    `providerEnterpriseToRevenue`, and `providerDividendYield` are retained for
+    audit
+  - target-derived fields remain provider/source-row context
+  - P/NAV and EV/EBIT remain intentionally not implemented until explicit
+    source-linked inputs exist
 - Watchlist front page shows:
-  - ticker/name
-  - sector
-  - Oslo Screener signal
-  - technical indicator signal from `latest.csv`
-  - provider/source-row target
-  - target upside from available source rows
-  - raw rating-label row counts without a weighted recommendation
-  - source quality, source count, and freshness
-  - Own history entry point that opens the dedicated Own History tab
-  - significant-update status
+  - ticker/name and sector
+  - last price and freshness
+  - compact Fundamentals, Own history, Technical indicators, Benchmarks,
+    News/Events, and Sources summaries
+  - source chips for cache/provider-row/NewsWeb status
+  - an expandable per-row source-detail drawer with provider/source-row,
+    technical, NewsWeb, cache, navigation, and gated framework context
+  - row actions for source links and deeper tabs
 - Watchlist consensus cell opens the matching Fundamentals row for the ticker.
 - Fundamentals endpoint:
   - `/api/fundamentals`
@@ -178,6 +233,10 @@ JavaScript.
   - separate Technical indicators tab
   - Watchlist Technical column
   - rows overlapping with the RSI14 dashboard are highlighted
+  - watchlist symbols absent from `oslo-screener/latest.csv` are returned as
+    explicit `missing-from-latest-csv` coverage rows rather than silently
+    filtered out; current gaps are HAFNI.OL, KMAR.OL, LINK.OL, PUBLI.OL, and
+    VEND.OL
 - RSI14 screener dashboard:
   - embedded from `https://keresell-coder.github.io/oslo-screener-dashboard/`
   - refreshed to 05 May 2026 after the dashboard `gh-pages` branch lagged the current `latest.csv`
@@ -254,6 +313,38 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - After each completed task, update relevant documents so `README.md`, `docs/roadmap.md`, `docs/project-handoff.md`, `docs/links-and-resources.md`, and `AGENTS.md` stay aligned with completed work and next plans.
 
 ## Completed This Sprint
+
+- Completed Watchlist Synthesis Streamlining:
+  - Watchlist main rows now show compact conclusions from other tabs instead
+    of verbose row-level explanation
+  - source/cache/provider-row/technical/NewsWeb caveats moved to expandable
+    per-row detail
+  - static Pages mode and local `/api/*` mode use the same streamlined frontend
+
+- Completed EV/EBITDA source-gate fix:
+  - replaced direct display of the raw Yahoo/yfinance provider multiple
+  - regenerated `docs/data/*.json` and refreshed the local watchlist cache
+  - browser-checked MOWI showing computed EV/EBITDA and raw provider field in
+    source details
+
+- Planned Fundamental Frameworks remains next:
+  - new source-gated **Fundamental frameworks** tab for Piotroski F-Score,
+    Mohanram G-Score, DuPont, Ohlson O-Score, and Sloan Accruals Ratio
+
+- Built the first static GitHub Pages version:
+  - added strict-schema YAML inputs under `data/`
+  - added `scripts/build_static_site_data.py`
+  - generated committed JSON under `docs/data/`
+  - copied frontend assets into `docs/` for Pages serving
+  - added scheduled/manual `.github/workflows/static-data.yml`
+  - updated static-mode frontend loading and safe watchlist-edit guidance
+- Chosen first watchlist-edit UI: GitHub web-editor link to
+  `data/watchlist.yml` plus a copy/paste Codex PR prompt. Direct browser writes
+  remain out of scope because public JavaScript must not contain a GitHub write
+  token.
+- Verified compile/syntax checks, generated JSON validity, and local static
+  browser smoke tests for Start, Watchlist, Technical indicators, and
+  News/Events.
 
 - Decided to remake the project as a static GitHub Pages dashboard generated by
   GitHub Actions instead of continuing hosted Python/SQLite deployment.
@@ -423,44 +514,68 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
 - Published regenerated dashboard content to `gh-pages`.
 - Verification passed for screener compile/tests, dashboard compile/generation, generated HTML checks, manual GitHub Actions dispatches for both workflows, GitHub branch state, web-app API checks, and Safari launch.
 
+## Completed Source-Quality Sprint
+
+Fundamental Multiples And Technical Coverage Verification is complete.
+
+- Added source/method/input metadata for displayed/generated multiples.
+- Preserved raw provider values separately and kept gated values missing when
+  explicit inputs are unavailable or unusable.
+- Added Fundamentals UI review output for multiple source gates.
+- Added technical coverage metadata to local `/api/*` and static
+  `docs/data/*.json`.
+- Confirmed the missing Watchlist technical rows are gaps in the current Oslo
+  Screener input universe/report output, not ticker-normalization, frontend
+  filtering, stale Pages publication, or post-calculation filtering bugs.
+- Public artifact check on 16 May 2026 found HAFNI.OL, KMAR.OL, LINK.OL,
+  PUBLI.OL, and VEND.OL absent from published `latest.csv`, raw
+  `main/latest.csv`, latest committed `report_*.csv`, `summaries/latest.md`,
+  `tickers.txt`, `valid_tickers.txt`, and `raw_tickers.txt`; `invalid_tickers.csv`
+  only mentions old VENDA.OL/VENDB.OL entries.
+- Screener-side follow-up is draft PR
+  https://github.com/keresell-coder/oslo-screener/pull/12. It adds the five
+  symbols to the active screener input list, keeps validation aligned with the
+  30-observation screener gate, and preserves the existing `latest.csv` schema.
+  Four symbols produce technical rows; KMAR.OL remains an insufficient-history
+  invalid row for now.
+
 ## Next Sprint Brief
 
-Next priority: start the Static GitHub Pages Remake.
+Next priority: finish the static GitHub Pages release path.
 
-Goal:
-
-- Make a first GitHub Pages version that loads generated static JSON instead of
-  relying on the Python `/api/*` server.
-- Keep the current screening information, source-quality metadata, and
-  no-advice guardrails.
-
-Tasks:
-
-- Confirm open decisions in `docs/static-github-pages-remake.md`.
-- Create repo input files under `data/` for watchlist, peer groups,
-  manual/source rows, sector KPIs, events, and quarterly review status.
-- Build static JSON outputs for the frontend.
-- Add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday,
-  and manual-dispatch GitHub Actions generation.
-- Adapt frontend data loading away from `/api/*`.
-- Implement first watchlist edit path as a GitHub web-editor link or
-  draft/export diff helper, not direct browser writes.
-- Publish through GitHub Pages and verify from another device.
-- Keep optional sector index/proxy curation explicit and reviewed.
-- Preserve no-advice/no-verdict language, missing-data discipline, Technical
-  indicators, and the separate RSI14 screener tab.
+- Enable GitHub Pages from `docs/`.
+- Run and observe the first real `.github/workflows/static-data.yml` refresh on
+  GitHub.
+- Verify the public Pages URL from another device.
+- Decide how far to expand static all-universe output beyond the
+  watchlist-focused beta.
+- Keep Fundamental frameworks deferred until the static beta release path is
+  verified.
+- Current release check, 16 May 2026: GitHub Pages is still disabled/404 for
+  `keresell-coder/oslo-market-workspace`, and `origin/main` does not yet contain
+  the static workflow, `scripts/build_static_site_data.py`, `data/`, or generated
+  `docs/` app assets. The real workflow dispatch/schedule is blocked until the
+  static build lands on the default branch and Pages is enabled.
+- Static beta scope decision: keep all-universe expansion deferred for beta
+  v0.1.0 beyond the current technical all-output JSON. Verify the watchlist
+  Pages path first, then revisit broader fundamentals/all-name outputs.
 
 ## Verification Checklist For Next Chat
 
 1. Start server.
 2. Open Watchlist tab.
-3. Confirm rows render and Watchlist remains scan-first.
-4. Open Fundamentals and confirm the grouped scan table uses provider/source target wording and the consensus/source row editor/table renders.
-5. Open Own History and confirm price-history context, local snapshot charts/rows, quarterly statement history details, and source/gate metadata render.
-6. Open Technical indicators and confirm source date, coverage count, and dashboard alert tags render.
-7. Open Benchmarks and confirm peer groups, sector components, minimum-data checks, and sector KPI input editor render without a repeated own-history block.
-8. Open News/Events and confirm source-policy status, daily digest grouped by symbol/category, per-symbol NewsWeb fetch status, source links, watchlist rows, and manual editor render.
-9. Open RSI14 screener and confirm the embedded dashboard is unchanged.
-10. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
+3. Confirm Watchlist technical missing states list the current latest.csv/report
+   output gaps.
+4. Open Fundamentals and confirm displayed multiples still show
+   source/method/gate metadata.
+5. Open Own History and confirm local snapshot multiples do not reuse unsafe raw
+   provider fields.
+6. Open Technical indicators and confirm source date, coverage count, missing
+   watchlist symbol list, and dashboard alert tags render.
+7. Open Benchmarks and confirm peer metric multiples use the same source-gated
+   fields and missing-data rules.
+8. Open RSI14 screener and confirm the embedded dashboard is unchanged.
+9. Confirm no cheap/expensive/fair/neutral valuation verdict labels exist.
+10. Regenerate static JSON and verify `docs/data/*.json` stays valid.
 11. Run README verification commands.
 12. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.
