@@ -98,14 +98,16 @@ docs/static-github-pages-remake.md
 Target architecture:
 
 - repo input files under `data/`
+- YAML curated input files validated by strict schemas
 - scheduled/manual GitHub Actions run Python builders
-- generated static JSON under `site/data/` or `docs/data/`
+- generated static JSON committed under `docs/data/`
 - frontend loads static JSON instead of `/api/*`
 - GitHub Pages serves the app
 - refresh buttons become last-generated/source-status indicators
-- NewsWeb rows and the 24-hour digest are generated on schedule/manual dispatch
-- watchlist edits start as GitHub web-editor links or an in-app draft/export
-  diff helper, not direct browser writes to the repo
+- NewsWeb rows and the 24-hour digest are generated on weekday pre-open,
+  weekday post-close/evening, one Saturday, one Sunday, and manual dispatch
+- watchlist edits start as phone/iPad-friendly Codex/GitHub PR workflows plus a
+  GitHub edit link or draft/export helper, not direct browser writes to the repo
 
 Direct repo writes from a public GitHub Pages app are out of scope for the first
 static remake because safe writes require GitHub authentication and a repository
@@ -262,6 +264,10 @@ Leave the app available in Safari at `http://127.0.0.1:8765` unless the user ask
   GitHub write token, so in-app watchlist edits should begin as GitHub
   web-editor links or draft/export diffs that take effect after the next
   scheduled/manual Actions run.
+- Locked follow-up decisions: Pages can be public; use YAML source files with
+  schema validation; commit generated JSON under `docs/data/`; include one
+  Saturday and one Sunday refresh; optimize watchlist edits for ChatGPT/Codex or
+  GitHub PR workflows from phone/iPad.
 
 ## Completed Previous Sprint
 
@@ -434,8 +440,8 @@ Tasks:
 - Create repo input files under `data/` for watchlist, peer groups,
   manual/source rows, sector KPIs, events, and quarterly review status.
 - Build static JSON outputs for the frontend.
-- Add weekday pre-open, weekday post-close/evening, and manual-dispatch GitHub
-  Actions generation.
+- Add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday,
+  and manual-dispatch GitHub Actions generation.
 - Adapt frontend data loading away from `/api/*`.
 - Implement first watchlist edit path as a GitHub web-editor link or
   draft/export diff helper, not direct browser writes.

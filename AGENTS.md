@@ -134,18 +134,18 @@ Consensus Quality is complete:
 - Quarterly statement primary-report review tracking is available through `/api/quarterly-statement-reviews` and Own History; unreviewed periods remain screening-grade yfinance rows and missing fields stay missing.
 - Data Refresh And Source-Quality Readiness has visible refresh status strips on Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical indicators, and Sources, plus a Start-tab/operator checklist; NewsWeb digest remains on demand.
 - Hosted Public Access Completion repo-side support is partly complete: Watchlist refresh now performs true upstream/source refreshes for yfinance fundamentals, RSI14 dashboard parsing, Oslo Screener `latest.csv`, and on-demand NewsWeb rows; yfinance, RSI14 dashboard, and technical CSV refresh failures surface as `stale-after-error` when cached fallback rows remain visible; the hosted verification script supports local dry runs while keeping real HTTPS checks strict and now checks hosted `refresh=1` paths for Watchlist, Fundamentals, Technical indicators, News/Events, and Benchmarks; `docs/hosted-public-access-runbook.md` records the host-side install/verification sequence.
-- Static GitHub Pages Remake is now the preferred public beta path: scheduled/manual GitHub Actions should generate static JSON/CSV; GitHub Pages should serve the app; repo files under `data/` should replace SQLite as the editable source of truth; live backend refresh should become last-generated/source-status UI; public Pages JavaScript must not contain GitHub write tokens.
+- Static GitHub Pages Remake is now the preferred public beta path: scheduled/manual GitHub Actions should generate committed static JSON under `docs/data/`; GitHub Pages should serve the app publicly; YAML repo files under `data/` should replace SQLite as the editable source of truth and be schema-validated; live backend refresh should become last-generated/source-status UI; public Pages JavaScript must not contain GitHub write tokens.
 
 ## Next Sprint Priority
 
 Static GitHub Pages Remake:
 
 - use `docs/static-github-pages-remake.md` as the main plan
-- create repo input files under `data/` for watchlist, peer groups, manual/source rows, sector KPIs, events, and quarterly review status
+- create YAML repo input files under `data/` for watchlist, peer groups, manual/source rows, sector KPIs, events, and quarterly review status
 - build static JSON outputs for the frontend
-- add weekday pre-open, weekday post-close/evening, and manual-dispatch GitHub Actions generation
+- add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday, and manual-dispatch GitHub Actions generation
 - adapt frontend data loading away from `/api/*`
-- implement first watchlist edit path as a GitHub web-editor link or draft/export diff helper, not direct browser writes
+- implement first watchlist edit path as a phone/iPad-friendly Codex/GitHub PR workflow plus GitHub web-editor link or draft/export diff helper, not direct browser writes
 - publish through GitHub Pages and verify from another device
 - keep optional sector index/proxy curation explicit and reviewed
 - keep all output descriptive and non-advisory

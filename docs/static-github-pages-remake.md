@@ -11,10 +11,11 @@ static data, and GitHub Pages serves it.
 
 ## Target Shape
 
-- GitHub Pages serves the public app.
+- GitHub Pages serves the public app. It is acceptable that the watchlist and
+  notes are public.
 - GitHub Actions runs the data build on a schedule and manual dispatch.
-- Generated JSON/CSV artifacts are committed to, or published with, the Pages
-  output.
+- Generated JSON artifacts are committed to the repo for auditability,
+  reproducible diffs, and rollback through git history.
 - The browser reads static JSON files instead of calling `/api/*` endpoints.
 - No always-on Python server.
 - No hosted SQLite.
@@ -38,23 +39,33 @@ These files become the source of truth for watchlist membership, notes, curated
 peer groups, manual/source-reviewed rows, and review status. Missing data stays
 missing.
 
+Use YAML for curated input files. Rationale: the user is not a coding expert,
+and YAML is easier to read/edit/review than JSON for watchlists, notes, source
+URLs, and peer-group rationale. To protect data credibility, every YAML file
+should be validated by a strict schema in CI and by the static data build before
+any generated JSON is published.
+
 ## Generated Outputs
 
 A static build script should generate files such as:
 
 ```text
-site/data/manifest.json
-site/data/watchlist-overview.json
-site/data/fundamentals.json
-site/data/own-history.json
-site/data/technical-indicators.json
-site/data/benchmarks.json
-site/data/events.json
-site/data/sources.json
+docs/data/manifest.json
+docs/data/watchlist-overview.json
+docs/data/fundamentals.json
+docs/data/own-history.json
+docs/data/technical-indicators.json
+docs/data/benchmarks.json
+docs/data/events.json
+docs/data/sources.json
 ```
 
 `manifest.json` should include generation time, source timestamps, workflow run
 metadata, source errors, and stale/missing-data status.
+
+Commit generated JSON to the repo. This makes the exact published data visible,
+reviewable, diffable, and revertible. The tradeoff is more bot commits, but that
+is acceptable for this project's trust and auditability goals.
 
 ## Scheduling
 
@@ -62,11 +73,16 @@ Recommended first schedule:
 
 - weekday pre-open run, around 07:30 Europe/Oslo
 - weekday post-close/evening run, around 18:30 Europe/Oslo
+- one Saturday refresh, around 09:00 Europe/Oslo
+- one Sunday refresh, around 09:00 Europe/Oslo
 - manual `workflow_dispatch` run for operator-triggered refreshes
 
 GitHub Actions schedules can be delayed and should not be treated as exact
 market infrastructure. The UI should say "last generated" and show source
 freshness/error states rather than promising live data.
+
+GitHub cron schedules run in UTC, so the implementation should choose UTC cron
+times that approximate the Oslo targets and document daylight-saving drift.
 
 ## News And Events
 
@@ -77,7 +93,7 @@ create a reviewed shared result.
 Preferred static approach:
 
 - scheduled Actions fetch NewsWeb rows for the current watchlist
-- store latest rows and a 24-hour digest in `site/data/events.json`
+- store latest rows and a 24-hour digest in `docs/data/events.json`
 - include per-symbol fetch status, source URL, fetched time, duplicate/correction
   grouping, stale/error states, and limitations
 - add manual dispatch for an operator "refresh now" run from GitHub Actions
@@ -96,11 +112,26 @@ Do not put a personal access token or write token into public JavaScript.
 
 Recommended first implementation:
 
-1. The visible app lets the user draft watchlist edits in the browser.
-2. The app validates symbols and shows the resulting `watchlist.yml` diff or
-   replacement content.
-3. The user commits the change through GitHub's normal web editor or opens a PR.
-4. The next scheduled/manual Action run generates updated static data.
+1. The app exposes a simple "request watchlist change" helper that creates a
+   copy/paste prompt for ChatGPT/Codex or a clear edit link to
+   `data/watchlist.yml` on GitHub.
+2. The actual repo change happens through GitHub/Codex, not through public Pages
+   JavaScript.
+3. The change should be committed on a branch and opened as a pull request when
+   possible.
+4. After merge, the next scheduled/manual Action run generates updated static
+   data.
+
+Phone/iPad workflow:
+
+- Best no-laptop path: use ChatGPT/Codex with GitHub connected, if available on
+  the user's plan/account, and ask it to edit `data/watchlist.yml` and open a PR.
+- GitHub Mobile can be used to review PRs and edit files in PRs.
+- `github.dev` can edit files and commit changes in a browser, but it is less
+  friendly on a phone than asking Codex to make the PR.
+- Codex remote access from the ChatGPT mobile app can continue work tied to a
+  connected Mac host, but that depends on the host setup/availability. Do not
+  assume it works when the laptop is offline.
 
 Lowest-complexity variant:
 
@@ -162,30 +193,33 @@ Tasks:
    consensus/source rows, sector KPI rows, manual events, and quarterly review
    status.
 2. Add `scripts/build_static_site_data.py` that reuses safe parsing/fetching
-   logic from `app/server.py` but writes static JSON outputs.
-3. Add a GitHub Actions workflow for weekday pre-open, weekday post-close, and
-   manual dispatch generation.
-4. Adapt the frontend to load `site/data/*.json` instead of `/api/*` for the
+   logic from `app/server.py` but writes committed static JSON outputs under
+   `docs/data/`.
+3. Add a GitHub Actions workflow for weekday pre-open, weekday post-close,
+   Saturday, Sunday, and manual dispatch generation.
+4. Adapt the frontend to load `docs/data/*.json` instead of `/api/*` for the
    static Pages mode.
 5. Replace refresh buttons with generation status and links to source files or
    manual workflow run instructions.
 6. Publish through GitHub Pages.
 7. Verify the Pages URL from another device.
 
-## Open Decisions
+## Locked Decisions
 
-These should be confirmed before implementation:
+These user decisions are now recorded:
 
-- Should the GitHub Pages site be public, accepting that the watchlist and notes
-  are public too?
-- Should generated JSON be committed to the repo or uploaded as the Pages build
-  artifact only?
-- Should watchlist editing start as a GitHub web-editor link, or should the app
-  include a draft/export diff helper in the first sprint?
-- Should schedules run weekdays only, or also once on weekends for stale-state
-  visibility?
-- Which watchlist file format is preferred: YAML for human editing or JSON for
-  simpler browser tooling?
+- GitHub Pages site can be public, including watchlist and notes.
+- Use YAML for human-curated source files, with strict schema validation.
+- Commit generated JSON to the repo for auditability and rollback.
+- Include weekday pre-open and post-close/evening runs.
+- Include one Saturday and one Sunday stale-status/news refresh.
+- Prefer the easiest no-laptop watchlist-edit path: ChatGPT/Codex or GitHub
+  PR-based edits, not direct browser writes from the public Pages app.
+
+Implementation still needs to choose the exact first UI:
+
+- minimum: "Edit watchlist source" GitHub link plus a copy/paste Codex prompt
+- nicer: in-app draft/export helper that prepares the YAML change and PR prompt
 
 ## Copy/Paste Prompt For New Chat
 
@@ -208,7 +242,7 @@ Target architecture:
 - repo input files under data/ for watchlist, manual consensus/source rows,
   peer groups, sector KPI rows, manual events, and quarterly review status
 - scheduled/manual GitHub Actions run Python data builders
-- generated static JSON under site/data/ or docs/data/
+- generated static JSON under docs/data/
 - frontend loads static JSON instead of /api/* endpoints
 - GitHub Pages serves the app
 - refresh buttons become last-generated/source-status indicators and manual-run
@@ -224,7 +258,17 @@ planned.
 Preferred schedule:
 - weekday pre-open around 07:30 Europe/Oslo
 - weekday post-close/evening around 18:30 Europe/Oslo
+- one Saturday refresh around 09:00 Europe/Oslo
+- one Sunday refresh around 09:00 Europe/Oslo
 - manual workflow_dispatch refresh
+
+Data/input decisions:
+- GitHub Pages can be public, including watchlist and notes
+- use YAML for curated input files under data/
+- validate YAML with strict schemas before publishing
+- commit generated JSON under docs/data/ for auditability, diffs, and rollback
+- use a ChatGPT/Codex or GitHub PR-based watchlist edit flow for phone/iPad use;
+  do not put GitHub write tokens in public JavaScript
 
 News/events direction:
 Use scheduled/manual Actions to fetch NewsWeb rows for the watchlist and publish
@@ -242,8 +286,6 @@ Guardrails:
 - technical BUY/SELL labels are external screener source labels only
 - do not edit Oslo Screener repos unless explicitly asked
 
-Before implementing, confirm the open decisions listed in
-docs/static-github-pages-remake.md, especially whether the Pages site and
-watchlist/notes can be public, and whether watchlist edits should begin as a
-GitHub web-editor link or a draft/export helper.
+Before implementing, choose the first watchlist-edit UI: minimum GitHub edit
+link plus copy/paste Codex prompt, or a nicer in-app draft/export helper.
 ```

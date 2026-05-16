@@ -42,21 +42,26 @@ model.
 - GitHub Actions generate static JSON/CSV on a schedule and manual dispatch.
 - GitHub Pages serves the app without a Python server.
 - Browser code reads static files instead of `/api/*` endpoints.
-- Repo files under `data/` become the source of truth for watchlist, notes,
+- YAML repo files under `data/` become the source of truth for watchlist, notes,
   peer groups, manual consensus/source rows, sector KPI inputs, manual events,
-  and quarterly review status.
+  and quarterly review status. These files should be schema-validated before
+  generated data is published.
+- Generated JSON should be committed under `docs/data/` for auditability,
+  diffs, and rollback.
 - Live refresh buttons become last-generated/source-status indicators plus
   manual workflow-run guidance.
 - Scheduled NewsWeb/fundamentals refreshes replace live/on-demand backend
-  refreshes.
+  refreshes, with weekday pre-open, weekday post-close/evening, one Saturday,
+  one Sunday, and manual-dispatch runs.
 
 See `docs/static-github-pages-remake.md` for the plan and copy/paste prompt for
 the next implementation chat.
 
 Important constraint: a public GitHub Pages app must not contain a GitHub write
-token. In-app watchlist editing can draft/export a change or link to GitHub's
-web editor, but direct repo writes from browser JavaScript are out of scope for
-the first static remake.
+token. Watchlist editing should use a phone/iPad-friendly Codex/GitHub PR
+workflow, a GitHub web-editor link, or an in-app draft/export helper; direct
+repo writes from browser JavaScript are out of scope for the first static
+remake.
 
 ## Legacy Sharing Prep
 
@@ -197,6 +202,10 @@ After each completed task, update the relevant docs so they reflect what changed
 - Recommended watchlist editing start as either a GitHub web-editor link or an
   in-app draft/export diff helper, with changes taking effect on the next
   scheduled/manual GitHub Actions data build.
+- Locked follow-up decisions: public Pages is acceptable, use YAML curated
+  inputs with schema validation, commit generated JSON under `docs/data/`, run
+  one Saturday and one Sunday refresh, and prioritize phone/iPad-friendly
+  Codex/GitHub PR workflows for watchlist edits.
 
 **Hosted Public Access Completion: Host Runbook And Refresh Verification**
 
@@ -422,8 +431,8 @@ After each completed task, update the relevant docs so they reflect what changed
 - Create repo input files under `data/` for watchlist, peer groups,
   manual/source rows, sector KPIs, events, and quarterly review status.
 - Build static JSON outputs for the frontend.
-- Add weekday pre-open, weekday post-close/evening, and manual-dispatch GitHub
-  Actions generation.
+- Add weekday pre-open, weekday post-close/evening, one Saturday, one Sunday,
+  and manual-dispatch GitHub Actions generation.
 - Adapt frontend data loading away from `/api/*`.
 - Implement first watchlist edit path as a GitHub web-editor link or
   draft/export diff helper, not direct browser writes.
