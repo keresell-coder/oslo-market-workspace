@@ -161,18 +161,19 @@ Local folder:
 - Peer groups can be edited in Benchmarks. Existing researched groups cover NOD, MOWI, FRO, HAFNI, DOFG, ODL, KOG, and LINK; local database status may be `reviewed` or `trusted`.
 - Tankers and offshore energy are split into tighter groups: crude tankers for FRO, product tankers for HAFNI, subsea/offshore services for DOFG, and offshore drilling rigs for ODL.
 - Sector KPI input slots exist for shipping NAV/fleet/P/NAV, seafood EBIT/kg and harvest volume, offshore/defence backlog, bank ROE/CET1, and real-estate LTV/WAULT. Values remain missing in benchmark output until reviewed/trusted manual or source-linked inputs have source context.
-- Remaining major gaps: enable GitHub Pages from `docs/`, run and observe the
-  first scheduled Action refresh on GitHub, verify the public Pages URL from
-  another device, and decide how far to expand static all-universe output
-  beyond the watchlist-focused beta.
-- Release check on 16 May 2026: the static build validates locally and both
-  local `/api/*` mode and local static `docs/data/*.json` mode browser-check
-  across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
-  Technical indicators, Sources, and the separate RSI14 screener tab. GitHub
-  Pages is still disabled/404 for this repository, and `origin/main` does not
-  yet contain the static workflow, builder, YAML inputs, or generated `docs/`
-  app assets. Keep beta v0.1.0 watchlist-focused until Pages and the first real
-  static-data refresh are verified.
+- Remaining public-beta follow-up: capture an explicit another-device
+  laptop/tablet check if not already done by the operator, monitor scheduled
+  GitHub Actions refreshes, and decide how far to expand static all-universe
+  output beyond the watchlist-focused beta.
+- Public static beta verification on 17 May 2026: PR #1 was merged to `main`,
+  GitHub Pages serves `https://keresell-coder.github.io/oslo-market-workspace/`
+  with HTTP 200, the first manual `Static GitHub Pages data` workflow run
+  completed successfully, the published manifest shows `refreshRequested: true`,
+  `generatedAt=2026-05-17T07:32:16+00:00`, 13 watchlist rows, and no reported
+  screener/technical/event/watchlist errors, and the public Pages app
+  browser-checks across Watchlist, Fundamentals, Own history, Benchmarks,
+  News/Events, Technical indicators, Sources, and the separate RSI14 screener
+  tab.
 - Completed UX sprint: Watchlist rows now show compact conclusions from deeper
   tabs, with source/freshness/confidence/caveat details moved into an
   expandable row drawer and source chips kept visible in the main scan.
@@ -536,7 +537,7 @@ After each completed task, update the relevant docs so they reflect what changed
 
 ## Next Sprint
 
-Return to the remaining static-release tasks: enable GitHub Pages from `docs/`,
-observe the first real static-data GitHub Actions refresh, verify the public
-Pages URL from another device, and decide how far to expand static all-universe
-output beyond the watchlist-focused beta.
+Return to the static beta follow-up tasks: capture an explicit another-device
+check if still needed, monitor the scheduled GitHub Actions refreshes, and only
+then decide how far to expand static all-universe output beyond the
+watchlist-focused beta.

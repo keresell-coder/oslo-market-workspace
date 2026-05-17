@@ -158,8 +158,16 @@ JavaScript.
     checks, and browser checks of both local `/api/*` mode and local static
     mode across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
     Technical indicators, Sources, and the separate RSI14 screener tab
-  - GitHub Pages still needs to be enabled from `docs/` and verified from
-    another device
+  - public verification on 17 May 2026 passed after PR #1 merged: GitHub Pages
+    serves `https://keresell-coder.github.io/oslo-market-workspace/` with HTTP
+    200, the first manual `Static GitHub Pages data` workflow run succeeded,
+    the published manifest is static mode with `refreshRequested: true`,
+    `generatedAt=2026-05-17T07:32:16+00:00`, 13 watchlist rows, and no reported
+    screener/technical/event/watchlist errors, and public browser checks passed
+    across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
+    Technical indicators, Sources, and the separate RSI14 screener tab
+  - capture an explicit another-device laptop/tablet check if not already done
+    by the operator
 - Watchlist streamlining sprint is complete:
   - verbose Watchlist cells were reduced to compact conclusions from deeper tabs
   - source/freshness/confidence/missing-data status stays visible as compact
@@ -541,21 +549,21 @@ Fundamental Multiples And Technical Coverage Verification is complete.
 
 ## Next Sprint Brief
 
-Next priority: finish the static GitHub Pages release path.
+Next priority: monitor the now-live static GitHub Pages beta.
 
-- Enable GitHub Pages from `docs/`.
-- Run and observe the first real `.github/workflows/static-data.yml` refresh on
-  GitHub.
-- Verify the public Pages URL from another device.
+- Capture an explicit another-device laptop/tablet check if not already done by
+  the operator.
+- Monitor the next scheduled `.github/workflows/static-data.yml` refresh on
+  GitHub after the successful first manual run.
 - Decide how far to expand static all-universe output beyond the
   watchlist-focused beta.
 - Keep Fundamental frameworks deferred until the static beta release path is
   verified.
-- Current release check, 16 May 2026: GitHub Pages is still disabled/404 for
-  `keresell-coder/oslo-market-workspace`, and `origin/main` does not yet contain
-  the static workflow, `scripts/build_static_site_data.py`, `data/`, or generated
-  `docs/` app assets. The real workflow dispatch/schedule is blocked until the
-  static build lands on the default branch and Pages is enabled.
+- Current release check, 17 May 2026: GitHub Pages is live, the first manual
+  static-data workflow run on `main` succeeded, public JSON endpoints validate,
+  and the public Pages app browser-checks in Static mode. Another-device
+  laptop/tablet verification should be recorded explicitly if not already done
+  by the operator.
 - Static beta scope decision: keep all-universe expansion deferred for beta
   v0.1.0 beyond the current technical all-output JSON. Verify the watchlist
   Pages path first, then revisit broader fundamentals/all-name outputs.

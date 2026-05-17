@@ -193,9 +193,18 @@ Keep:
   `docs/` app assets also are not on `origin/main` yet, so real
   scheduled/manual refreshes remain blocked until the static build is landed and
   Pages is enabled
+- public verification on 17 May 2026 found GitHub Pages live at
+  `https://keresell-coder.github.io/oslo-market-workspace/`, the first manual
+  `Static GitHub Pages data` workflow run on `main` succeeded, the published
+  manifest had `refreshRequested: true`, `generatedAt=2026-05-17T07:32:16+00:00`,
+  13 watchlist rows, and no reported screener/technical/event/watchlist errors,
+  and the public Pages app browser-checked across Watchlist, Fundamentals, Own
+  history, Benchmarks, News/Events, Technical indicators, Sources, and the
+  separate RSI14 screener tab
 - beta scope decision: keep static all-universe expansion deferred beyond the
   current technical all-output JSON until the watchlist-focused public Pages
-  path has a successful first workflow refresh and another-device check
+  path has an explicit operator/another-device check and at least one scheduled
+  refresh observed after the successful first manual workflow run
 - future Fundamental frameworks work should generate static, source-gated
   framework JSON for Piotroski F-Score, Mohanram G-Score, DuPont, Ohlson
   O-Score, and Sloan Accruals Ratio, with component inputs and missing-data
@@ -248,8 +257,10 @@ Status as of 16 May 2026:
   browser checks of both local `/api/*` mode and local static mode across
   Watchlist, Fundamentals, Own history, Benchmarks, News/Events, Technical
   indicators, Sources, and the separate RSI14 screener tab.
-- Tasks 6-7 remain: enable GitHub Pages from `docs/`, run/observe a real
-  GitHub Actions refresh, and verify the public URL from another device.
+- Tasks 6-7 are complete for Codex-side verification: GitHub Pages is live, the
+  first manual GitHub Actions refresh succeeded, and the public URL
+  browser-checks in Static mode. Capture an explicit another-device
+  laptop/tablet check if not already done by the operator.
 - Follow-on Watchlist Synthesis Streamlining is implemented in the shared
   frontend assets and copied Pages app: main rows are compact, source chips stay
   visible, and dense source/caveat text is in expandable per-row detail.
@@ -289,6 +300,10 @@ generated JSON under docs/data/, copied Pages assets under docs/, and
 .github/workflows/static-data.yml.
 
 Recently completed:
+- Static GitHub Pages public beta verification: PR #1 was merged to `main`,
+  Pages is live at `https://keresell-coder.github.io/oslo-market-workspace/`,
+  the first manual static-data workflow run succeeded, public JSON endpoints
+  validate, and the public app browser-checks in Static mode.
 - Watchlist Synthesis Streamlining
 - EV/EBITDA source-gate fix: displayed EV/EBITDA is computed from yfinance
   enterprise value, yfinance TTM EBITDA, and FX conversion where needed; the raw
@@ -301,16 +316,17 @@ Recently completed:
   Watchlist, and the Technical indicators tab.
 
 Next sprint goal:
-Finish the Static GitHub Pages release path.
+Monitor the now-live Static GitHub Pages beta.
 
 Scope:
-- Enable GitHub Pages from the `docs/` folder.
-- Run and observe the first real `.github/workflows/static-data.yml` refresh on
-  GitHub.
-- Verify the public Pages URL from another device.
+- Capture an explicit another-device laptop/tablet check if not already done by
+  the operator.
+- Monitor the next scheduled `.github/workflows/static-data.yml` refresh after
+  the successful first manual run.
 - Decide how far to expand static all-universe output beyond the
   watchlist-focused beta.
-- Keep Fundamental frameworks deferred until the static beta path is verified.
+- Keep Fundamental frameworks deferred until the static beta has been observed
+  through at least one hosted schedule cycle.
 
 Guardrails:
 - no buy/sell investment advice

@@ -95,38 +95,47 @@ Continuation guardrails:
 
 ## Active Next Sprint
 
-### Static GitHub Pages Remake Remaining Release Tasks
+### Static GitHub Pages Beta Follow-Up
 
-Goal: finish the static public beta path now that the source-quality sprint is
-complete.
+Goal: monitor the now-live static public beta and defer broader scope decisions
+until the first hosted cycle is observed.
 
-- Enable GitHub Pages from the `docs/` folder.
-- Run and observe the first real `.github/workflows/static-data.yml` refresh on
-  GitHub.
-- Verify the public Pages URL from another device.
+- Capture an explicit another-device laptop/tablet check if not already done by
+  the operator.
+- Monitor the next scheduled `.github/workflows/static-data.yml` refresh on
+  GitHub after the successful first manual run.
 - Decide how far to expand static all-universe output beyond the
   watchlist-focused beta.
 - Keep the hosted Python/SQLite path paused unless explicitly revived.
 
-Release-task status checked on 16 May 2026:
+Release-task status checked on 17 May 2026:
 
+- PR #1 was merged to `main`; `origin/main` now contains the static workflow,
+  builder, YAML inputs, generated `docs/` app assets, and refreshed generated
+  JSON.
+- GitHub Pages serves
+  `https://keresell-coder.github.io/oslo-market-workspace/` with HTTP 200.
+- The first manual `Static GitHub Pages data` workflow run succeeded on `main`
+  as run #1, `workflow_dispatch`, created at `2026-05-17T07:31:54Z` and updated
+  at `2026-05-17T07:33:56Z`.
+- Published `docs/data/manifest.json` reports static mode,
+  `refreshRequested: true`, `generatedAt=2026-05-17T07:32:16+00:00`, 13
+  watchlist rows, and no screener, technical, event, or watchlist errors.
+- Public JSON smoke checks passed for manifest, Watchlist overview,
+  Fundamentals watchlist, Technical indicators watchlist, and News/Events.
+- Browser checks passed on the public Pages URL across Watchlist, Fundamentals,
+  Own history, Benchmarks, News/Events, Technical indicators, Sources, and the
+  separate RSI14 screener tab. Watchlist rendered 13 rows in Static mode.
 - Local release-prep verification passed for the first watchlist-focused static
   beta: Python/static-builder/frontend syntax checks, static JSON generation,
   key JSON validation, README API smoke checks against the local server, and
   browser checks for both local `/api/*` mode and local static `docs/data/*.json`
   mode across Watchlist, Fundamentals, Own history, Benchmarks, News/Events,
   Technical indicators, Sources, and the separate RSI14 screener tab.
-- GitHub Pages is not enabled yet for `keresell-coder/oslo-market-workspace`;
-  the repository Pages API and `https://keresell-coder.github.io/oslo-market-workspace/`
-  both returned 404.
-- `origin/main` does not yet contain `.github/workflows/static-data.yml`,
-  `scripts/build_static_site_data.py`, `data/`, or the generated `docs/` static
-  app assets, so the real scheduled/manual static-data workflow cannot run from
-  the default branch yet.
 - Keep the first public beta watchlist-focused. Do not expand static
-  all-universe output beyond the current technical all-output JSON until Pages
-  is enabled, the first real workflow refresh succeeds, and the public URL is
-  checked from another device.
+  all-universe output beyond the current technical all-output JSON until the
+  public beta has at least one operator/another-device review and scheduled
+  refresh behavior is observed.
 
 ### Completed Sprint: Oslo Screener Coverage Reconciliation
 
@@ -358,9 +367,10 @@ Verified:
 
 Remaining:
 
-- Enable GitHub Pages from the `docs/` folder in repository settings.
-- Run/observe the first real GitHub Actions refresh with `--refresh --no-cache-db`.
-- Verify the public Pages URL from another device.
+- Capture an explicit another-device laptop/tablet check if not already done by
+  the operator.
+- Monitor the next scheduled GitHub Actions refresh after the successful manual
+  run.
 - Decide whether the static all-universe Fundamentals view should expand beyond
   the watchlist-focused beta dataset.
 
