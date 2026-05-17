@@ -1,0 +1,528 @@
+{
+  "groups": [],
+  "message": "No peer group is configured for this symbol yet.",
+  "minimumData": {
+    "blockers": [
+      "Peer group reviewed",
+      "Minimum peer rows",
+      "Peer metric coverage",
+      "Price-history observations",
+      "Sector KPI inputs"
+    ],
+    "checks": [
+      {
+        "detail": "Current peer status: missing.",
+        "key": "peer_status",
+        "label": "Peer group reviewed",
+        "met": false
+      },
+      {
+        "detail": "0 loaded peer row(s); minimum 3.",
+        "key": "peer_count",
+        "label": "Minimum peer rows",
+        "met": false
+      },
+      {
+        "detail": "0 metric(s) have focus value plus enough peer observations.",
+        "key": "peer_metric_coverage",
+        "label": "Peer metric coverage",
+        "met": false
+      },
+      {
+        "detail": "0 daily close observation(s); minimum 120.",
+        "key": "price_history",
+        "label": "Price-history observations",
+        "met": false
+      },
+      {
+        "detail": "23 local snapshot(s); minimum 5.",
+        "key": "snapshot_history",
+        "label": "Local multiple snapshots",
+        "met": true
+      },
+      {
+        "detail": "Sector KPI placeholders may remain missing; reviewed/trusted manual or source-linked inputs with source context are required before sector KPI-derived fields are used.",
+        "key": "sector_kpis",
+        "label": "Sector KPI inputs",
+        "met": false
+      }
+    ],
+    "policy": "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, own-history coverage, source quality, and sector KPI inputs meet minimum requirements.",
+    "requirements": {
+      "minimumPeerStatusForDerivedScore": "reviewed",
+      "peerMetricMinimumPeers": 3,
+      "policy": "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, own-history coverage, source quality, and sector KPI inputs meet minimum requirements.",
+      "priceWindowMinimumObservations": 120,
+      "snapshotMinimumObservations": 5
+    },
+    "status": "not considered",
+    "valuationScoreEnabled": false
+  },
+  "ownHistory": {
+    "firstSnapshotAt": "2026-05-06T07:15:27+00:00",
+    "lastSnapshotAt": "2026-05-16T19:18:31+00:00",
+    "metrics": [
+      {
+        "current": 13.672093023255814,
+        "historyMax": 14.283447,
+        "historyMedian": 13.799999,
+        "historyMin": 13.672092,
+        "key": "trailingPE",
+        "label": "TTM P/E",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 23,
+        "percentileInOwnHistory": 43.47826086956522,
+        "unit": "x"
+      },
+      {
+        "current": 16.567330318017216,
+        "historyMax": 16.567331,
+        "historyMedian": 16.424175,
+        "historyMin": 15.4724655,
+        "key": "forwardPE",
+        "label": "Forward P/E",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 23,
+        "percentileInOwnHistory": 73.91304347826086,
+        "unit": "x"
+      },
+      {
+        "current": null,
+        "historyMax": null,
+        "historyMedian": null,
+        "historyMin": null,
+        "key": "priceToBook",
+        "label": "P/B",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 0,
+        "percentileInOwnHistory": null,
+        "unit": "x"
+      },
+      {
+        "current": null,
+        "historyMax": null,
+        "historyMedian": null,
+        "historyMin": null,
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 0,
+        "percentileInOwnHistory": null,
+        "unit": "x"
+      },
+      {
+        "current": null,
+        "historyMax": null,
+        "historyMedian": null,
+        "historyMin": null,
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 0,
+        "percentileInOwnHistory": null,
+        "unit": "x"
+      },
+      {
+        "current": null,
+        "historyMax": null,
+        "historyMedian": null,
+        "historyMin": null,
+        "key": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 0,
+        "percentileInOwnHistory": null,
+        "unit": "x"
+      },
+      {
+        "current": 0.0,
+        "historyMax": 0.0,
+        "historyMedian": 0.0,
+        "historyMin": 0.0,
+        "key": "dividendYield",
+        "label": "Dividend yield",
+        "minimumDataMet": false,
+        "minimumObservations": 5,
+        "observations": 4,
+        "percentileInOwnHistory": 100.0,
+        "unit": "%"
+      },
+      {
+        "current": 24.59601973124681,
+        "historyMax": 37.62499157398045,
+        "historyMedian": 29.65021431973327,
+        "historyMin": 24.59601973124681,
+        "key": "targetUpsidePct",
+        "label": "Target upside",
+        "minimumDataMet": true,
+        "minimumObservations": 5,
+        "observations": 23,
+        "percentileInOwnHistory": 43.47826086956522,
+        "unit": "%"
+      }
+    ],
+    "minimumObservations": 5,
+    "requirement": "Own-history valuation context needs several dated observations. Local snapshots start accumulating when fundamentals are refreshed.",
+    "snapshotCount": 23,
+    "status": "usable history",
+    "symbol": "KMAR.OL",
+    "trendCharts": [
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:31+00:00",
+        "firstObservationAt": "2026-05-06T07:15:27+00:00",
+        "key": "trailingPE",
+        "label": "TTM P/E",
+        "lastObservationAt": "2026-05-16T19:18:31+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 23,
+        "points": [
+          {
+            "date": "2026-05-06T07:15:27+00:00",
+            "value": 14.283447
+          },
+          {
+            "date": "2026-05-06T16:43:59+00:00",
+            "value": 13.799999
+          },
+          {
+            "date": "2026-05-07T05:55:03+00:00",
+            "value": 13.799999
+          },
+          {
+            "date": "2026-05-07T06:18:33+00:00",
+            "value": 13.799999
+          },
+          {
+            "date": "2026-05-16T07:40:39+00:00",
+            "value": 13.672092
+          },
+          {
+            "date": "2026-05-16T14:20:31+00:00",
+            "value": 13.672092
+          },
+          {
+            "date": "2026-05-16T15:13:33+00:00",
+            "value": 13.672093023255814
+          },
+          {
+            "date": "2026-05-16T19:18:31+00:00",
+            "value": 13.672093023255814
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "screening-grade",
+        "fetchedAt": "2026-05-16T19:18:31+00:00",
+        "firstObservationAt": "2026-05-06T07:15:27+00:00",
+        "key": "forwardPE",
+        "label": "Forward P/E",
+        "lastObservationAt": "2026-05-16T19:18:31+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 23,
+        "points": [
+          {
+            "date": "2026-05-06T07:15:27+00:00",
+            "value": 16.424175
+          },
+          {
+            "date": "2026-05-06T16:43:59+00:00",
+            "value": 15.4724655
+          },
+          {
+            "date": "2026-05-07T05:55:03+00:00",
+            "value": 15.4724655
+          },
+          {
+            "date": "2026-05-07T06:18:33+00:00",
+            "value": 15.4724655
+          },
+          {
+            "date": "2026-05-16T07:40:39+00:00",
+            "value": 16.567331
+          },
+          {
+            "date": "2026-05-16T14:20:31+00:00",
+            "value": 16.567331
+          },
+          {
+            "date": "2026-05-16T15:13:33+00:00",
+            "value": 16.567330318017216
+          },
+          {
+            "date": "2026-05-16T19:18:31+00:00",
+            "value": 16.567330318017216
+          }
+        ],
+        "source": "local fundamentals snapshots",
+        "status": "available",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": null,
+        "firstObservationAt": null,
+        "key": "priceToBook",
+        "label": "P/B",
+        "lastObservationAt": null,
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 0,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": null,
+        "firstObservationAt": null,
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "lastObservationAt": null,
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 0,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": null,
+        "firstObservationAt": null,
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "lastObservationAt": null,
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 0,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": null,
+        "firstObservationAt": null,
+        "key": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "lastObservationAt": null,
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 0,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "x"
+      },
+      {
+        "confidence": "insufficient observations",
+        "fetchedAt": "2026-05-16T19:18:31+00:00",
+        "firstObservationAt": "2026-05-16T15:13:33+00:00",
+        "key": "dividendYield",
+        "label": "Dividend yield",
+        "lastObservationAt": "2026-05-16T19:18:31+00:00",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+        "minimumObservations": 5,
+        "observationCount": 4,
+        "points": [],
+        "source": "local fundamentals snapshots",
+        "status": "insufficient observations",
+        "type": "fundamental_snapshot",
+        "unit": "%"
+      }
+    ],
+    "trendRows": [
+      {
+        "dividendYield": null,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T14:18:51+00:00",
+        "forwardPE": 16.567331,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672092
+      },
+      {
+        "dividendYield": null,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T14:20:31+00:00",
+        "forwardPE": 16.567331,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672092
+      },
+      {
+        "dividendYield": null,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T14:21:14+00:00",
+        "forwardPE": 16.567331,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672092
+      },
+      {
+        "dividendYield": null,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T14:32:25+00:00",
+        "forwardPE": 16.567331,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672092
+      },
+      {
+        "dividendYield": 0.0,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T15:13:33+00:00",
+        "forwardPE": 16.567330318017216,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672093023255814
+      },
+      {
+        "dividendYield": 0.0,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T19:15:22+00:00",
+        "forwardPE": 16.567330318017216,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672093023255814
+      },
+      {
+        "dividendYield": 0.0,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T19:16:50+00:00",
+        "forwardPE": 16.567330318017216,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672093023255814
+      },
+      {
+        "dividendYield": 0.0,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-05-16T19:18:31+00:00",
+        "forwardPE": 16.567330318017216,
+        "priceToBook": null,
+        "priceToSalesTrailing12Months": null,
+        "trailingPE": 13.672093023255814
+      }
+    ]
+  },
+  "sectorContext": {
+    "components": [
+      {
+        "configuredCount": 0,
+        "requirement": "Configure and review an Oslo peer group before this component can support benchmark context.",
+        "status": "missing",
+        "symbols": [],
+        "type": "Oslo peer group"
+      },
+      {
+        "configuredCount": 0,
+        "requirement": "Add reviewed Nordic, European, or international peers where they are business-model relevant.",
+        "status": "missing",
+        "symbols": [],
+        "type": "International peer group"
+      },
+      {
+        "configuredCount": 0,
+        "requirement": "Optional sector index/proxy must be explicitly added as a peer item; it is never inferred from sector labels.",
+        "status": "missing",
+        "symbols": [],
+        "type": "Sector index/proxy"
+      }
+    ],
+    "exchange": "Oslo Bors",
+    "industry": "Aerospace & Defense",
+    "limitations": "No sector index/proxy is inferred automatically. Backend-assisted peer groups remain draft until reviewed.",
+    "message": "Sector benchmark model is explicit: Oslo peers, international peers, and optional sector index/proxy are separate components.",
+    "name": "KONGSBERG MARITIME ASA",
+    "requirement": "Sector context should use reviewed peer components and source-linked sector KPIs before any derived valuation score is considered.",
+    "sector": "Industrials",
+    "sectorKpis": {
+      "categories": [
+        "defence"
+      ],
+      "policy": "Sector KPI placeholders are explicit input slots only. Missing values stay missing until manually entered or source-linked and reviewed.",
+      "rows": [
+        {
+          "category": "defence",
+          "hasStoredValue": false,
+          "inputType": "missing",
+          "key": "backlog",
+          "label": "Order backlog",
+          "limitations": "This app does not infer sector KPI values from sector labels or generic yfinance fields.",
+          "note": "",
+          "period": "",
+          "reviewStatus": "missing",
+          "reviewedInputAvailable": false,
+          "sourceName": "",
+          "sourcePath": "Company order backlog/order book disclosure from quarterly/annual report or investor presentation.",
+          "sourceQuality": "missing until reviewed manual or source-linked input exists",
+          "sourceUrl": "",
+          "status": "missing",
+          "storedValue": null,
+          "unit": "local currency",
+          "updatedAt": null,
+          "use": "Reported order book/backlog context for defence and aerospace suppliers.",
+          "value": null
+        },
+        {
+          "category": "defence",
+          "hasStoredValue": false,
+          "inputType": "missing",
+          "key": "book_to_bill",
+          "label": "Book-to-bill",
+          "limitations": "This app does not infer sector KPI values from sector labels or generic yfinance fields.",
+          "note": "",
+          "period": "",
+          "reviewStatus": "missing",
+          "reviewedInputAvailable": false,
+          "sourceName": "",
+          "sourcePath": "Company order intake and revenue disclosure for the same period; calculate only when both inputs are reviewed.",
+          "sourceQuality": "missing until reviewed manual or source-linked input exists",
+          "sourceUrl": "",
+          "status": "missing",
+          "storedValue": null,
+          "unit": "x",
+          "updatedAt": null,
+          "use": "Order intake versus revenue context when source-linked.",
+          "value": null
+        }
+      ],
+      "status": "missing inputs"
+    },
+    "source": "Local peer-group roles and manual/source-linked sector KPI input slots.",
+    "status": "not configured",
+    "symbol": "KMAR.OL"
+  },
+  "status": "missing",
+  "symbol": "KMAR.OL"
+}

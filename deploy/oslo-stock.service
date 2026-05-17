@@ -1,0 +1,22 @@
+[Unit]
+Description=Oslo Stock web-app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=oslostock
+Group=oslostock
+WorkingDirectory=/opt/oslo-stock/oslo-market-workspace
+EnvironmentFile=/etc/oslo-stock/oslo-stock.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/usr/bin/python3 app/server.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/var/lib/oslo-stock /var/backups/oslo-stock /mnt/oslo-stock-backups
+
+[Install]
+WantedBy=multi-user.target

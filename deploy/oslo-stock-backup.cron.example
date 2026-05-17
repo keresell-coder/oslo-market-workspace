@@ -1,0 +1,6 @@
+# Example daily hosted backup job. Install for the oslostock user or root after
+# /etc/oslo-stock/oslo-stock.env is configured and the mirror mount exists.
+#
+# Run at 02:15 local server time.
+
+15 2 * * * set -a; . /etc/oslo-stock/oslo-stock.env; set +a; cd /opt/oslo-stock/oslo-market-workspace && scripts/backup_database.sh >> /var/log/oslo-stock-backup.log 2>&1

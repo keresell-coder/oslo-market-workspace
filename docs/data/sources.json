@@ -1,0 +1,53 @@
+{
+  "benchmarks": {
+    "limitations": "No cheap/expensive verdict is produced. Draft/reviewed/trusted are local peer-curation markers only. Backend-assisted groups are draft only and require business-model review; sector index/proxy rows are never inferred from generic sector labels.",
+    "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. Sector benchmark components now separate Oslo peers, international peers, and optional sector index/proxy roles."
+  },
+  "euronextPublicationService": {
+    "limitations": "Euronext describes EuroStockNews/API capabilities for issuer/corporate website publication services; this does not confirm a public research-app ingestion API.",
+    "url": "https://www.euronext.com/en/corporate-services/oslo-bors-publication-service",
+    "use": "Reference only for source-path evaluation."
+  },
+  "existingDashboard": {
+    "limitations": "Only cards present in the published dashboard are available to the RSI14 Screener tab and dashboard-alert column. Broader technical coverage comes from latest.csv.",
+    "url": "https://keresell-coder.github.io/oslo-screener-dashboard/",
+    "verification": "Fetched successfully from GitHub Pages during setup. The page is treated as an embedded external artifact and is not edited by this MVP. Watchlist RSI14 context parses ticker, signal, and RSI 14 card values from the published page."
+  },
+  "historicalContext": {
+    "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and quarterly statement history depends on yfinance returning dated statement tables; neither is a sector, peer, or valuation verdict.",
+    "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes, local dated fundamentals snapshots, and yfinance dated quarterly statement rows where available."
+  },
+  "newsweb": {
+    "limitations": "On-demand event rows and daily digest groups are screening-grade metadata with source links. Duplicate/correction grouping is heuristic, fetch errors stay visible, and scheduled automation remains separate.",
+    "url": "https://newsweb.oslobors.no/",
+    "use": "Ticker-specific NewsWeb search links, on-demand NewsWeb announcement rows for the watchlist, and a 24-hour watchlist digest generated from the same ticker source path.",
+    "verification": "Euronext describes NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers api3.oslo.oslobors.no via urls.json and ticker queries return issuer announcements from /v1/newsreader/customQuery."
+  },
+  "quarterlyStatements": {
+    "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing. Unreviewed periods remain screening-grade until checked against company reports; source-reviewed periods still do not create recommendation or valuation verdict logic.",
+    "use": "True quarterly statement history is read from yfinance quarterly income statement, balance sheet, and cash-flow tables when they contain dated quarter-end columns.",
+    "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields. Primary company-report review is tracked separately per symbol and period through /api/quarterly-statement-reviews."
+  },
+  "sectorKpis": {
+    "limitations": "Missing sector KPIs stay missing until explicit reviewed inputs exist. The app does not infer sector KPI values from yfinance sector labels.",
+    "use": "Manual/source-linked input slots for sector KPIs such as NAV/fleet values, EBIT/kg, backlog, ROE/CET1, LTV, and WAULT."
+  },
+  "sharingConfig": {
+    "limitations": "Basic Auth is a sharing-prep gate, not a full production security model. Use HTTPS, backups, access controls, and reviewed deployment settings before external sharing.",
+    "use": "Environment variables can set host, port, database path, and optional Basic Auth for a future shared run.",
+    "verification": "The default run remains local-only at 127.0.0.1:8765. Non-local bind hosts are blocked unless Basic Auth credentials are configured or an explicit unauthenticated override is set."
+  },
+  "technicalIndicators": {
+    "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice. A missing watchlist row means the symbol is absent from the current latest.csv/report output, not that no all-name screener report exists.",
+    "url": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+    "verification": "The app reads the published oslo-screener latest.csv first and falls back to the GitHub raw file if needed. The embedded dashboard tab remains separate."
+  },
+  "tradingView": {
+    "limitations": "Consensus and target-price fields are not pulled automatically because there is no confirmed open public API for this use.",
+    "use": "Search links only in this MVP."
+  },
+  "yfinance": {
+    "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. EV/EBITDA is computed from enterprise value, TTM EBITDA, and FX when needed; the raw provider EV/EBITDA field is retained separately and not used as the displayed value. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
+    "use": "Open/free Yahoo Finance data for price, 52-week daily price history, source-gated EV/EBITDA inputs, other multiples, and analyst target fields where available."
+  }
+}

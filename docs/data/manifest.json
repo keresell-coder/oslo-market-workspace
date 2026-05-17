@@ -1,0 +1,74 @@
+{
+  "benchmarkFiles": {
+    "DOFG.OL": "data/benchmarks/DOFG.OL.json",
+    "ELK.OL": "data/benchmarks/ELK.OL.json",
+    "FRO.OL": "data/benchmarks/FRO.OL.json",
+    "HAFNI.OL": "data/benchmarks/HAFNI.OL.json",
+    "KMAR.OL": "data/benchmarks/KMAR.OL.json",
+    "KOG.OL": "data/benchmarks/KOG.OL.json",
+    "LINK.OL": "data/benchmarks/LINK.OL.json",
+    "MOWI.OL": "data/benchmarks/MOWI.OL.json",
+    "NOD.OL": "data/benchmarks/NOD.OL.json",
+    "ODL.OL": "data/benchmarks/ODL.OL.json",
+    "PUBLI.OL": "data/benchmarks/PUBLI.OL.json",
+    "TEL.OL": "data/benchmarks/TEL.OL.json",
+    "VEND.OL": "data/benchmarks/VEND.OL.json"
+  },
+  "betaRelease": "Beta v0.1.0",
+  "generatedAt": "2026-05-16T20:59:02+00:00",
+  "inputFiles": [
+    "data/watchlist.yml",
+    "data/manual_consensus.yml",
+    "data/peer_groups.yml",
+    "data/sector_kpis.yml",
+    "data/manual_events.yml",
+    "data/quarterly_statement_reviews.yml"
+  ],
+  "limitations": [
+    "Static Pages shows the last generated dataset, not live data.",
+    "Yahoo/yfinance, NewsWeb, and Oslo Screener sources are screening-grade and may be stale, delayed, incomplete, or wrong.",
+    "Missing values stay missing. No buy/sell recommendation or standalone valuation label is produced."
+  ],
+  "mode": "static-github-pages",
+  "outputFiles": [
+    "docs/data/watchlist.json",
+    "docs/data/screener-alerts.json",
+    "docs/data/technical-indicators-watchlist.json",
+    "docs/data/technical-indicators-all.json",
+    "docs/data/watchlist-overview.json",
+    "docs/data/fundamentals-watchlist.json",
+    "docs/data/fundamentals-all.json",
+    "docs/data/events.json",
+    "docs/data/sources.json",
+    "docs/data/consensus.json",
+    "docs/data/benchmarks/DOFG.OL.json",
+    "docs/data/benchmarks/ELK.OL.json",
+    "docs/data/benchmarks/FRO.OL.json",
+    "docs/data/benchmarks/HAFNI.OL.json",
+    "docs/data/benchmarks/KMAR.OL.json",
+    "docs/data/benchmarks/KOG.OL.json",
+    "docs/data/benchmarks/LINK.OL.json",
+    "docs/data/benchmarks/MOWI.OL.json",
+    "docs/data/benchmarks/NOD.OL.json",
+    "docs/data/benchmarks/ODL.OL.json",
+    "docs/data/benchmarks/PUBLI.OL.json",
+    "docs/data/benchmarks/TEL.OL.json",
+    "docs/data/benchmarks/VEND.OL.json"
+  ],
+  "refreshRequested": false,
+  "sourceStatus": {
+    "eventErrors": [],
+    "screenerError": null,
+    "technicalError": null,
+    "watchlistErrors": 0,
+    "watchlistRows": 13
+  },
+  "watchlist": "Core Watchlist",
+  "watchlistCount": 13,
+  "watchlistEdit": {
+    "codexPrompt": "Please edit data/watchlist.yml in keresell-coder/oslo-market-workspace, keep the YAML schema valid, preserve the no-advice guardrails, and open a PR with the watchlist change. After merge, run the Static GitHub Pages data workflow or wait for the next scheduled refresh.",
+    "policy": "Public GitHub Pages JavaScript does not contain a GitHub write token. Watchlist edits happen through GitHub/Codex/PRs.",
+    "sourceUrl": "https://github.com/keresell-coder/oslo-market-workspace/edit/main/data/watchlist.yml",
+    "workflowUrl": "https://github.com/keresell-coder/oslo-market-workspace/actions/workflows/static-data.yml"
+  }
+}

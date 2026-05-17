@@ -1,0 +1,54 @@
+name: Static GitHub Pages data
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub cron is UTC. These approximate Europe/Oslo targets:
+    # 05:30 UTC = 07:30 CEST / 06:30 CET weekday pre-open.
+    # 16:30 UTC = 18:30 CEST / 17:30 CET weekday evening.
+    # 07:00 UTC = 09:00 CEST / 08:00 CET weekend stale-status/news refresh.
+    - cron: "30 5 * * 1-5"
+    - cron: "30 16 * * 1-5"
+    - cron: "0 7 * * 6"
+    - cron: "0 7 * * 0"
+
+permissions:
+  contents: write
+
+jobs:
+  build-static-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Build static data
+        run: python3 scripts/build_static_site_data.py --refresh --no-cache-db
+
+      - name: Validate generated JSON
+        run: |
+          python3 -m json.tool docs/data/manifest.json >/dev/null
+          python3 -m json.tool docs/data/watchlist-overview.json >/dev/null
+          python3 -m json.tool docs/data/fundamentals-watchlist.json >/dev/null
+          python3 -m json.tool docs/data/technical-indicators-watchlist.json >/dev/null
+          python3 -m json.tool docs/data/events.json >/dev/null
+
+      - name: Commit generated site data
+        run: |
+          if git diff --quiet -- docs data app/static docs/index.html docs/app.js docs/styles.css docs/manifest.json; then
+            echo "No static data changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs data
+          git commit -m "Refresh static Oslo Stock data"
+          git push

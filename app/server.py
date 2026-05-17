@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
+import hmac
 import json
 import math
+import os
 import re
 import sqlite3
 import sys
@@ -9,6 +12,7 @@ import time
 import urllib.parse
 import csv
 import io
+import unicodedata
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -31,7 +35,14 @@ except Exception:  # pragma: no cover
 ROOT = Path(__file__).resolve().parent
 STATIC = ROOT / "static"
 DATA = ROOT / "data"
-DB_PATH = DATA / "oslo_workspace.sqlite3"
+DEFAULT_DB_PATH = DATA / "oslo_workspace.sqlite3"
+APP_HOST = os.environ.get("OSLO_APP_HOST", "127.0.0.1").strip() or "127.0.0.1"
+APP_PORT = int(os.environ.get("OSLO_APP_PORT", "8765"))
+DB_PATH = Path(os.environ.get("OSLO_APP_DB_PATH", str(DEFAULT_DB_PATH))).expanduser()
+if not DB_PATH.is_absolute():
+    DB_PATH = ROOT.parent / DB_PATH
+AUTH_USERNAME = os.environ.get("OSLO_APP_AUTH_USERNAME", "")
+AUTH_PASSWORD = os.environ.get("OSLO_APP_AUTH_PASSWORD", "")
 CACHE_TTL_SECONDS = 60 * 60 * 6
 CONSENSUS_FRESH_SECONDS = 60 * 60 * 24 * 3
 CONSENSUS_OLD_SECONDS = 60 * 60 * 24 * 14
@@ -46,6 +57,71 @@ TECHNICAL_CACHE_TTL_SECONDS = 60 * 15
 TECHNICAL_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
 PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
+PRICE_CHART_SAMPLE_POINTS = 48
+SNAPSHOT_CHART_SAMPLE_POINTS = 8
+QUARTERLY_STATEMENT_MAX_PERIODS = 6
+NEWSWEB_URL = "https://newsweb.oslobors.no/"
+NEWSWEB_SEARCH_URL = "https://newsweb.oslobors.no/search"
+NEWSWEB_API_BASE = "https://api3.oslo.oslobors.no/v1/newsreader"
+EURONEXT_OSLO_URL = "https://www.euronext.com/en/markets/oslo"
+EURONEXT_PUBLICATION_SERVICE_URL = "https://www.euronext.com/en/corporate-services/oslo-bors-publication-service"
+NEWSWEB_CACHE_TTL_SECONDS = 60 * 15
+NEWSWEB_DIGEST_LOOKBACK_SECONDS = 60 * 60 * 24
+NEWSWEB_DIGEST_LIMIT_PER_SYMBOL = 12
+NEWSWEB_CACHE: dict[str, dict] = {}
+FX_CACHE_TTL_SECONDS = 60 * 60 * 6
+FX_RATE_CACHE: dict[str, dict] = {}
+EVENT_CATEGORIES = [
+    {
+        "key": "earnings",
+        "label": "Earnings",
+        "description": "Quarterly, half-year, annual results, reports, trading updates, and financial calendar items.",
+    },
+    {
+        "key": "contract-order",
+        "label": "Contract/order",
+        "description": "New contracts, frame agreements, awards, order intake, backlog, or customer wins.",
+    },
+    {
+        "key": "financing-private-placement",
+        "label": "Financing/private placement",
+        "description": "Debt financing, bond issues, equity raises, private placements, repair issues, or refinancing.",
+    },
+    {
+        "key": "dividend",
+        "label": "Dividend",
+        "description": "Dividend proposals, ex-date updates, distributions, buybacks, or capital returns.",
+    },
+    {
+        "key": "insider",
+        "label": "Insider",
+        "description": "Mandatory notification of trade, primary insider transactions, or major shareholding notices.",
+    },
+    {
+        "key": "m-a",
+        "label": "M&A",
+        "description": "Acquisitions, disposals, mergers, takeover offers, strategic alternatives, or asset sales.",
+    },
+    {
+        "key": "guidance-profit-warning",
+        "label": "Guidance/profit warning",
+        "description": "Guidance changes, profit warnings, outlook updates, or material operational revisions.",
+    },
+    {
+        "key": "corporate-action",
+        "label": "Corporate action",
+        "description": "Listings, delistings, share capital changes, name changes, ISIN changes, splits, or other actions.",
+    },
+]
+EVENT_CATEGORY_KEYS = {category["key"] for category in EVENT_CATEGORIES}
+
+QUARTERLY_REVIEW_STATUSES = {
+    "unverified": "Not primary verified",
+    "needs-review": "Source located; review needed",
+    "reviewed-match": "Primary report matched",
+    "reviewed-difference": "Primary report differs",
+    "not-found": "Primary source not found",
+}
 
 INITIAL_WATCHLIST = [
     "NOD.OL",
@@ -105,6 +181,20 @@ BENCHMARK_METRICS = [
         "positiveOnly": True,
     },
     {
+        "key": "priceToSalesTrailing12Months",
+        "label": "P/S",
+        "unit": "x",
+        "positionNote": "Revenue multiples need margin, growth, accounting, and sector context before comparison.",
+        "positiveOnly": True,
+    },
+    {
+        "key": "enterpriseToRevenue",
+        "label": "EV/revenue",
+        "unit": "x",
+        "positionNote": "Enterprise-value revenue context is sector dependent and should be paired with margins.",
+        "positiveOnly": True,
+    },
+    {
         "key": "enterpriseToEbitda",
         "label": "EV/EBITDA",
         "unit": "x",
@@ -127,7 +217,123 @@ BENCHMARK_METRICS = [
     },
 ]
 
-OWN_HISTORY_METRIC_KEYS = {"trailingPE", "forwardPE", "priceToBook", "enterpriseToEbitda", "dividendYield"}
+OWN_HISTORY_METRIC_KEYS = {
+    "trailingPE",
+    "forwardPE",
+    "priceToBook",
+    "priceToSalesTrailing12Months",
+    "enterpriseToRevenue",
+    "enterpriseToEbitda",
+    "dividendYield",
+}
+
+QUARTERLY_STATEMENT_FIELDS = [
+    {
+        "key": "totalRevenue",
+        "label": "Revenue",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Total Revenue", "Operating Revenue"],
+    },
+    {
+        "key": "grossProfit",
+        "label": "Gross profit",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Gross Profit"],
+    },
+    {
+        "key": "ebitda",
+        "label": "EBITDA",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["EBITDA", "Normalized EBITDA"],
+    },
+    {
+        "key": "ebit",
+        "label": "EBIT",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["EBIT"],
+    },
+    {
+        "key": "operatingIncome",
+        "label": "Operating income",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Operating Income"],
+    },
+    {
+        "key": "netIncome",
+        "label": "Net income",
+        "unit": "currency",
+        "statement": "income",
+        "candidates": ["Net Income", "Net Income Common Stockholders"],
+    },
+    {
+        "key": "dilutedEps",
+        "label": "Diluted EPS",
+        "unit": "per share",
+        "statement": "income",
+        "candidates": ["Diluted EPS", "Diluted EPS Other Gains Losses"],
+    },
+    {
+        "key": "totalAssets",
+        "label": "Total assets",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Total Assets"],
+    },
+    {
+        "key": "totalDebt",
+        "label": "Total debt",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Total Debt"],
+    },
+    {
+        "key": "netDebt",
+        "label": "Net debt",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Net Debt"],
+    },
+    {
+        "key": "commonEquity",
+        "label": "Common equity",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Common Stock Equity", "Stockholders Equity"],
+    },
+    {
+        "key": "cash",
+        "label": "Cash",
+        "unit": "currency",
+        "statement": "balance",
+        "candidates": ["Cash And Cash Equivalents", "Cash Cash Equivalents And Short Term Investments"],
+    },
+    {
+        "key": "operatingCashFlow",
+        "label": "Operating cash flow",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Operating Cash Flow", "Cash Flow From Continuing Operating Activities"],
+    },
+    {
+        "key": "capitalExpenditure",
+        "label": "Capital expenditure",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Capital Expenditure"],
+    },
+    {
+        "key": "freeCashFlow",
+        "label": "Free cash flow",
+        "unit": "currency",
+        "statement": "cashflow",
+        "candidates": ["Free Cash Flow"],
+    },
+]
 
 MINIMUM_DATA_REQUIREMENTS = {
     "peerMetricMinimumPeers": 3,
@@ -275,36 +481,65 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Valuation multiples",
         "metric": "TTM P/E",
         "field": "trailingPE",
-        "sourceField": "trailingPE from Yahoo/yfinance",
+        "sourceField": "computed from cached price and EPS TTM; raw trailingPE from Yahoo/yfinance retained separately",
         "shows": "Price relative to trailing twelve-month earnings.",
         "usefulFor": "Initial context for profitable, less cyclical companies when compared with peers and own history.",
         "caveats": "Weak for losses, one-off earnings, cyclicals, banks, and asset-heavy shipping cycles.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Missing or non-positive earnings should stay n/a.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs",
+        "classification": "source-gated computed; raw providerTrailingPE retained separately",
+        "missingData": "Missing or non-positive EPS stays n/a; raw provider P/E is not used as a fallback.",
         "placement": "default table",
     },
     {
         "group": "Valuation multiples",
         "metric": "Forward P/E",
         "field": "forwardPE",
-        "sourceField": "forwardPE from Yahoo/yfinance",
+        "sourceField": "computed from cached price and forward EPS; raw forwardPE from Yahoo/yfinance retained separately",
         "shows": "Price relative to forward earnings estimates.",
         "usefulFor": "Estimate-backed context where analyst coverage is broad enough to review.",
         "caveats": "Depends on third-party estimates and methodology that this app does not verify.",
-        "sourceQuality": "low to screening-grade yfinance estimate field",
-        "missingData": "Leave missing when the provider has no estimate.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance estimate inputs",
+        "classification": "source-gated computed; raw providerForwardPE retained separately",
+        "missingData": "Leave missing when forward EPS is absent or non-positive; raw provider P/E is audit data only.",
         "placement": "default table",
     },
     {
         "group": "Valuation multiples",
         "metric": "P/B",
         "field": "priceToBook",
-        "sourceField": "priceToBook from Yahoo/yfinance",
+        "sourceField": "computed from cached price and bookValue; raw priceToBook from Yahoo/yfinance retained separately",
         "shows": "Price relative to accounting book value.",
         "usefulFor": "Banks, insurers, asset-heavy sectors, and capital-intensive companies when paired with ROE and asset quality.",
         "caveats": "Book value is not NAV, replacement value, or fleet value. Intangibles and accounting timing matter.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Do not use P/B as a substitute for P/NAV.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs",
+        "classification": "source-gated computed; raw providerPriceToBook retained separately",
+        "missingData": "Leave missing when book value per share is absent or non-positive. Do not use P/B as a substitute for P/NAV.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "P/S",
+        "field": "priceToSalesTrailing12Months",
+        "sourceField": "computed from yfinance marketCap and yfinance TTM revenue when currency conversion is available; raw provider ratio is retained separately",
+        "shows": "Market capitalization relative to trailing-twelve-month revenue.",
+        "usefulFor": "Initial revenue-multiple context only when paired with margins, growth, and sector economics.",
+        "caveats": "Revenue multiples can be misleading across sectors and margin profiles. Source revenue rows can be provider-normalized.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerPriceToSalesTrailing12Months retained separately",
+        "missingData": "Leave missing when market cap, TTM revenue, or required FX conversion is unavailable or unusable.",
+        "placement": "default table",
+    },
+    {
+        "group": "Valuation multiples",
+        "metric": "EV/revenue",
+        "field": "enterpriseToRevenue",
+        "sourceField": "computed from yfinance enterpriseValue and yfinance TTM revenue when currency conversion is available; raw provider ratio is retained separately",
+        "shows": "Enterprise value relative to trailing-twelve-month revenue.",
+        "usefulFor": "Capital-structure-aware revenue context when compared with margins and peers.",
+        "caveats": "Margin structure, leases/debt, cyclicality, and revenue recognition make standalone interpretation unsafe.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerEnterpriseToRevenue retained separately",
+        "missingData": "Leave missing when enterprise value, TTM revenue, or required FX conversion is unavailable or unusable.",
         "placement": "default table",
     },
     {
@@ -323,12 +558,13 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Valuation multiples",
         "metric": "EV/EBITDA",
         "field": "enterpriseToEbitda",
-        "sourceField": "enterpriseToEbitda from Yahoo/yfinance",
-        "shows": "Enterprise value relative to EBITDA.",
+        "sourceField": "computed from yfinance enterpriseValue and yfinance TTM EBITDA when currency conversion is available; raw Yahoo/yfinance provider ratio is retained separately",
+        "shows": "Enterprise value relative to trailing-twelve-month EBITDA.",
         "usefulFor": "Capital structure-aware screening for many industrial and asset-heavy businesses.",
-        "caveats": "Lease/debt treatment, cyclicality, negative EBITDA, and one-offs can make it misleading.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Leave missing when EV or EBITDA is unavailable or unusable.",
+        "caveats": "Requires EV, TTM EBITDA, and matching or converted currencies. Lease/debt treatment, cyclicality, negative EBITDA, one-offs, and provider-normalized statement rows can make it misleading.",
+        "sourceQuality": "computed screening-grade value when inputs pass currency/TTM gates",
+        "classification": "source-gated computed; raw providerEnterpriseToEbitda retained separately",
+        "missingData": "Leave missing when EV, TTM EBITDA, or required FX conversion is unavailable or unusable. Do not fall back to the raw provider ratio.",
         "placement": "default table",
     },
     {
@@ -359,12 +595,13 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "group": "Earnings and yield",
         "metric": "Dividend yield",
         "field": "dividendYield",
-        "sourceField": "dividendYield from Yahoo/yfinance",
+        "sourceField": "computed from dividendRate and cached price when available; raw dividendYield from Yahoo/yfinance retained separately",
         "shows": "Provider dividend yield, normalized to percent in this app.",
         "usefulFor": "Income-screening context before reviewing payout, balance sheet, and cyclicality.",
         "caveats": "Can reflect historical dividends, special dividends, or stale provider data.",
-        "sourceQuality": "screening-grade yfinance",
-        "missingData": "Missing does not mean no dividend; verify before relying on it.",
+        "sourceQuality": "source-gated computed from screening-grade yfinance inputs when dividendRate and price are available",
+        "classification": "source-gated computed; raw providerDividendYield retained separately",
+        "missingData": "Missing dividendRate stays n/a and does not mean no dividend; verify before relying on it.",
         "placement": "default table",
     },
     {
@@ -396,11 +633,12 @@ FUNDAMENTAL_METRIC_GUIDE = [
         "metric": "Target fields and reported analyst refs",
         "field": "consensus",
         "sourceField": "Yahoo/yfinance plus manual consensus_sources rows",
-        "shows": "Provider target range, recommendation label, and reported analyst-reference counts.",
+        "shows": "Provider target range, raw rating label, and reported analyst-reference counts.",
         "usefulFor": "Source review and comparison across provider rows when manually added.",
-        "caveats": "Counts can overlap and are not deduplicated. Recommendation weighting is not verified.",
+        "caveats": "Counts can overlap and are not deduplicated. Rating labels are not weighted or converted into app recommendations.",
         "sourceQuality": "low until manually reviewed across providers",
-        "missingData": "Missing or single-provider rows should not be treated as verified consensus.",
+        "classification": "provider-derived/source-row; not computed consensus",
+        "missingData": "Missing or single-provider rows stay source-row data and should not be treated as verified consensus.",
         "placement": "default table with editor and source notes",
     },
 ]
@@ -411,7 +649,9 @@ FUNDAMENTAL_VALIDATION_FIELDS = [
     ("TTM P/E", "trailingPE"),
     ("Forward P/E", "forwardPE"),
     ("P/B", "priceToBook"),
+    ("P/S", "priceToSalesTrailing12Months"),
     ("P/NAV", "pnAv"),
+    ("EV/revenue", "enterpriseToRevenue"),
     ("EV/EBITDA", "enterpriseToEbitda"),
     ("EV/EBIT", "evToEbit"),
     ("EPS TTM", "epsTrailingTwelveMonths"),
@@ -689,7 +929,7 @@ def peer_market_for_symbol(symbol: str) -> str:
 
 
 def connect() -> sqlite3.Connection:
-    DATA.mkdir(parents=True, exist_ok=True)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     return con
@@ -766,15 +1006,20 @@ def init_db() -> None:
             create table if not exists consensus_sources (
                 symbol text not null,
                 source text not null,
+                source_type text default 'provider-row',
+                review_status text default 'draft',
                 target_mean real,
                 target_high real,
                 target_low real,
                 analyst_count real,
                 recommendation text,
                 recommendation_score real,
+                target_currency text default '',
+                as_of_date text default '',
                 source_url text,
                 confidence text default 'single-provider',
                 method_note text default '',
+                limitation_note text default '',
                 collected_at_epoch integer not null,
                 collected_at text not null,
                 primary key (symbol, source)
@@ -809,10 +1054,27 @@ def init_db() -> None:
                 updated_at text not null,
                 primary key (symbol, kpi_key)
             );
+
+            create table if not exists quarterly_statement_reviews (
+                symbol text not null,
+                period_end text not null,
+                review_status text default 'unverified',
+                source_name text default '',
+                source_url text default '',
+                report_period text default '',
+                reviewer_note text default '',
+                limitation_note text default '',
+                reviewed_at text default '',
+                updated_at text not null,
+                primary key (symbol, period_end)
+            );
             """
         )
         ensure_peer_group_schema(con)
+        ensure_consensus_schema(con)
+        ensure_significant_events_schema(con)
         ensure_sector_kpi_schema(con)
+        ensure_quarterly_statement_review_schema(con)
         now = utc_now()
         con.execute(
             "insert or ignore into watchlists(name, created_at) values (?, ?)",
@@ -947,6 +1209,44 @@ def ensure_peer_group_schema(con: sqlite3.Connection) -> None:
     )
 
 
+def ensure_consensus_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "consensus_sources", "source_type", "text default 'provider-row'")
+    ensure_column(con, "consensus_sources", "review_status", "text default 'draft'")
+    ensure_column(con, "consensus_sources", "target_currency", "text default ''")
+    ensure_column(con, "consensus_sources", "as_of_date", "text default ''")
+    ensure_column(con, "consensus_sources", "limitation_note", "text default ''")
+    con.execute(
+        """
+        update consensus_sources
+        set source_type = 'provider-row'
+        where source_type is null or source_type = ''
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = confidence
+        where confidence in ('reviewed', 'verified', 'trusted')
+          and (review_status is null or review_status = '' or review_status = 'draft')
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = 'provider-row'
+        where lower(coalesce(source, '')) like '%yfinance%'
+          and (review_status is null or review_status = '' or review_status = 'draft')
+        """
+    )
+    con.execute(
+        """
+        update consensus_sources
+        set review_status = 'draft'
+        where review_status is null or review_status = ''
+        """
+    )
+
+
 def ensure_sector_kpi_schema(con: sqlite3.Connection) -> None:
     ensure_column(con, "sector_kpi_inputs", "period", "text default ''")
     ensure_column(con, "sector_kpi_inputs", "status", "text default 'draft'")
@@ -963,8 +1263,177 @@ def ensure_sector_kpi_schema(con: sqlite3.Connection) -> None:
     )
 
 
+def ensure_significant_events_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "significant_events", "source_type", "text default 'manual-source'")
+    ensure_column(con, "significant_events", "review_status", "text default 'draft'")
+    ensure_column(con, "significant_events", "confidence", "text default 'manual'")
+    ensure_column(con, "significant_events", "limitation_note", "text default ''")
+    con.execute(
+        """
+        update significant_events
+        set source_type = 'manual-source'
+        where source_type is null or source_type = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set review_status = 'draft'
+        where review_status is null or review_status = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set confidence = case
+            when lower(coalesce(source, '')) like '%newsweb%' then 'source-linked'
+            when lower(coalesce(source, '')) like '%euronext%' then 'source-linked'
+            else 'manual'
+        end
+        where confidence is null or confidence = ''
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'corporate-action'
+        where category in ('corporate action', 'corporate_action')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'contract-order'
+        where category in ('contract', 'order', 'contracts/orders')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'financing-private-placement'
+        where category in ('financing', 'private-placement', 'private placement')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'guidance-profit-warning'
+        where category in ('guidance', 'profit warning', 'profit-warning')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'm-a'
+        where category in ('m&a', 'ma', 'merger', 'acquisition')
+        """
+    )
+    con.execute(
+        """
+        update significant_events
+        set category = 'corporate-action'
+        where category is null or category = '' or category = 'update'
+        """
+    )
+
+
+def ensure_quarterly_statement_review_schema(con: sqlite3.Connection) -> None:
+    ensure_column(con, "quarterly_statement_reviews", "review_status", "text default 'unverified'")
+    ensure_column(con, "quarterly_statement_reviews", "source_name", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "source_url", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "report_period", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "reviewer_note", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "limitation_note", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "reviewed_at", "text default ''")
+    ensure_column(con, "quarterly_statement_reviews", "updated_at", "text")
+    con.execute(
+        """
+        update quarterly_statement_reviews
+        set review_status = 'unverified'
+        where review_status is null or review_status = ''
+        """
+    )
+    con.execute(
+        """
+        update quarterly_statement_reviews
+        set updated_at = ?
+        where updated_at is null or updated_at = ''
+        """,
+        (utc_now(),),
+    )
+
+
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict]:
     return [dict(row) for row in rows]
+
+
+def env_flag(name: str, default: bool = False) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def is_local_bind_host(host: str) -> bool:
+    return host in {"127.0.0.1", "localhost", "::1"}
+
+
+def auth_required() -> bool:
+    if env_flag("OSLO_APP_REQUIRE_AUTH", False):
+        return True
+    return not is_local_bind_host(APP_HOST) and auth_configured() and not remote_bind_without_auth_allowed()
+
+
+def auth_configured() -> bool:
+    return bool(AUTH_USERNAME and AUTH_PASSWORD)
+
+
+def remote_bind_without_auth_allowed() -> bool:
+    return env_flag("OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE", False)
+
+
+def sharing_config() -> dict:
+    return {
+        "bindHost": APP_HOST,
+        "port": APP_PORT,
+        "localOnly": is_local_bind_host(APP_HOST),
+        "authRequired": auth_required(),
+        "authConfigured": auth_configured(),
+        "remoteBindRequiresAuth": not remote_bind_without_auth_allowed(),
+        "databasePathConfigured": "OSLO_APP_DB_PATH" in os.environ,
+        "policy": (
+            "Default runtime is local-only. Binding to a non-local host requires Basic Auth credentials unless "
+            "OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1 is set intentionally."
+        ),
+    }
+
+
+def validate_runtime_config() -> None:
+    if auth_required() and not auth_configured():
+        raise RuntimeError(
+            "OSLO_APP_REQUIRE_AUTH is enabled, but OSLO_APP_AUTH_USERNAME and OSLO_APP_AUTH_PASSWORD are not both set."
+        )
+    if not is_local_bind_host(APP_HOST) and not auth_configured() and not remote_bind_without_auth_allowed():
+        raise RuntimeError(
+            "Refusing to bind outside localhost without auth. Set OSLO_APP_AUTH_USERNAME and "
+            "OSLO_APP_AUTH_PASSWORD, or set OSLO_APP_ALLOW_UNAUTHENTICATED_REMOTE=1 for an intentional "
+            "unauthenticated shared run."
+        )
+
+
+def valid_basic_auth(header: str | None) -> bool:
+    if not auth_required():
+        return True
+    if not header or not header.lower().startswith("basic "):
+        return False
+    try:
+        decoded = base64.b64decode(header.split(" ", 1)[1], validate=True).decode("utf-8")
+    except Exception:
+        return False
+    username, separator, password = decoded.partition(":")
+    if not separator:
+        return False
+    return hmac.compare_digest(username, AUTH_USERNAME) and hmac.compare_digest(password, AUTH_PASSWORD)
 
 
 def get_json_body(handler: SimpleHTTPRequestHandler) -> dict:
@@ -999,28 +1468,45 @@ def fetch_yfinance(symbol: str) -> dict:
     if current_price and target:
         upside = (target / current_price - 1) * 100
 
-    dividend_yield = pick_number(info, "dividendYield")
-    if dividend_yield is not None and dividend_yield < 1:
-        dividend_yield *= 100
-
+    ev_ebitda = enterprise_to_ebitda_summary(ticker, info, now)
+    multiple_summaries = fundamental_multiple_summaries(ticker, info, current_price, ev_ebitda, now)
     payload = {
         "symbol": symbol,
         "name": info.get("shortName") or info.get("longName") or symbol,
         "sector": info.get("sector"),
         "industry": info.get("industry"),
         "currency": info.get("currency") or "NOK",
+        "financialCurrency": info.get("financialCurrency"),
         "price": current_price,
         "marketCap": pick_number(info, "marketCap"),
         "enterpriseValue": pick_number(info, "enterpriseValue"),
-        "trailingPE": pick_number(info, "trailingPE"),
-        "forwardPE": pick_number(info, "forwardPE"),
-        "priceToBook": pick_number(info, "priceToBook"),
-        "priceToSalesTrailing12Months": pick_number(info, "priceToSalesTrailing12Months"),
-        "enterpriseToRevenue": pick_number(info, "enterpriseToRevenue"),
-        "enterpriseToEbitda": pick_number(info, "enterpriseToEbitda"),
+        "trailingPE": multiple_summaries["trailingPE"].get("value"),
+        "providerTrailingPE": multiple_summaries["trailingPE"].get("providerValue"),
+        "forwardPE": multiple_summaries["forwardPE"].get("value"),
+        "providerForwardPE": multiple_summaries["forwardPE"].get("providerValue"),
+        "priceToBook": multiple_summaries["priceToBook"].get("value"),
+        "providerPriceToBook": multiple_summaries["priceToBook"].get("providerValue"),
+        "bookValue": pick_number(info, "bookValue"),
+        "priceToSalesTrailing12Months": multiple_summaries["priceToSalesTrailing12Months"].get("value"),
+        "providerPriceToSalesTrailing12Months": multiple_summaries["priceToSalesTrailing12Months"].get("providerValue"),
+        "enterpriseToRevenue": multiple_summaries["enterpriseToRevenue"].get("value"),
+        "providerEnterpriseToRevenue": multiple_summaries["enterpriseToRevenue"].get("providerValue"),
+        "enterpriseToEbitda": ev_ebitda.get("value"),
+        "providerEnterpriseToEbitda": ev_ebitda.get("providerEnterpriseToEbitda"),
+        "enterpriseToEbitdaStatus": ev_ebitda.get("status"),
+        "enterpriseToEbitdaSource": ev_ebitda.get("source"),
+        "enterpriseToEbitdaMethod": ev_ebitda.get("method"),
+        "enterpriseToEbitdaLimitation": ev_ebitda.get("limitation"),
+        "enterpriseToEbitdaConfidence": ev_ebitda.get("confidence"),
+        "enterpriseToEbitdaInputs": ev_ebitda,
+        "ttmEbitda": ev_ebitda.get("ttmEbitda"),
+        "ttmEbitdaCurrency": ev_ebitda.get("ttmEbitdaCurrency"),
+        "ttmEbitdaPeriodEnd": ev_ebitda.get("ttmEbitdaPeriodEnd"),
         "epsTrailingTwelveMonths": pick_number(info, "epsTrailingTwelveMonths", "trailingEps"),
         "epsForward": pick_number(info, "forwardEps"),
-        "dividendYield": dividend_yield,
+        "dividendRate": multiple_summaries["dividendYield"].get("inputs", {}).get("annualDividendRate"),
+        "dividendYield": multiple_summaries["dividendYield"].get("value"),
+        "providerDividendYield": multiple_summaries["dividendYield"].get("providerValue"),
         "targetMeanPrice": target,
         "targetHighPrice": pick_number(info, "targetHighPrice"),
         "targetLowPrice": pick_number(info, "targetLowPrice"),
@@ -1030,14 +1516,20 @@ def fetch_yfinance(symbol: str) -> dict:
         "targetUpsidePct": upside,
         "targetPriceSource": "Yahoo Finance via yfinance",
         "targetPriceMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
-        "recommendationScale": "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
+        "recommendationScale": "Yahoo/yfinance rating-label fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
         "pnAv": None,
         "evToEbit": None,
+        "multipleSourceMetadata": multiple_summaries,
         "source": "Yahoo Finance via yfinance",
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
         "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
-        "newswebUrl": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+        "quarterlyStatements": fetch_yfinance_quarterly_statements(
+            ticker,
+            info.get("financialCurrency") or "",
+            now,
+        ),
+        "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
     return payload
@@ -1095,6 +1587,47 @@ def quarterly_price_windows(close) -> list[dict]:
     return [price_window_stats(label, grouped[label]) for label in labels[-4:]]
 
 
+def sampled_points(items: list[dict], max_points: int) -> list[dict]:
+    if len(items) <= max_points:
+        return items
+    step = (len(items) - 1) / (max_points - 1)
+    indexes = sorted({round(i * step) for i in range(max_points)})
+    return [items[index] for index in indexes]
+
+
+def price_chart_payload(
+    close,
+    observation_count: int,
+    confidence: str,
+    fetched_at: str,
+    currency: str,
+    source: str,
+    limitations: str,
+) -> dict:
+    raw_points = []
+    for index_value, raw_value in close.items():
+        value = finite_float(raw_value)
+        if value is None or value <= 0:
+            continue
+        raw_points.append({"date": history_index_date(index_value), "value": value})
+    points = sampled_points(raw_points, PRICE_CHART_SAMPLE_POINTS)
+    return {
+        "type": "price_close",
+        "label": "1y close trend",
+        "status": "available" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS and len(points) >= 2 else "insufficient observations",
+        "points": points if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else [],
+        "observationCount": observation_count,
+        "minimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
+        "source": source,
+        "fetchedAt": fetched_at,
+        "firstObservationAt": raw_points[0]["date"] if raw_points else None,
+        "lastObservationAt": raw_points[-1]["date"] if raw_points else None,
+        "currency": currency,
+        "confidence": confidence,
+        "limitations": limitations,
+    }
+
+
 def fetch_yfinance_price_history(ticker, current_price: float | None, currency: str, fetched_at: str) -> dict:
     base = {
         "source": "Yahoo Finance via yfinance",
@@ -1125,10 +1658,11 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
         range_position = max(0.0, min(100.0, (current - low) / (high - low) * 100))
 
     observation_count = len(values)
+    confidence = "screening-grade" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "low"
     return {
         **base,
         "status": "available" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "thin history",
-        "confidence": "screening-grade" if observation_count >= PRICE_HISTORY_MIN_OBSERVATIONS else "low",
+        "confidence": confidence,
         "observationCount": observation_count,
         "current": current,
         "median": median(values),
@@ -1141,7 +1675,347 @@ def fetch_yfinance_price_history(ticker, current_price: float | None, currency: 
         "pctFromLow": pct_diff(current, low),
         "pctFromHigh": pct_diff(current, high),
         "quarterWindows": quarterly_price_windows(close),
+        "chart": price_chart_payload(
+            close,
+            observation_count,
+            confidence,
+            fetched_at,
+            currency,
+            base["source"],
+            base["limitations"],
+        ),
     }
+
+
+def dataframe_has_rows(frame) -> bool:
+    return frame is not None and not getattr(frame, "empty", True)
+
+
+def statement_frame_value(frame, row_labels: list[str], column) -> tuple[float | None, str | None]:
+    if not dataframe_has_rows(frame):
+        return None, None
+    index = getattr(frame, "index", [])
+    for row_label in row_labels:
+        if row_label not in index:
+            continue
+        try:
+            raw_value = frame.loc[row_label, column]
+        except Exception:
+            continue
+        if hasattr(raw_value, "iloc"):
+            raw_value = raw_value.iloc[0] if len(raw_value) else None
+        value = finite_float(raw_value)
+        if value is not None:
+            return value, row_label
+    return None, None
+
+
+def statement_period_columns(statements: dict[str, object]) -> list[dict]:
+    periods: dict[str, dict] = {}
+    for statement_name, frame in statements.items():
+        if not dataframe_has_rows(frame):
+            continue
+        for column in getattr(frame, "columns", []):
+            date_text = history_index_date(column)
+            if not date_text:
+                continue
+            period = periods.setdefault(date_text, {"periodEnd": date_text, "columns": {}})
+            period["columns"][statement_name] = column
+    return sorted(periods.values(), key=lambda item: item["periodEnd"], reverse=True)
+
+
+def fetch_yfinance_quarterly_statements(ticker, currency: str, fetched_at: str) -> dict:
+    base = {
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "fetchedAt": fetched_at,
+        "currency": currency,
+        "currencySource": "yfinance financialCurrency" if currency else "not supplied by yfinance",
+        "periodType": "quarter",
+        "confidence": "missing",
+        "limitations": (
+            "Open/free yfinance quarterly statement tables are screening-grade, rate-limited, and may lag or omit "
+            "line items. Values are shown only when a dated quarterly statement row is returned; no statement "
+            "history is inferred from current yfinance summary fields. Currency is shown only when yfinance "
+            "provides financialCurrency."
+        ),
+        "fields": [
+            {
+                "key": field["key"],
+                "label": field["label"],
+                "unit": field["unit"],
+                "statement": field["statement"],
+                "sourceRows": field["candidates"],
+            }
+            for field in QUARTERLY_STATEMENT_FIELDS
+        ],
+    }
+    statement_attrs = {
+        "income": "quarterly_income_stmt",
+        "balance": "quarterly_balance_sheet",
+        "cashflow": "quarterly_cashflow",
+    }
+    statements = {}
+    errors = []
+    for statement_name, attr in statement_attrs.items():
+        try:
+            frame = getattr(ticker, attr)
+        except Exception as exc:
+            errors.append(f"{attr}: {exc}")
+            continue
+        if dataframe_has_rows(frame):
+            statements[statement_name] = frame
+
+    periods = []
+    coverage_by_field = {field["key"]: 0 for field in QUARTERLY_STATEMENT_FIELDS}
+    source_rows_by_field: dict[str, str] = {}
+    for period in statement_period_columns(statements)[:QUARTERLY_STATEMENT_MAX_PERIODS]:
+        values = {}
+        source_rows = {}
+        for field in QUARTERLY_STATEMENT_FIELDS:
+            frame = statements.get(field["statement"])
+            column = period["columns"].get(field["statement"])
+            value, source_row = (
+                statement_frame_value(frame, field["candidates"], column)
+                if column is not None
+                else (None, None)
+            )
+            values[field["key"]] = value
+            if source_row:
+                source_rows[field["key"]] = source_row
+                source_rows_by_field.setdefault(field["key"], source_row)
+                coverage_by_field[field["key"]] += 1
+        if any(value is not None for value in values.values()):
+            periods.append(
+                {
+                    "periodEnd": period["periodEnd"],
+                    "label": history_quarter_label(period["periodEnd"]),
+                    "values": values,
+                    "sourceRows": source_rows,
+                }
+            )
+
+    statement_coverage = {
+        statement_name: {
+            "status": "available" if statement_name in statements else "missing",
+            "rowCount": len(getattr(statements.get(statement_name), "index", [])) if statement_name in statements else 0,
+            "periodCount": len(getattr(statements.get(statement_name), "columns", [])) if statement_name in statements else 0,
+            "sourcePath": statement_attrs[statement_name],
+        }
+        for statement_name in statement_attrs
+    }
+    present_fields = [key for key, count in coverage_by_field.items() if count > 0]
+    status = "available" if periods else "missing"
+    confidence = "screening-grade" if periods else "missing"
+    return {
+        **base,
+        "status": status,
+        "confidence": confidence,
+        "periodCount": len(periods),
+        "maximumPeriods": QUARTERLY_STATEMENT_MAX_PERIODS,
+        "latestPeriodEnd": periods[0]["periodEnd"] if periods else None,
+        "periods": periods,
+        "coverageByField": coverage_by_field,
+        "presentFields": present_fields,
+        "sourceRowsByField": source_rows_by_field,
+        "statementCoverage": statement_coverage,
+        "errors": errors,
+    }
+
+
+def fetch_yfinance_quarterly_statements_missing(currency: str) -> dict:
+    return {
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "fetchedAt": None,
+        "currency": currency,
+        "currencySource": "yfinance financialCurrency" if currency else "not supplied by yfinance",
+        "periodType": "quarter",
+        "status": "missing",
+        "confidence": "missing",
+        "periodCount": 0,
+        "maximumPeriods": QUARTERLY_STATEMENT_MAX_PERIODS,
+        "latestPeriodEnd": None,
+        "periods": [],
+        "fields": [
+            {
+                "key": field["key"],
+                "label": field["label"],
+                "unit": field["unit"],
+                "statement": field["statement"],
+                "sourceRows": field["candidates"],
+            }
+            for field in QUARTERLY_STATEMENT_FIELDS
+        ],
+        "coverageByField": {field["key"]: 0 for field in QUARTERLY_STATEMENT_FIELDS},
+        "presentFields": [],
+        "sourceRowsByField": {},
+        "statementCoverage": {},
+        "limitations": (
+            "No dated quarterly statement payload is cached yet. Missing data stays missing until yfinance returns "
+            "quarterly statement rows for this ticker."
+        ),
+        "errors": [],
+    }
+
+
+def normalize_quarterly_review_status(value: str | None) -> str:
+    raw = (value or "").strip().lower()
+    return raw if raw in QUARTERLY_REVIEW_STATUSES else "unverified"
+
+
+def quarterly_review_row(row: dict | sqlite3.Row | None) -> dict:
+    if not row:
+        return {
+            "reviewStatus": "unverified",
+            "reviewStatusLabel": QUARTERLY_REVIEW_STATUSES["unverified"],
+            "isPrimaryReviewed": False,
+            "isSourceLinked": False,
+            "sourceName": "",
+            "sourceUrl": "",
+            "reportPeriod": "",
+            "reviewerNote": "",
+            "limitationNote": "No primary company-report review stored for this period.",
+            "reviewedAt": "",
+            "updatedAt": "",
+        }
+    data = dict(row)
+    status = normalize_quarterly_review_status(data.get("review_status"))
+    source_url = data.get("source_url") or ""
+    source_name = data.get("source_name") or ""
+    return {
+        "symbol": data.get("symbol"),
+        "periodEnd": data.get("period_end"),
+        "reviewStatus": status,
+        "reviewStatusLabel": QUARTERLY_REVIEW_STATUSES[status],
+        "isPrimaryReviewed": status == "reviewed-match",
+        "isSourceLinked": bool(source_url),
+        "sourceName": source_name,
+        "sourceUrl": source_url,
+        "reportPeriod": data.get("report_period") or "",
+        "reviewerNote": data.get("reviewer_note") or "",
+        "limitationNote": data.get("limitation_note") or "",
+        "reviewedAt": data.get("reviewed_at") or "",
+        "updatedAt": data.get("updated_at") or "",
+    }
+
+
+def quarterly_statement_review_policy() -> dict:
+    return {
+        "sourcePath": (
+            "Manual/source-linked review against company quarterly or annual reports, stock-exchange report PDFs, "
+            "or company investor-relations report tables."
+        ),
+        "statuses": [
+            {"key": key, "label": label}
+            for key, label in QUARTERLY_REVIEW_STATUSES.items()
+        ],
+        "requirement": (
+            "Each yfinance quarterly period stays unverified until a reviewer records a matching primary report "
+            "source URL and review status. Missing yfinance fields stay missing; primary reviews do not backfill "
+            "or infer values."
+        ),
+        "limitations": (
+            "This is a review tracker, not automated filing extraction. Differences between provider-normalized "
+            "rows and company-reported rows must be documented manually before the row is treated as source-reviewed."
+        ),
+        "policy": (
+            "Primary-report review supports source quality only. It does not create valuation verdicts, "
+            "recommendations, or standalone multiple labels."
+        ),
+    }
+
+
+def quarterly_statement_reviews_for_symbols(symbols: list[str]) -> dict[str, dict[str, dict]]:
+    clean_symbols = sorted({normalize_symbol(symbol) for symbol in symbols if symbol})
+    if not clean_symbols:
+        return {}
+    placeholders = ",".join("?" for _ in clean_symbols)
+    with connect() as con:
+        rows = rows_to_dicts(
+            con.execute(
+                f"""
+                select *
+                from quarterly_statement_reviews
+                where symbol in ({placeholders})
+                order by symbol, period_end desc
+                """,
+                clean_symbols,
+            ).fetchall()
+        )
+    reviews: dict[str, dict[str, dict]] = {symbol: {} for symbol in clean_symbols}
+    for row in rows:
+        reviews.setdefault(row["symbol"], {})[row["period_end"]] = quarterly_review_row(row)
+    return reviews
+
+
+def apply_quarterly_statement_reviews(rows: list[dict]) -> list[dict]:
+    reviews_by_symbol = quarterly_statement_reviews_for_symbols([row.get("symbol", "") for row in rows])
+    for row in rows:
+        symbol = row.get("symbol")
+        context = row.get("historicalContext") or {}
+        history = context.get("quarterlyStatementHistory") or row.get("quarterlyStatements") or {}
+        symbol_reviews = reviews_by_symbol.get(symbol, {})
+        periods = history.get("periods") or []
+        period_review_rows = []
+        reviewed_count = 0
+        source_linked_count = 0
+        difference_count = 0
+        for period in periods:
+            review = symbol_reviews.get(period.get("periodEnd")) or quarterly_review_row(None)
+            period["primaryReportReview"] = review
+            period_review_rows.append(
+                {
+                    "periodEnd": period.get("periodEnd"),
+                    "label": period.get("label"),
+                    **review,
+                }
+            )
+            if review.get("isPrimaryReviewed"):
+                reviewed_count += 1
+            if review.get("isSourceLinked"):
+                source_linked_count += 1
+            if review.get("reviewStatus") == "reviewed-difference":
+                difference_count += 1
+        total_periods = len(periods)
+        if not total_periods:
+            status = "missing-yfinance-periods"
+            label = "No yfinance statement periods"
+        elif difference_count:
+            status = "reviewed-with-differences"
+            label = "Primary review found differences"
+        elif reviewed_count == total_periods:
+            status = "reviewed-all-matched"
+            label = "All periods primary reviewed"
+        elif reviewed_count:
+            status = "partially-reviewed"
+            label = "Some periods primary reviewed"
+        else:
+            status = "not-started"
+            label = "Not primary verified"
+        history["primaryReportVerification"] = {
+            "status": status,
+            "label": label,
+            "periodCount": total_periods,
+            "reviewedMatchCount": reviewed_count,
+            "sourceLinkedCount": source_linked_count,
+            "differenceCount": difference_count,
+            "reviews": period_review_rows,
+            "policy": quarterly_statement_review_policy(),
+        }
+        history["primaryReportConfidence"] = (
+            "source-reviewed rows exist for matched periods"
+            if reviewed_count
+            else "not primary verified"
+        )
+        history["limitations"] = (
+            f"{history.get('limitations') or ''} Primary company-report review is tracked separately; "
+            "unreviewed periods remain screening-grade yfinance rows."
+        ).strip()
+        context["quarterlyStatementHistory"] = history
+        row["historicalContext"] = context
+        row["quarterlyStatements"] = history
+    return rows
 
 
 def pick_number(info: dict, *keys: str) -> float | None:
@@ -1151,6 +2025,687 @@ def pick_number(info: dict, *keys: str) -> float | None:
         if numeric is not None:
             return numeric
     return None
+
+
+def ttm_statement_value(ticker, row_labels: list[str]) -> tuple[float | None, str | None, str | None]:
+    try:
+        frame = ticker.ttm_income_stmt
+    except Exception:
+        return None, None, None
+    if not dataframe_has_rows(frame):
+        return None, None, None
+    columns = list(getattr(frame, "columns", []))
+    if not columns:
+        return None, None, None
+    value, source_row = statement_frame_value(frame, row_labels, columns[0])
+    return value, source_row, history_index_date(columns[0])
+
+
+def fx_pair_symbol(from_currency: str, to_currency: str) -> str:
+    return f"{from_currency.upper()}{to_currency.upper()}=X"
+
+
+def yfinance_fx_rate(from_currency: str, to_currency: str) -> dict:
+    from_currency = (from_currency or "").upper()
+    to_currency = (to_currency or "").upper()
+    if not from_currency or not to_currency:
+        return {
+            "rate": None,
+            "pair": "",
+            "source": "Yahoo Finance via yfinance FX",
+            "status": "missing-currency",
+            "error": "Quote currency or financial currency is missing.",
+        }
+    if from_currency == to_currency:
+        return {
+            "rate": 1.0,
+            "pair": f"{from_currency}/{to_currency}",
+            "source": "same currency",
+            "status": "same-currency",
+            "fetchedAt": utc_now(),
+        }
+
+    cache_key = f"{from_currency}:{to_currency}"
+    cached = FX_RATE_CACHE.get(cache_key)
+    now_epoch = int(time.time())
+    if cached and now_epoch - int(cached.get("fetched_at_epoch", 0)) < FX_CACHE_TTL_SECONDS:
+        return dict(cached["payload"])
+
+    if yf is None:
+        return {
+            "rate": None,
+            "pair": fx_pair_symbol(from_currency, to_currency),
+            "source": "Yahoo Finance via yfinance FX",
+            "status": "missing-yfinance",
+            "error": "yfinance is not installed.",
+        }
+
+    fetched_at = utc_now()
+    errors = []
+    direct_pair = fx_pair_symbol(from_currency, to_currency)
+    reverse_pair = fx_pair_symbol(to_currency, from_currency)
+    for pair, invert in [(direct_pair, False), (reverse_pair, True)]:
+        try:
+            history = yf.Ticker(pair).history(period="5d")
+            if not dataframe_has_rows(history) or "Close" not in getattr(history, "columns", []):
+                errors.append(f"{pair}: no close rows")
+                continue
+            close_values = [finite_float(value) for value in history["Close"].tolist()]
+            close_values = [value for value in close_values if value is not None and value > 0]
+            if not close_values:
+                errors.append(f"{pair}: no usable close")
+                continue
+            rate = close_values[-1]
+            if invert:
+                rate = 1 / rate
+            payload = {
+                "rate": rate,
+                "pair": pair,
+                "source": "Yahoo Finance via yfinance FX",
+                "status": "fresh",
+                "fetchedAt": fetched_at,
+                "inverted": invert,
+            }
+            FX_RATE_CACHE[cache_key] = {"fetched_at_epoch": now_epoch, "payload": payload}
+            return payload
+        except Exception as exc:
+            errors.append(f"{pair}: {exc}")
+
+    return {
+        "rate": None,
+        "pair": direct_pair,
+        "source": "Yahoo Finance via yfinance FX",
+        "status": "error",
+        "fetchedAt": fetched_at,
+        "error": "; ".join(errors),
+    }
+
+
+def source_gated_ratio_summary(
+    *,
+    field: str,
+    label: str,
+    provider_field: str,
+    provider_value: float | None,
+    numerator: float | None,
+    numerator_label: str,
+    denominator: float | None,
+    denominator_label: str,
+    source: str,
+    method: str,
+    fetched_at: str,
+    unit: str = "x",
+    numerator_currency: str | None = None,
+    denominator_currency: str | None = None,
+    denominator_period_end: str | None = None,
+    denominator_source_row: str | None = None,
+    limitation_note: str = "",
+) -> dict:
+    value = None
+    status = "computed"
+    limitation = limitation_note
+    if numerator is None or numerator <= 0:
+        status = "gated-missing-numerator"
+        limitation = f"{numerator_label} is missing or non-positive."
+    elif denominator is None:
+        status = "gated-missing-denominator"
+        limitation = f"{denominator_label} is missing."
+    elif denominator <= 0:
+        status = "gated-nonpositive-denominator"
+        limitation = f"{denominator_label} is zero or negative."
+    else:
+        value = numerator / denominator
+        if not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = f"{label} calculation produced an unusable value."
+            value = None
+
+    return {
+        "field": field,
+        "label": label,
+        "unit": unit,
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "source": source,
+        "method": method,
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "providerField": provider_field,
+        "providerValue": provider_value,
+        "providerDifferencePct": pct_diff(provider_value, value) if provider_value is not None and value is not None else None,
+        "inputs": {
+            "numerator": numerator,
+            "numeratorLabel": numerator_label,
+            "numeratorCurrency": numerator_currency,
+            "denominator": denominator,
+            "denominatorLabel": denominator_label,
+            "denominatorCurrency": denominator_currency,
+            "denominatorPeriodEnd": denominator_period_end,
+            "denominatorSourceRow": denominator_source_row,
+        },
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def source_gated_ttm_statement_ratio_summary(
+    *,
+    ticker,
+    info: dict,
+    field: str,
+    label: str,
+    provider_field: str,
+    provider_value: float | None,
+    numerator: float | None,
+    numerator_label: str,
+    row_labels: list[str],
+    denominator_label: str,
+    fetched_at: str,
+    limitation_note: str,
+) -> dict:
+    quote_currency = info.get("currency") or "NOK"
+    financial_currency = info.get("financialCurrency") or ""
+    ttm_value, source_row, period_end = ttm_statement_value(ticker, row_labels)
+    fx = yfinance_fx_rate(financial_currency, quote_currency)
+    rate = fx.get("rate")
+    denominator = None
+    status_prefix = ""
+    extra_limitation = limitation_note
+    if ttm_value is not None and ttm_value > 0:
+        if rate is None or rate <= 0:
+            status_prefix = "gated-missing-fx-rate"
+            extra_limitation = "Currency conversion is required but no usable FX rate was returned."
+        else:
+            denominator = ttm_value * rate
+
+    summary = source_gated_ratio_summary(
+        field=field,
+        label=label,
+        provider_field=provider_field,
+        provider_value=provider_value,
+        numerator=numerator,
+        numerator_label=numerator_label,
+        numerator_currency=quote_currency,
+        denominator=denominator if status_prefix != "gated-missing-fx-rate" else None,
+        denominator_label=denominator_label,
+        denominator_currency=quote_currency if denominator is not None else financial_currency,
+        denominator_period_end=period_end,
+        denominator_source_row=source_row,
+        source="Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+        method=f"Computed as {numerator_label} divided by yfinance TTM {denominator_label} converted to the quote currency.",
+        fetched_at=fetched_at,
+        limitation_note=extra_limitation,
+    )
+    if status_prefix:
+        summary["status"] = status_prefix
+        summary["limitation"] = extra_limitation
+    summary["inputs"].update(
+        {
+            "rawTtmValue": ttm_value,
+            "rawTtmCurrency": financial_currency,
+            "fxRate": rate,
+            "fxPair": fx.get("pair"),
+            "fxSource": fx.get("source"),
+            "fxStatus": fx.get("status"),
+            "fxFetchedAt": fx.get("fetchedAt"),
+            "fxError": fx.get("error"),
+        }
+    )
+    return summary
+
+
+def dividend_yield_summary(info: dict, current_price: float | None, fetched_at: str) -> dict:
+    provider_value = pick_number(info, "dividendYield")
+    if provider_value is not None and provider_value < 1:
+        provider_value *= 100
+    annual_dividend = pick_number(info, "dividendRate", "trailingAnnualDividendRate")
+    value = None
+    status = "computed"
+    limitation = "Dividend yield uses yfinance annual dividend rate divided by the cached price when both inputs are available."
+    if current_price is None or current_price <= 0:
+        status = "gated-missing-price"
+        limitation = "Cached price is missing or non-positive."
+    elif annual_dividend is None:
+        status = "gated-missing-dividend-rate"
+        limitation = "Annual dividend rate was not returned by yfinance. Missing does not prove no dividend."
+    elif annual_dividend < 0:
+        status = "gated-negative-dividend-rate"
+        limitation = "Annual dividend rate is negative or unusable."
+    else:
+        value = annual_dividend / current_price * 100
+        if not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = "Dividend-yield calculation produced an unusable value."
+            value = None
+    return {
+        "field": "dividendYield",
+        "label": "Dividend yield",
+        "unit": "%",
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "source": "Yahoo Finance via yfinance dividendRate and cached price",
+        "method": "Computed as annual dividend rate divided by cached price, shown as percent.",
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "providerField": "dividendYield",
+        "providerValue": provider_value,
+        "providerDifferencePct": pct_diff(provider_value, value) if provider_value is not None and value is not None else None,
+        "inputs": {
+            "annualDividendRate": annual_dividend,
+            "price": current_price,
+            "currency": info.get("currency") or "NOK",
+        },
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def enterprise_to_ebitda_summary(ticker, info: dict, fetched_at: str) -> dict:
+    quote_currency = info.get("currency") or "NOK"
+    financial_currency = info.get("financialCurrency") or ""
+    enterprise_value = pick_number(info, "enterpriseValue")
+    provider_ratio = pick_number(info, "enterpriseToEbitda")
+    ttm_ebitda, ttm_source_row, ttm_period_end = ttm_statement_value(ticker, ["EBITDA", "Normalized EBITDA"])
+    fx = yfinance_fx_rate(financial_currency, quote_currency)
+    value = None
+    status = "computed"
+    limitation = ""
+    ebitda_in_quote_currency = None
+    rate = fx.get("rate")
+
+    if enterprise_value is None or enterprise_value <= 0:
+        status = "gated-missing-enterprise-value"
+        limitation = "Enterprise value is missing or non-positive."
+    elif ttm_ebitda is None:
+        status = "gated-missing-ttm-ebitda"
+        limitation = "TTM EBITDA was not returned by yfinance ttm_income_stmt."
+    elif ttm_ebitda <= 0:
+        status = "gated-nonpositive-ttm-ebitda"
+        limitation = "TTM EBITDA is zero or negative, so EV/EBITDA is not displayed."
+    elif rate is None or rate <= 0:
+        status = "gated-missing-fx-rate"
+        limitation = "Currency conversion is required but no usable FX rate was returned."
+    else:
+        ebitda_in_quote_currency = ttm_ebitda * rate
+        value = enterprise_value / ebitda_in_quote_currency if ebitda_in_quote_currency > 0 else None
+        if value is None or not math.isfinite(value):
+            status = "gated-unusable-calculation"
+            limitation = "EV/EBITDA calculation produced an unusable value."
+            value = None
+
+    provider_difference_pct = pct_diff(provider_ratio, value) if provider_ratio is not None and value is not None else None
+    method = (
+        "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. "
+        "The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails."
+    )
+    return {
+        "field": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "unit": "x",
+        "value": value,
+        "classification": "source-gated computed" if value is not None else "unavailable",
+        "status": status,
+        "method": method,
+        "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+        "fetchedAt": fetched_at,
+        "limitation": limitation,
+        "enterpriseValue": enterprise_value,
+        "enterpriseValueCurrency": quote_currency,
+        "ttmEbitda": ttm_ebitda,
+        "ttmEbitdaCurrency": financial_currency,
+        "ttmEbitdaSourceRow": ttm_source_row,
+        "ttmEbitdaPeriodEnd": ttm_period_end,
+        "fxRate": rate,
+        "fxPair": fx.get("pair"),
+        "fxSource": fx.get("source"),
+        "fxStatus": fx.get("status"),
+        "fxFetchedAt": fx.get("fetchedAt"),
+        "fxError": fx.get("error"),
+        "ebitdaInEnterpriseValueCurrency": ebitda_in_quote_currency,
+        "providerEnterpriseToEbitda": provider_ratio,
+        "providerDifferencePct": provider_difference_pct,
+        "confidence": "screening-grade computed" if value is not None else "gated",
+    }
+
+
+def unavailable_multiple_summary(field: str, label: str, reason: str, fetched_at: str, unit: str = "x") -> dict:
+    return {
+        "field": field,
+        "label": label,
+        "unit": unit,
+        "value": None,
+        "classification": "intentionally not implemented",
+        "status": "intentionally-not-implemented",
+        "source": "not implemented",
+        "method": reason,
+        "fetchedAt": fetched_at,
+        "limitation": reason,
+        "providerField": None,
+        "providerValue": None,
+        "inputs": {},
+        "confidence": "missing",
+    }
+
+
+def target_derived_summary(payload: dict, fetched_at: str) -> dict:
+    return {
+        "field": "targetUpsidePct",
+        "label": "Target-derived fields",
+        "unit": "%",
+        "value": payload.get("targetUpsidePct"),
+        "classification": "provider-derived",
+        "status": "provider-row" if payload.get("targetMeanPrice") is not None else "missing-provider-target",
+        "source": payload.get("targetPriceSource") or "Yahoo Finance via yfinance",
+        "method": payload.get("targetPriceMethod") or "Provider target divided by cached price; source rows are not verified consensus.",
+        "fetchedAt": fetched_at,
+        "limitation": "Target rows are provider/manual source rows. Reported analyst references may overlap and are not deduplicated.",
+        "providerField": "targetMeanPrice",
+        "providerValue": payload.get("targetMeanPrice"),
+        "inputs": {
+            "targetMeanPrice": payload.get("targetMeanPrice"),
+            "targetHighPrice": payload.get("targetHighPrice"),
+            "targetLowPrice": payload.get("targetLowPrice"),
+            "price": payload.get("price"),
+            "currency": payload.get("currency"),
+        },
+        "confidence": "low to screening-grade provider row",
+    }
+
+
+def fundamental_multiple_summaries(ticker, info: dict, current_price: float | None, ev_ebitda: dict, fetched_at: str) -> dict:
+    eps_ttm = pick_number(info, "epsTrailingTwelveMonths", "trailingEps")
+    eps_forward = pick_number(info, "forwardEps")
+    book_value = pick_number(info, "bookValue")
+    market_cap = pick_number(info, "marketCap")
+    enterprise_value = pick_number(info, "enterpriseValue")
+    quote_currency = info.get("currency") or "NOK"
+
+    summaries = {
+        "trailingPE": source_gated_ratio_summary(
+            field="trailingPE",
+            label="TTM P/E",
+            provider_field="trailingPE",
+            provider_value=pick_number(info, "trailingPE"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=eps_ttm,
+            denominator_label="TTM EPS",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and EPS fields",
+            method="Computed as cached share price divided by yfinance trailing EPS.",
+            fetched_at=fetched_at,
+            limitation_note="Trailing EPS can differ from company adjusted EPS and may include one-offs.",
+        ),
+        "forwardPE": source_gated_ratio_summary(
+            field="forwardPE",
+            label="Forward P/E",
+            provider_field="forwardPE",
+            provider_value=pick_number(info, "forwardPE"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=eps_forward,
+            denominator_label="forward EPS estimate",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and forward EPS estimate fields",
+            method="Computed as cached share price divided by yfinance forward EPS estimate.",
+            fetched_at=fetched_at,
+            limitation_note="Forward EPS is an estimate field with unverified methodology and contributor coverage.",
+        ),
+        "priceToBook": source_gated_ratio_summary(
+            field="priceToBook",
+            label="P/B",
+            provider_field="priceToBook",
+            provider_value=pick_number(info, "priceToBook"),
+            numerator=current_price,
+            numerator_label="cached share price",
+            numerator_currency=quote_currency,
+            denominator=book_value,
+            denominator_label="book value per share",
+            denominator_currency=quote_currency,
+            source="Yahoo Finance via yfinance price and bookValue fields",
+            method="Computed as cached share price divided by yfinance book value per share.",
+            fetched_at=fetched_at,
+            limitation_note="Book value is not NAV, replacement value, fleet value, or reviewed accounting equity.",
+        ),
+        "priceToSalesTrailing12Months": source_gated_ttm_statement_ratio_summary(
+            ticker=ticker,
+            info=info,
+            field="priceToSalesTrailing12Months",
+            label="P/S",
+            provider_field="priceToSalesTrailing12Months",
+            provider_value=pick_number(info, "priceToSalesTrailing12Months"),
+            numerator=market_cap,
+            numerator_label="market cap",
+            row_labels=["Total Revenue", "Operating Revenue"],
+            denominator_label="revenue",
+            fetched_at=fetched_at,
+            limitation_note="Revenue multiples need margin, growth, sector, and accounting context.",
+        ),
+        "enterpriseToRevenue": source_gated_ttm_statement_ratio_summary(
+            ticker=ticker,
+            info=info,
+            field="enterpriseToRevenue",
+            label="EV/revenue",
+            provider_field="enterpriseToRevenue",
+            provider_value=pick_number(info, "enterpriseToRevenue"),
+            numerator=enterprise_value,
+            numerator_label="enterprise value",
+            row_labels=["Total Revenue", "Operating Revenue"],
+            denominator_label="revenue",
+            fetched_at=fetched_at,
+            limitation_note="EV/revenue is margin-sensitive and sector-specific.",
+        ),
+        "enterpriseToEbitda": ev_ebitda,
+        "dividendYield": dividend_yield_summary(info, current_price, fetched_at),
+        "pnAv": unavailable_multiple_summary(
+            "pnAv",
+            "P/NAV",
+            "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+            fetched_at,
+        ),
+        "evToEbit": unavailable_multiple_summary(
+            "evToEbit",
+            "EV/EBIT",
+            "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+            fetched_at,
+        ),
+    }
+    return summaries
+
+
+def normalize_enterprise_to_ebitda_fields(payload: dict) -> dict:
+    if "enterpriseToEbitdaStatus" in payload:
+        return payload
+    provider_ratio = payload.get("enterpriseToEbitda")
+    payload["providerEnterpriseToEbitda"] = provider_ratio
+    payload["enterpriseToEbitda"] = None
+    payload["enterpriseToEbitdaStatus"] = "gated-legacy-provider-field"
+    payload["enterpriseToEbitdaSource"] = "Legacy Yahoo/yfinance provider field"
+    payload["enterpriseToEbitdaMethod"] = (
+        "This cached row predates the source-gated EV/EBITDA calculation. Refresh fundamentals to compute from "
+        "enterprise value, TTM EBITDA, and FX where needed."
+    )
+    payload["enterpriseToEbitdaLimitation"] = "Legacy provider EV/EBITDA is hidden because currency and TTM EBITDA inputs were not validated."
+    payload["enterpriseToEbitdaInputs"] = {
+        "providerEnterpriseToEbitda": provider_ratio,
+        "status": payload["enterpriseToEbitdaStatus"],
+    }
+    return payload
+
+
+def normalize_fundamental_multiple_fields(payload: dict) -> dict:
+    if not payload:
+        return payload
+    metadata = dict(payload.get("multipleSourceMetadata") or {})
+    fetched_at = payload.get("fetchedAt") or utc_now()
+    currency = payload.get("currency") or "NOK"
+
+    def provider_key(field: str) -> str:
+        return {
+            "trailingPE": "providerTrailingPE",
+            "forwardPE": "providerForwardPE",
+            "priceToBook": "providerPriceToBook",
+            "priceToSalesTrailing12Months": "providerPriceToSalesTrailing12Months",
+            "enterpriseToRevenue": "providerEnterpriseToRevenue",
+            "enterpriseToEbitda": "providerEnterpriseToEbitda",
+            "dividendYield": "providerDividendYield",
+        }.get(field, f"provider{field[:1].upper()}{field[1:]}")
+
+    for field in (
+        "trailingPE",
+        "forwardPE",
+        "priceToBook",
+        "priceToSalesTrailing12Months",
+        "enterpriseToRevenue",
+        "enterpriseToEbitda",
+        "dividendYield",
+    ):
+        key = provider_key(field)
+        if key not in payload and field in payload:
+            payload[key] = payload.get(field)
+
+    if "trailingPE" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="trailingPE",
+            label="TTM P/E",
+            provider_field="trailingPE",
+            provider_value=payload.get("providerTrailingPE"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("epsTrailingTwelveMonths"),
+            denominator_label="TTM EPS",
+            denominator_currency=currency,
+            source="Cached yfinance price and EPS fields",
+            method="Computed as cached share price divided by cached trailing EPS.",
+            fetched_at=fetched_at,
+            limitation_note="Cached rows inherit yfinance source limits and may need refresh.",
+        )
+        payload["trailingPE"] = summary["value"]
+        metadata["trailingPE"] = summary
+    if "forwardPE" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="forwardPE",
+            label="Forward P/E",
+            provider_field="forwardPE",
+            provider_value=payload.get("providerForwardPE"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("epsForward"),
+            denominator_label="forward EPS estimate",
+            denominator_currency=currency,
+            source="Cached yfinance price and forward EPS fields",
+            method="Computed as cached share price divided by cached forward EPS estimate.",
+            fetched_at=fetched_at,
+            limitation_note="Forward EPS is an estimate field with unverified methodology.",
+        )
+        payload["forwardPE"] = summary["value"]
+        metadata["forwardPE"] = summary
+    if "priceToBook" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="priceToBook",
+            label="P/B",
+            provider_field="priceToBook",
+            provider_value=payload.get("providerPriceToBook"),
+            numerator=payload.get("price"),
+            numerator_label="cached share price",
+            numerator_currency=currency,
+            denominator=payload.get("bookValue"),
+            denominator_label="book value per share",
+            denominator_currency=currency,
+            source="Cached yfinance price and bookValue fields",
+            method="Computed as cached share price divided by cached book value per share.",
+            fetched_at=fetched_at,
+            limitation_note="Book value is not NAV, replacement value, or fleet value.",
+        )
+        payload["priceToBook"] = summary["value"]
+        metadata["priceToBook"] = summary
+    if "dividendYield" not in metadata:
+        summary = source_gated_ratio_summary(
+            field="dividendYield",
+            label="Dividend yield",
+            provider_field="dividendYield",
+            provider_value=payload.get("providerDividendYield"),
+            numerator=payload.get("dividendRate"),
+            numerator_label="annual dividend rate",
+            numerator_currency=currency,
+            denominator=payload.get("price"),
+            denominator_label="cached share price",
+            denominator_currency=currency,
+            source="Cached yfinance dividendRate and price fields",
+            method="Computed as annual dividend rate divided by cached price, shown as percent.",
+            fetched_at=fetched_at,
+            unit="%",
+            limitation_note="Missing dividend rate does not prove no dividend.",
+        )
+        if summary["value"] is not None:
+            summary["value"] *= 100
+            provider_value = summary.get("providerValue")
+            summary["providerDifferencePct"] = (
+                pct_diff(provider_value, summary["value"]) if provider_value is not None else None
+            )
+        payload["dividendYield"] = summary["value"]
+        metadata["dividendYield"] = summary
+    for field, label, provider in (
+        ("priceToSalesTrailing12Months", "P/S", "priceToSalesTrailing12Months"),
+        ("enterpriseToRevenue", "EV/revenue", "enterpriseToRevenue"),
+    ):
+        if field not in metadata:
+            payload[field] = None
+            metadata[field] = {
+                "field": field,
+                "label": label,
+                "unit": "x",
+                "value": None,
+                "classification": "unavailable",
+                "status": "gated-missing-ttm-revenue",
+                "source": "cached yfinance row without explicit TTM revenue input",
+                "method": "Refresh fundamentals to compute from market cap or enterprise value divided by yfinance TTM revenue with FX where needed.",
+                "fetchedAt": fetched_at,
+                "limitation": "The raw provider field is preserved separately and hidden until explicit revenue inputs are available.",
+                "providerField": provider,
+                "providerValue": payload.get(provider_key(field)),
+                "inputs": {},
+                "confidence": "gated",
+            }
+    metadata.setdefault(
+        "pnAv",
+        unavailable_multiple_summary(
+            "pnAv",
+            "P/NAV",
+            "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+            fetched_at,
+        ),
+    )
+    metadata.setdefault(
+        "evToEbit",
+        unavailable_multiple_summary(
+            "evToEbit",
+            "EV/EBIT",
+            "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+            fetched_at,
+        ),
+    )
+    metadata["enterpriseToEbitda"] = {
+        **metadata.get("enterpriseToEbitda", {}),
+        "field": "enterpriseToEbitda",
+        "label": "EV/EBITDA",
+        "unit": "x",
+        "value": payload.get("enterpriseToEbitda"),
+        "classification": "source-gated computed" if payload.get("enterpriseToEbitda") is not None else "unavailable",
+        "status": payload.get("enterpriseToEbitdaStatus") or metadata.get("enterpriseToEbitda", {}).get("status") or "gated",
+        "source": payload.get("enterpriseToEbitdaSource") or metadata.get("enterpriseToEbitda", {}).get("source"),
+        "method": payload.get("enterpriseToEbitdaMethod") or metadata.get("enterpriseToEbitda", {}).get("method"),
+        "limitation": payload.get("enterpriseToEbitdaLimitation") or metadata.get("enterpriseToEbitda", {}).get("limitation"),
+        "providerField": "enterpriseToEbitda",
+        "providerValue": payload.get("providerEnterpriseToEbitda"),
+    }
+    metadata["targetUpsidePct"] = target_derived_summary(payload, fetched_at)
+    payload["multipleSourceMetadata"] = metadata
+    return payload
 
 
 def pick_body_number(body: dict, key: str) -> float | None:
@@ -1174,6 +2729,35 @@ def stale_status(collected_at_epoch: int | None, fresh_seconds: int = CONSENSUS_
     return "old"
 
 
+def consensus_review_status(row: dict) -> str:
+    review_status = (row.get("review_status") or "").strip().lower()
+    confidence = (row.get("confidence") or "").strip().lower()
+    if review_status:
+        return review_status
+    if confidence in {"reviewed", "verified", "trusted"}:
+        return confidence
+    if "yfinance" in (row.get("source") or "").lower():
+        return "provider-row"
+    return "draft"
+
+
+def consensus_source_type(row: dict) -> str:
+    source_type = (row.get("source_type") or "").strip().lower()
+    if source_type:
+        return source_type
+    if "yfinance" in (row.get("source") or "").lower():
+        return "provider-row"
+    return "manual-source"
+
+
+def is_reviewed_consensus_row(row: dict) -> bool:
+    return consensus_review_status(row) in {"reviewed", "verified", "trusted"}
+
+
+def is_source_linked_consensus_row(row: dict) -> bool:
+    return bool((row.get("source_url") or "").strip())
+
+
 def record_consensus_source(payload: dict) -> None:
     symbol = payload.get("symbol")
     if not symbol:
@@ -1194,36 +2778,46 @@ def record_consensus_source(payload: dict) -> None:
         con.execute(
             """
             insert into consensus_sources(
-                symbol, source, target_mean, target_high, target_low, analyst_count,
-                recommendation, recommendation_score, source_url, confidence, method_note,
-                collected_at_epoch, collected_at
+                symbol, source, source_type, review_status, target_mean, target_high, target_low, analyst_count,
+                recommendation, recommendation_score, target_currency, as_of_date, source_url, confidence,
+                method_note, limitation_note, collected_at_epoch, collected_at
             )
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict(symbol, source) do update set
+                source_type = excluded.source_type,
+                review_status = excluded.review_status,
                 target_mean = excluded.target_mean,
                 target_high = excluded.target_high,
                 target_low = excluded.target_low,
                 analyst_count = excluded.analyst_count,
                 recommendation = excluded.recommendation,
                 recommendation_score = excluded.recommendation_score,
+                target_currency = excluded.target_currency,
+                as_of_date = excluded.as_of_date,
                 source_url = excluded.source_url,
                 confidence = excluded.confidence,
                 method_note = excluded.method_note,
+                limitation_note = excluded.limitation_note,
                 collected_at_epoch = excluded.collected_at_epoch,
                 collected_at = excluded.collected_at
             """,
             (
                 symbol,
                 "Yahoo Finance via yfinance",
+                "provider-row",
+                "provider-row",
                 payload.get("targetMeanPrice"),
                 payload.get("targetHighPrice"),
                 payload.get("targetLowPrice"),
                 payload.get("numberOfAnalystOpinions"),
                 payload.get("recommendationKey"),
                 payload.get("recommendationMean"),
+                payload.get("currency") or "",
+                payload.get("fetchedAt") or collected_at,
                 f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}/analysis/",
                 "single-provider",
-                "Yahoo/yfinance target and recommendation fields are not treated as verified consensus weighting.",
+                "Yahoo/yfinance target and rating-label fields are not treated as verified consensus weighting.",
+                "Free provider-row data. Methodology, contributor overlap, and estimate timestamp are not independently verified by this app.",
                 now_epoch,
                 collected_at,
             ),
@@ -1238,32 +2832,53 @@ def consensus_for_symbol(symbol: str) -> dict:
                 "select * from consensus_sources where symbol = ? order by source",
                 (symbol,),
             ).fetchall()
-        )
+    )
     for row in rows:
         row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+        row["sourceType"] = consensus_source_type(row)
+        row["reviewStatus"] = consensus_review_status(row)
+        row["isReviewed"] = is_reviewed_consensus_row(row)
+        row["isSourceLinked"] = is_source_linked_consensus_row(row)
 
     numeric_targets = [row["target_mean"] for row in rows if isinstance(row.get("target_mean"), (int, float))]
     analyst_counts = [row["analyst_count"] for row in rows if isinstance(row.get("analyst_count"), (int, float))]
+    reviewed_rows = [row for row in rows if row.get("isReviewed")]
+    source_linked_rows = [row for row in rows if row.get("isSourceLinked")]
+    rating_rows = [row for row in rows if row.get("recommendation")]
     return {
         "symbol": symbol,
         "sources": rows,
         "sourceCount": len(rows),
         "providerRows": len(rows),
+        "reviewedRows": len(reviewed_rows),
+        "sourceLinkedRows": len(source_linked_rows),
+        "targetRows": len(numeric_targets),
+        "ratingRows": len(rating_rows),
         "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
         "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
         "reportedAnalystRefs": sum(analyst_counts) if analyst_counts else None,
         "recommendationSummary": consensus_recommendation_summary(rows),
         "confidence": consensus_confidence(rows),
-        "status": "missing" if not rows else ("multi-provider" if len(rows) >= 2 else "single-provider"),
-        "note": "Consensus is stored by provider row. Reported analyst counts can overlap across providers and are not deduplicated.",
+        "status": consensus_status(rows),
+        "note": "Consensus is stored by provider row. Reported analyst counts can overlap across providers and are not deduplicated; rating labels are not weighted recommendations.",
     }
+
+
+def consensus_status(rows: list[dict]) -> str:
+    if not rows:
+        return "missing"
+    if any(is_reviewed_consensus_row(row) for row in rows):
+        return "reviewed-source"
+    if len(rows) >= 2:
+        return "multi-provider-row"
+    return "single-provider-row"
 
 
 def consensus_confidence(rows: list[dict]) -> str:
     if not rows:
         return "missing"
     fresh_rows = [row for row in rows if row.get("staleStatus") == "fresh"]
-    reviewed_rows = [row for row in rows if row.get("confidence") in {"reviewed", "verified"}]
+    reviewed_rows = [row for row in rows if is_reviewed_consensus_row(row)]
     if len(reviewed_rows) >= 2:
         return "higher"
     if len(fresh_rows) >= 2:
@@ -1292,18 +2907,476 @@ def consensus_recommendation_summary(rows: list[dict]) -> dict:
     known = {key: value for key, value in counts.items() if key != "unknown" and value}
     if not known:
         label = "n/a"
+    elif len(known) > 1:
+        label = "mixed source labels"
     else:
-        label = sorted(known.items(), key=lambda item: (-item[1], item[0]))[0][0]
+        label = next(iter(known))
     return {
         "label": label,
         "counts": counts,
         "sourceCount": len(rows),
         "providerRows": len(rows),
-        "method": "Simple provider-row summary. It is not analyst-count weighted or deduplicated across providers unless source data explicitly supports that.",
+        "method": "Provider-row count of raw rating labels. No majority, analyst-count weighted, or deduplicated recommendation is produced.",
     }
 
 
-def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
+def normalize_event_category(category: str | None) -> str:
+    value = (category or "").strip().lower().replace("_", "-")
+    aliases = {
+        "contract": "contract-order",
+        "order": "contract-order",
+        "contracts/orders": "contract-order",
+        "contracts-orders": "contract-order",
+        "financing": "financing-private-placement",
+        "private-placement": "financing-private-placement",
+        "private placement": "financing-private-placement",
+        "corporate action": "corporate-action",
+        "guidance": "guidance-profit-warning",
+        "profit-warning": "guidance-profit-warning",
+        "profit warning": "guidance-profit-warning",
+        "m&a": "m-a",
+        "ma": "m-a",
+        "merger": "m-a",
+        "acquisition": "m-a",
+        "update": "corporate-action",
+    }
+    value = aliases.get(value, value)
+    return value if value in EVENT_CATEGORY_KEYS else "corporate-action"
+
+
+def event_category_label(category: str | None) -> str:
+    key = normalize_event_category(category)
+    for item in EVENT_CATEGORIES:
+        if item["key"] == key:
+            return item["label"]
+    return key
+
+
+def event_time_epoch(row: dict) -> int:
+    for key in ("created_at_epoch", "publishedAtEpoch", "published_at_epoch"):
+        value = row.get(key)
+        if isinstance(value, (int, float)) and math.isfinite(value):
+            return int(value)
+    for key in ("published_at", "created_at", "publishedTime"):
+        value = row.get(key)
+        if not value:
+            continue
+        try:
+            parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            return int(parsed.timestamp())
+        except ValueError:
+            continue
+    return 0
+
+
+def utc_from_epoch(epoch: int | float | None) -> str:
+    if not epoch:
+        return ""
+    return datetime.fromtimestamp(int(epoch), timezone.utc).replace(microsecond=0).isoformat()
+
+
+def sort_event_rows(rows: list[dict]) -> list[dict]:
+    importance_rank = {"high": 0, "medium": 1, "normal": 2}
+    return sorted(
+        rows,
+        key=lambda row: (
+            -event_time_epoch(row),
+            importance_rank.get(str(row.get("importance") or "normal").lower(), 2),
+        ),
+    )
+
+
+def newsweb_symbol(symbol: str) -> str:
+    return normalize_symbol(symbol).replace(".OL", "")
+
+
+def newsweb_message_url(message: dict) -> str:
+    message_id = message.get("messageId") or message.get("id")
+    if message_id:
+        return f"{NEWSWEB_URL}message/{urllib.parse.quote(str(message_id))}"
+    client_id = message.get("clientAnnouncementId")
+    if client_id:
+        return f"{NEWSWEB_URL}announcement/{urllib.parse.quote(str(client_id))}"
+    return f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(str(message.get('issuerSign') or ''))}"
+
+
+def newsweb_fetch_status(symbol: str) -> dict:
+    normalized = normalize_symbol(symbol)
+    cached = NEWSWEB_CACHE.get(normalized) or {}
+    now_epoch = int(time.time())
+    fetched_at_epoch = int(cached.get("fetched_at_epoch") or 0)
+    attempted_at_epoch = int(cached.get("attempted_at_epoch") or fetched_at_epoch or 0)
+    error = cached.get("error") or ""
+    events = cached.get("events") or []
+    age_seconds = now_epoch - fetched_at_epoch if fetched_at_epoch else None
+    if not cached:
+        status = "not-fetched"
+        label = "not fetched"
+    elif error and not events:
+        status = "error"
+        label = "fetch error"
+    elif error:
+        status = "stale-error"
+        label = "stale after fetch error"
+    elif not fetched_at_epoch:
+        status = "not-fetched"
+        label = "not fetched"
+    elif age_seconds is not None and age_seconds <= NEWSWEB_CACHE_TTL_SECONDS:
+        status = "fresh"
+        label = "fresh"
+    elif age_seconds is not None and age_seconds <= NEWSWEB_DIGEST_LOOKBACK_SECONDS:
+        status = "stale"
+        label = "stale"
+    else:
+        status = "old"
+        label = "old"
+    return {
+        "symbol": normalized,
+        "status": status,
+        "label": label,
+        "error": error,
+        "fetchedAt": cached.get("fetched_at") or utc_from_epoch(fetched_at_epoch),
+        "fetchedAtEpoch": fetched_at_epoch or None,
+        "attemptedAt": cached.get("attempted_at") or utc_from_epoch(attempted_at_epoch),
+        "attemptedAtEpoch": attempted_at_epoch or None,
+        "ageSeconds": age_seconds,
+        "cacheTtlSeconds": NEWSWEB_CACHE_TTL_SECONDS,
+        "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
+        "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
+    }
+
+
+def newsweb_category_text(message: dict) -> str:
+    categories = message.get("category") or []
+    parts = []
+    for category in categories:
+        if isinstance(category, dict):
+            parts.extend([category.get("category_en") or "", category.get("category_no") or ""])
+    return " ".join(part for part in parts if part)
+
+
+def classify_newsweb_category(message: dict) -> str:
+    text = " ".join(
+        [
+            str(message.get("title") or ""),
+            newsweb_category_text(message),
+        ]
+    ).lower()
+    if any(token in text for token in ["manager", "primary insider", "meldepliktig handel", "flagging", "major shareholding"]):
+        return "insider"
+    if any(token in text for token in ["dividend", "ex date", "eks.dato", "distribution", "buyback"]):
+        return "dividend"
+    if any(token in text for token in ["private placement", "repair issue", "share issue", "bond", "prospectus", "financing", "refinancing", "interest adjustment", "renteregulering"]):
+        return "financing-private-placement"
+    if any(token in text for token in ["contract", "order", "award", "agreement", "frame agreement"]):
+        return "contract-order"
+    if any(token in text for token in ["acquisition", "merger", "takeover", "offer", "disposal", "divest", "m&a"]):
+        return "m-a"
+    if any(token in text for token in ["profit warning", "guidance", "outlook", "trading update"]):
+        return "guidance-profit-warning"
+    if any(token in text for token in ["annual financial report", "half year", "quarter", "q1", "q2", "q3", "q4", "results", "financial calendar", "rapport"]):
+        return "earnings"
+    return "corporate-action"
+
+
+def classify_newsweb_importance(message: dict, category: str) -> str:
+    text = " ".join([str(message.get("title") or ""), newsweb_category_text(message)]).lower()
+    if "inside information" in text or "innsideinformasjon" in text:
+        return "high"
+    if category in {"guidance-profit-warning", "m-a", "financing-private-placement"}:
+        return "medium"
+    if category in {"earnings", "contract-order", "dividend", "insider"}:
+        return "medium"
+    return "normal"
+
+
+def parse_newsweb_published_epoch(value: str | None) -> int:
+    if not value:
+        return 0
+    try:
+        return int(datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp())
+    except ValueError:
+        return 0
+
+
+def newsweb_event_from_message(symbol: str, message: dict, fetched_at: str) -> dict:
+    category = classify_newsweb_category(message)
+    published_at = message.get("publishedTime") or ""
+    message_id = message.get("messageId") or message.get("id") or ""
+    client_announcement_id = message.get("clientAnnouncementId") or ""
+    return {
+        "id": f"newsweb-{message_id or client_announcement_id}",
+        "symbol": normalize_symbol(symbol),
+        "title": message.get("title") or "NewsWeb announcement",
+        "category": category,
+        "categoryLabel": event_category_label(category),
+        "importance": classify_newsweb_importance(message, category),
+        "source": "NewsWeb",
+        "sourceType": "newsweb-live",
+        "reviewStatus": "source-pulled",
+        "confidence": "official-source",
+        "url": newsweb_message_url(message),
+        "sourceUrl": newsweb_message_url(message),
+        "note": newsweb_category_text(message) or "NewsWeb announcement.",
+        "published_at": published_at,
+        "publishedAtEpoch": parse_newsweb_published_epoch(published_at),
+        "created_at_epoch": parse_newsweb_published_epoch(published_at),
+        "created_at": fetched_at,
+        "issuerName": message.get("issuerName") or "",
+        "issuerSign": message.get("issuerSign") or newsweb_symbol(symbol),
+        "newswebMessageId": message_id,
+        "newswebClientAnnouncementId": client_announcement_id,
+        "newswebCategory": newsweb_category_text(message),
+        "limitationNote": "Fetched on demand from the NewsWeb endpoint used by the official public NewsWeb app. Treat as screening-grade event context and verify material details in the source announcement.",
+    }
+
+
+def fetch_newsweb_symbol_events(symbol: str, refresh: bool = False, limit: int = 5) -> tuple[list[dict], str | None]:
+    if requests is None:
+        return [], "requests is required for NewsWeb event fetches"
+    normalized = normalize_symbol(symbol)
+    now_epoch = int(time.time())
+    cached = NEWSWEB_CACHE.get(normalized)
+    last_attempt_epoch = int(cached.get("attempted_at_epoch") or cached.get("fetched_at_epoch") or 0) if cached else 0
+    if cached and not refresh and now_epoch - last_attempt_epoch < NEWSWEB_CACHE_TTL_SECONDS:
+        return (cached.get("events") or [])[:limit], cached.get("error")
+    fetched_at = utc_now()
+    base_symbol = newsweb_symbol(normalized)
+    try:
+        response = requests.post(
+            f"{NEWSWEB_API_BASE}/customQuery?action=&symbol={urllib.parse.quote(base_symbol)}",
+            json={"action": "", "symbol": base_symbol},
+            headers={"Accept": "application/json", "Content-Type": "application/json"},
+            timeout=8,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        messages = payload.get("data", {}).get("messages", [])
+        events = [newsweb_event_from_message(normalized, message, fetched_at) for message in messages[:limit]]
+        events = sort_event_rows(enrich_event_rows(events))
+        NEWSWEB_CACHE[normalized] = {
+            "attempted_at_epoch": now_epoch,
+            "attempted_at": fetched_at,
+            "fetched_at_epoch": now_epoch,
+            "fetched_at": fetched_at,
+            "events": events,
+            "error": None,
+        }
+        return events[:limit], None
+    except Exception as exc:
+        error = f"NewsWeb fetch failed for {normalized}: {exc}"
+        previous = dict(cached or {})
+        previous_events = previous.get("events") or []
+        previous.update(
+            {
+                "attempted_at_epoch": now_epoch,
+                "attempted_at": fetched_at,
+                "events": previous_events,
+                "error": error,
+            }
+        )
+        NEWSWEB_CACHE[normalized] = previous
+        return previous_events[:limit], error
+
+
+def newsweb_events_for_symbols(symbols: list[str], refresh: bool = False, limit_per_symbol: int = 5) -> tuple[dict[str, list[dict]], list[str]]:
+    by_symbol: dict[str, list[dict]] = {}
+    errors: list[str] = []
+    for symbol in symbols:
+        normalized = normalize_symbol(symbol)
+        events, error = fetch_newsweb_symbol_events(normalized, refresh=refresh, limit=limit_per_symbol)
+        by_symbol[normalized] = events
+        if error:
+            errors.append(error)
+    return by_symbol, errors
+
+
+NEWSWEB_DIGEST_STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "about",
+    "this",
+    "that",
+    "announces",
+    "announcement",
+    "newsweb",
+    "oslo",
+    "bors",
+    "asa",
+    "as",
+    "plc",
+    "ltd",
+    "inc",
+    "no",
+    "en",
+    "eng",
+    "nor",
+    "norwegian",
+    "english",
+    "correction",
+    "corrected",
+    "correcting",
+    "korrigering",
+    "korrigert",
+    "oppdatering",
+    "update",
+    "updated",
+    "revised",
+    "revision",
+    "melding",
+    "message",
+    "notification",
+    "mandatory",
+    "meldepliktig",
+    "trade",
+    "handel",
+    "primary",
+    "insider",
+    "insiders",
+    "primaerinnsider",
+    "primaerinnsidere",
+}
+
+
+def digest_title_tokens(title: str) -> list[str]:
+    ascii_title = unicodedata.normalize("NFKD", title or "").encode("ascii", "ignore").decode("ascii")
+    cleaned = re.sub(r"[^a-zA-Z0-9]+", " ", ascii_title).lower()
+    return [
+        token
+        for token in cleaned.split()
+        if len(token) > 2 and token not in NEWSWEB_DIGEST_STOPWORDS
+    ]
+
+
+def is_correction_event(row: dict) -> bool:
+    title = str(row.get("title") or "").lower()
+    return any(token in title for token in ["correction", "corrected", "korrigering", "korrigert"])
+
+
+def newsweb_digest_key(row: dict) -> str:
+    symbol = normalize_symbol(row.get("symbol") or "")
+    category = normalize_event_category(row.get("category"))
+    client_id = row.get("newswebClientAnnouncementId")
+    if client_id:
+        return f"{symbol}|client|{client_id}"
+    event_date = utc_from_epoch(event_time_epoch(row))[:10]
+    token_key = "-".join(sorted(set(digest_title_tokens(row.get("title") or "")))[:12])
+    if not token_key:
+        token_key = re.sub(r"\s+", "-", str(row.get("title") or "untitled").strip().lower())[:80]
+    return f"{symbol}|{category}|{event_date}|{token_key}"
+
+
+def choose_digest_event(current: dict, candidate: dict) -> dict:
+    if is_correction_event(candidate) and not is_correction_event(current):
+        return candidate
+    if is_correction_event(current) and not is_correction_event(candidate):
+        return current
+    return candidate if event_time_epoch(candidate) >= event_time_epoch(current) else current
+
+
+def dedupe_newsweb_digest_events(events: list[dict]) -> tuple[list[dict], list[dict]]:
+    seen: dict[str, dict] = {}
+    duplicates: list[dict] = []
+    for event in sort_event_rows(events):
+        row = dict(event)
+        key = newsweb_digest_key(row)
+        row["digestDedupeKey"] = key
+        existing = seen.get(key)
+        if not existing:
+            seen[key] = row
+            continue
+        chosen = choose_digest_event(existing, row)
+        suppressed = existing if chosen is row else row
+        duplicates.append({**suppressed, "digestDuplicateOf": chosen.get("id") or chosen.get("title")})
+        seen[key] = chosen
+    deduped = sort_event_rows(list(seen.values()))
+    duplicate_counts: dict[str, int] = {}
+    for duplicate in duplicates:
+        duplicate_counts[duplicate.get("digestDuplicateOf") or ""] = duplicate_counts.get(duplicate.get("digestDuplicateOf") or "", 0) + 1
+    for row in deduped:
+        duplicate_key = row.get("id") or row.get("title") or ""
+        collapsed = duplicate_counts.get(duplicate_key, 0)
+        row["digestCollapsedCount"] = collapsed
+        if collapsed:
+            row["digestDedupeNote"] = f"{collapsed} duplicate/correction row(s) collapsed by same client announcement or same-day title fingerprint."
+    return deduped, duplicates
+
+
+def newsweb_daily_digest(
+    symbols: list[str],
+    newsweb_by_symbol: dict[str, list[dict]],
+    fetch_statuses: dict[str, dict],
+) -> dict:
+    now_epoch = int(time.time())
+    cutoff_epoch = now_epoch - NEWSWEB_DIGEST_LOOKBACK_SECONDS
+    symbol_rows = []
+    category_counts = {category["key"]: 0 for category in EVENT_CATEGORIES}
+    raw_event_count = 0
+    digest_event_count = 0
+    deduplicated_count = 0
+    for symbol in symbols:
+        normalized = normalize_symbol(symbol)
+        status = fetch_statuses.get(normalized) or newsweb_fetch_status(normalized)
+        raw_daily = [
+            event
+            for event in newsweb_by_symbol.get(normalized, [])
+            if event_time_epoch(event) and event_time_epoch(event) >= cutoff_epoch
+        ]
+        deduped, duplicates = dedupe_newsweb_digest_events(raw_daily)
+        grouped = []
+        for category in EVENT_CATEGORIES:
+            rows = [row for row in deduped if normalize_event_category(row.get("category")) == category["key"]]
+            if rows:
+                category_counts[category["key"]] += len(rows)
+                grouped.append({**category, "rows": rows, "count": len(rows)})
+        raw_event_count += len(raw_daily)
+        digest_event_count += len(deduped)
+        deduplicated_count += len(duplicates)
+        symbol_rows.append(
+            {
+                "symbol": normalized,
+                "fetchStatus": status,
+                "rawEventCount": len(raw_daily),
+                "eventCount": len(deduped),
+                "deduplicatedCount": len(duplicates),
+                "latestAt": utc_from_epoch(event_time_epoch(deduped[0])) if deduped else "",
+                "categories": grouped,
+                "newswebSearchUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(normalized.replace('.OL', ''))}",
+                "source": "NewsWeb",
+                "confidence": "official-source metadata; digest grouping/deduplication is heuristic",
+                "limitation": "Daily digest rows are descriptive screening context only. Same-day duplicate detection can miss translated titles or collapse repeated issuer messages that still need source review.",
+            }
+        )
+    return {
+        "label": "Daily watchlist digest",
+        "status": "on-demand",
+        "generatedAt": utc_now(),
+        "generatedAtEpoch": now_epoch,
+        "cutoffAt": utc_from_epoch(cutoff_epoch),
+        "lookbackHours": int(NEWSWEB_DIGEST_LOOKBACK_SECONDS / 3600),
+        "watchlistCount": len(symbols),
+        "rawEventCount": raw_event_count,
+        "digestEventCount": digest_event_count,
+        "deduplicatedCount": deduplicated_count,
+        "symbolsWithDigestRows": len([row for row in symbol_rows if row["eventCount"]]),
+        "symbolsWithFetchErrors": len([row for row in symbol_rows if row["fetchStatus"].get("status") in {"error", "stale-error"}]),
+        "symbolsWithStaleFetch": len([row for row in symbol_rows if row["fetchStatus"].get("status") in {"stale", "old", "stale-error"}]),
+        "categorySummary": [{**category, "count": category_counts.get(category["key"], 0)} for category in EVENT_CATEGORIES],
+        "symbols": symbol_rows,
+        "source": "Euronext Oslo Bors / NewsWeb",
+        "sourceUrl": NEWSWEB_URL,
+        "sourcePath": "Reuses the existing on-demand ticker NewsWeb endpoint path for watchlist symbols with conservative per-symbol calls and local cache reuse.",
+        "confidence": "medium-high for fetched official-source metadata; medium for heuristic duplicate grouping",
+        "freshness": "Generated on demand from cached/fresh NewsWeb rows. Each symbol carries its own fetch status, timestamp, and error state.",
+        "limitation": "This is not scheduled automation. Missing rows, stale fetches, or fetch errors must remain visible and should be checked directly in NewsWeb for issuer-critical review.",
+        "noAdvice": "Digest rows describe issuer announcements only and do not imply buy, sell, hold, cheap, expensive, or fair-value conclusions.",
+    }
+
+
+def significant_events_for_symbol(symbol: str, limit: int = 3, include_newsweb: bool = False, refresh_newsweb: bool = False) -> list[dict]:
     with connect() as con:
         rows = con.execute(
             """
@@ -1317,17 +3390,32 @@ def significant_events_for_symbol(symbol: str, limit: int = 3) -> list[dict]:
             """,
             (symbol, limit),
         ).fetchall()
-    return rows_to_dicts(rows)
+    events = enrich_event_rows(rows_to_dicts(rows))
+    if include_newsweb:
+        newsweb_events, _error = fetch_newsweb_symbol_events(symbol, refresh=refresh_newsweb, limit=limit)
+        events.extend(newsweb_events)
+    return sort_event_rows(events)[:limit]
+
+
+def enrich_event_rows(rows: list[dict]) -> list[dict]:
+    for row in rows:
+        row["category"] = normalize_event_category(row.get("category"))
+        row["categoryLabel"] = event_category_label(row.get("category"))
+        row["sourceType"] = row.get("source_type") or row.get("sourceType") or "manual-source"
+        row["reviewStatus"] = row.get("review_status") or row.get("reviewStatus") or "draft"
+        row["sourceUrl"] = row.get("url") or ""
+        row["limitationNote"] = row.get("limitation_note") or row.get("limitationNote") or ""
+    return rows
 
 
 def event_alert_summary(events: list[dict]) -> dict:
     if not events:
         return {
             "level": "none",
-            "label": "No tracked significant updates",
+            "label": "No NewsWeb/manual updates found",
             "count": 0,
             "latest": None,
-            "source": "manual/significant-events table",
+            "source": "NewsWeb on-demand plus manual significant-events table",
         }
     high = [event for event in events if event.get("importance") == "high"]
     latest = events[0]
@@ -1336,20 +3424,128 @@ def event_alert_summary(events: list[dict]) -> dict:
         "label": latest.get("title") or "Significant update",
         "count": len(events),
         "latest": latest,
-        "source": "manual/significant-events table",
+        "category": latest.get("category"),
+        "categoryLabel": event_category_label(latest.get("category")),
+        "source": "NewsWeb on-demand plus manual significant-events table",
+    }
+
+
+def event_source_policy() -> dict:
+    return {
+        "status": "newsweb-on-demand",
+        "label": "NewsWeb on-demand plus manual review",
+        "checkedAt": "2026-05-06",
+        "source": "Euronext Oslo Bors / NewsWeb",
+        "sourceUrl": NEWSWEB_URL,
+        "apiBase": NEWSWEB_API_BASE,
+        "searchUrl": NEWSWEB_SEARCH_URL,
+        "euronextOsloUrl": EURONEXT_OSLO_URL,
+        "publicationServiceUrl": EURONEXT_PUBLICATION_SERVICE_URL,
+        "confidence": "medium-high for on-demand official-source rows; verify details in each announcement",
+        "freshness": "Fetched on demand from the NewsWeb endpoint used by the official public NewsWeb app; cached locally for 15 minutes.",
+        "verification": "The official NewsWeb frontend discovers api3.oslo.oslobors.no via its own urls.json and ticker queries return issuer announcements from /v1/newsreader/customQuery.",
+        "limitation": "On-demand fetches show announcement metadata and source links. The daily digest is generated on demand from cached/fresh ticker rows and remains screening-grade only.",
+        "digestStatus": "Daily watchlist digest enabled on demand with 24-hour lookback, local cache reuse, per-symbol fetch status, and heuristic duplicate/correction grouping.",
+    }
+
+
+def event_category_summary(rows: list[dict]) -> list[dict]:
+    counts = {category["key"]: 0 for category in EVENT_CATEGORIES}
+    for row in rows:
+        counts[normalize_event_category(row.get("category"))] = counts.get(normalize_event_category(row.get("category")), 0) + 1
+    return [{**category, "count": counts.get(category["key"], 0)} for category in EVENT_CATEGORIES]
+
+
+def event_monitoring_payload(name: str = "Core Watchlist", refresh_newsweb: bool = False) -> dict:
+    watched = watchlist_symbols(name)
+    with connect() as con:
+        manual_event_rows = enrich_event_rows(
+            rows_to_dicts(
+                con.execute(
+                    """
+                    select *
+                    from significant_events
+                    where symbol in ({})
+                    order by coalesce(published_at, created_at) desc, created_at_epoch desc
+                    """.format(",".join("?" for _ in watched) or "''"),
+                    watched,
+                ).fetchall()
+            )
+        )
+        item_rows = rows_to_dicts(
+            con.execute(
+                """
+                select wi.watchlist_name, wi.symbol, wi.note, t.name, t.sector, t.industry
+                from watchlist_items wi
+                left join tickers t on t.symbol = wi.symbol
+                where wi.watchlist_name = ?
+                order by wi.symbol
+                """,
+                (name,),
+            ).fetchall()
+        )
+    newsweb_by_symbol, newsweb_errors = newsweb_events_for_symbols(
+        watched,
+        refresh=refresh_newsweb,
+        limit_per_symbol=NEWSWEB_DIGEST_LIMIT_PER_SYMBOL,
+    )
+    newsweb_fetch_statuses = {normalize_symbol(symbol): newsweb_fetch_status(symbol) for symbol in watched}
+    event_rows = manual_event_rows + [event for events in newsweb_by_symbol.values() for event in events]
+    events_by_symbol: dict[str, list[dict]] = {symbol: [] for symbol in watched}
+    for row in sort_event_rows(event_rows):
+        events_by_symbol.setdefault(row["symbol"], []).append(row)
+    rows = []
+    for item in item_rows:
+        symbol = item["symbol"]
+        symbol_events = sort_event_rows(events_by_symbol.get(symbol, []))[:5]
+        rows.append(
+            {
+                **item,
+                "events": symbol_events,
+                "eventAlert": event_alert_summary(symbol_events),
+                "newswebFetch": newsweb_fetch_statuses.get(symbol) or newsweb_fetch_status(symbol),
+                "newswebSearchUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+            }
+        )
+    missing_count = len([row for row in rows if not row["events"]])
+    return {
+        "watchlist": name,
+        "sourcePolicy": event_source_policy(),
+        "categories": EVENT_CATEGORIES,
+        "categorySummary": event_category_summary(event_rows),
+        "dailyDigest": newsweb_daily_digest(watched, newsweb_by_symbol, newsweb_fetch_statuses),
+        "rows": rows,
+        "events": sort_event_rows(event_rows),
+        "errors": newsweb_errors,
+        "coverage": {
+            "watchlistCount": len(watched),
+            "trackedEventCount": len(event_rows),
+            "symbolsWithEvents": len([row for row in rows if row["events"]]),
+            "symbolsMissingEvents": missing_count,
+            "missingDataPolicy": "No row means no NewsWeb/manual row was found during the on-demand lookup; verify the issuer directly if needed.",
+            "sourceMix": {
+                "newswebRows": len([row for row in event_rows if row.get("sourceType") == "newsweb-live"]),
+                "manualRows": len([row for row in event_rows if row.get("sourceType") != "newsweb-live"]),
+            },
+            "newswebFetch": {
+                "freshSymbols": len([row for row in newsweb_fetch_statuses.values() if row.get("status") == "fresh"]),
+                "staleSymbols": len([row for row in newsweb_fetch_statuses.values() if row.get("status") in {"stale", "old", "stale-error"}]),
+                "errorSymbols": len([row for row in newsweb_fetch_statuses.values() if row.get("status") in {"error", "stale-error"}]),
+                "cacheTtlSeconds": NEWSWEB_CACHE_TTL_SECONDS,
+            },
+        },
     }
 
 
 def enrich_fundamental_payload(payload: dict) -> dict:
+    payload = normalize_enterprise_to_ebitda_fields(payload)
+    payload = normalize_fundamental_multiple_fields(payload)
     payload.setdefault("targetPriceSource", "Yahoo Finance via yfinance")
     payload.setdefault(
         "targetPriceMethod",
         "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
     )
-    payload.setdefault(
-        "recommendationScale",
-        "Yahoo/yfinance recommendation fields are not treated as a verified BUY/HOLD/SELL weighting in this app.",
-    )
+    payload["recommendationScale"] = "Yahoo/yfinance rating-label fields are not treated as a verified BUY/HOLD/SELL weighting in this app."
     record_consensus_source(payload)
     consensus = consensus_for_symbol(payload["symbol"])
     payload["consensus"] = consensus
@@ -1368,6 +3564,16 @@ def normalize_dashboard_ticker(ticker: str) -> str:
     return value
 
 
+def stale_cached_payload(cached: dict | None, error: str) -> dict | None:
+    if not cached:
+        return None
+    payload = dict(cached)
+    payload["cacheStatus"] = "stale-after-error"
+    payload["sourceRefreshError"] = error
+    payload["sourceRefreshAttemptedAt"] = utc_now()
+    return payload
+
+
 def fetch_screener_signals(refresh: bool = False) -> dict:
     now_epoch = int(time.time())
     cached = SCREENER_CACHE.get("payload")
@@ -1379,9 +3585,15 @@ def fetch_screener_signals(refresh: bool = False) -> dict:
     if requests is None or BeautifulSoup is None:
         raise RuntimeError("requests and beautifulsoup4 are required for screener signal extraction")
 
-    response = requests.get(SCREENER_URL, timeout=20)
-    response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
+    try:
+        response = requests.get(SCREENER_URL, timeout=20)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "html.parser")
+    except Exception as exc:
+        stale = stale_cached_payload(cached, f"RSI14 dashboard refresh failed: {exc}")
+        if stale:
+            return stale
+        raise
 
     signals = []
     for card in soup.select(".stock-card"):
@@ -1498,7 +3710,7 @@ def parse_technical_csv(text: str, source_url: str) -> dict:
         "rows": rows,
         "count": len(rows),
         "columns": list(rows[0].keys()) if rows else [],
-        "sourceReliability": "Parsed from oslo-screener latest.csv. Open/free technical data is screening context only and does not create buy/sell advice.",
+        "sourceReliability": "Parsed from the current oslo-screener latest.csv/report output. Open/free technical data is screening context only and does not create buy/sell advice.",
     }
 
 
@@ -1528,7 +3740,12 @@ def fetch_technical_indicators(refresh: bool = False) -> dict:
             return result
         except Exception as exc:
             errors.append({"url": url, "error": str(exc)})
-    raise RuntimeError("; ".join(f"{item['url']}: {item['error']}" for item in errors))
+    error_summary = "; ".join(f"{item['url']}: {item['error']}" for item in errors)
+    stale = stale_cached_payload(cached, f"Technical indicator refresh failed: {error_summary}")
+    if stale:
+        stale["sourceErrors"] = errors
+        return stale
+    raise RuntimeError(error_summary)
 
 
 def technical_indicators(
@@ -1537,8 +3754,12 @@ def technical_indicators(
     refresh: bool = False,
 ) -> dict:
     technical = fetch_technical_indicators(refresh=refresh)
-    rows = list(technical.get("rows", []))
-    watched = set(watchlist_symbols(watchlist))
+    source_rows = list(technical.get("rows", []))
+    watched_symbols = watchlist_symbols(watchlist)
+    watched = set(watched_symbols)
+    source_symbol_set = {row["symbol"] for row in source_rows}
+    missing_watchlist_symbols = [symbol for symbol in watched_symbols if symbol not in source_symbol_set]
+    rows = source_rows
     if universe != "all":
         rows = [row for row in rows if row["symbol"] in watched]
     try:
@@ -1552,23 +3773,75 @@ def technical_indicators(
             {
                 **row,
                 "watchlistMember": row["symbol"] in watched,
+                "coverageStatus": "covered",
+                "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
                 "dashboardSignal": dashboard_signal,
                 "inDashboardScreener": bool(dashboard_signal),
             }
         )
+    if universe != "all":
+        for symbol in missing_watchlist_symbols:
+            dashboard_signal = screener_map.get(symbol)
+            enriched.append(
+                {
+                    "symbol": symbol,
+                    "ticker": symbol.replace(".OL", ""),
+                    "date": None,
+                    "close": None,
+                    "rsi14": None,
+                    "rsiDirection": None,
+                    "macdHistogram": None,
+                    "sma50": None,
+                    "pctAboveSma50": None,
+                    "adx14": None,
+                    "mfi14": None,
+                    "rsi6": None,
+                    "signal": "MISSING",
+                    "signalTone": "missing",
+                    "primaryCount": None,
+                    "stopLossPct": None,
+                    "positionPct": None,
+                    "risk": "not in current report output",
+                    "sourceUrl": technical.get("sourceUrl"),
+                    "watchlistMember": True,
+                    "coverageStatus": "missing-from-latest-csv",
+                    "coverageDetail": "Watchlist symbol was not present in the current oslo-screener latest.csv/report output. Missing rows stay missing; this is not a technical signal.",
+                    "dashboardSignal": dashboard_signal,
+                    "inDashboardScreener": bool(dashboard_signal),
+                }
+            )
+    coverage = {
+        "watchlistSymbols": watched_symbols,
+        "coveredSymbols": [symbol for symbol in watched_symbols if symbol in source_symbol_set],
+        "missingSymbols": missing_watchlist_symbols,
+        "coveredCount": len([symbol for symbol in watched_symbols if symbol in source_symbol_set]),
+        "missingCount": len(missing_watchlist_symbols),
+        "sourceRowCount": len(source_rows),
+        "status": "complete" if not missing_watchlist_symbols else "partial",
+        "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
+    }
     return {
         **{key: value for key, value in technical.items() if key != "rows"},
         "universe": universe,
         "watchlist": watchlist,
         "rows": enriched,
+        "coverage": coverage,
         "screenerError": screener_error,
     }
 
 
-def safe_technical_indicator_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+def safe_technical_indicator_map(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
     try:
-        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=False)
-        return {item["symbol"]: item for item in payload.get("rows", [])}, None
+        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=refresh)
+        return {item["symbol"]: item for item in payload.get("rows", [])}, payload.get("sourceRefreshError")
+    except Exception as exc:
+        return {}, str(exc)
+
+
+def safe_technical_coverage(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
+    try:
+        payload = technical_indicators(universe="watchlist", watchlist=name, refresh=refresh)
+        return payload.get("coverage") or {}, payload.get("sourceRefreshError")
     except Exception as exc:
         return {}, str(exc)
 
@@ -1606,19 +3879,21 @@ def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict
         "fetchedAt": screener["fetchedAt"],
         "url": screener["url"],
         "cacheStatus": screener.get("cacheStatus"),
+        "sourceRefreshError": screener.get("sourceRefreshError"),
+        "sourceRefreshAttemptedAt": screener.get("sourceRefreshAttemptedAt"),
         "sourceReliability": screener["sourceReliability"],
     }
 
 
-def safe_screener_alert_map(name: str = "Core Watchlist") -> tuple[dict, str | None]:
+def safe_screener_alert_map(name: str = "Core Watchlist", refresh: bool = False) -> tuple[dict, str | None]:
     try:
-        alerts = screener_alerts(name=name, refresh=False)
-        return {item["symbol"]: item for item in alerts.get("matches", [])}, None
+        alerts = screener_alerts(name=name, refresh=refresh)
+        return {item["symbol"]: item for item in alerts.get("matches", [])}, alerts.get("sourceRefreshError")
     except Exception as exc:
         return {}, str(exc)
 
 
-def watchlist_overview(name: str = "Core Watchlist") -> dict:
+def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> dict:
     with connect() as con:
         items = rows_to_dicts(
             con.execute(
@@ -1633,20 +3908,29 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
             ).fetchall()
         )
 
-    screener_map, screener_error = safe_screener_alert_map(name)
-    technical_map, technical_error = safe_technical_indicator_map(name)
+    screener_map, screener_error = safe_screener_alert_map(name, refresh=refresh)
+    technical_map, technical_error = safe_technical_indicator_map(name, refresh=refresh)
+    technical_missing_symbols = [
+        item["symbol"]
+        for item in items
+        if (technical_map.get(item["symbol"]) or {}).get("coverageStatus") == "missing-from-latest-csv"
+        or item["symbol"] not in technical_map
+    ]
     rows = []
     errors = []
     for item in items:
         symbol = item["symbol"]
         try:
-            fundamental = cached_fundamental(symbol, refresh=False)
+            fundamental = cached_fundamental(symbol, refresh=refresh)
         except Exception as exc:
             fundamental = {}
             errors.append({"symbol": symbol, "error": str(exc)})
 
         consensus = consensus_for_symbol(symbol)
-        events = significant_events_for_symbol(symbol)
+        events = significant_events_for_symbol(symbol, include_newsweb=True, refresh_newsweb=refresh)
+        newsweb_fetch = newsweb_fetch_status(symbol)
+        if refresh and newsweb_fetch.get("error"):
+            errors.append({"symbol": symbol, "error": newsweb_fetch["error"], "source": "NewsWeb"})
         price_summary = stock_price_summary(fundamental)
         target_summary = consensus_target_summary(fundamental, consensus)
         rating_summary = consensus_rating_summary(consensus)
@@ -1667,6 +3951,10 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "consensusTarget": fundamental.get("targetMeanPrice"),
                 "consensusTargetSource": fundamental.get("targetPriceSource"),
                 "consensusTargetMethod": fundamental.get("targetPriceMethod"),
+                "cacheStatus": fundamental.get("cacheStatus"),
+                "fetchedAt": fundamental.get("fetchedAt"),
+                "sourceRefreshError": fundamental.get("sourceRefreshError"),
+                "sourceRefreshAttemptedAt": fundamental.get("sourceRefreshAttemptedAt"),
                 "consensusTargetAcrossSources": consensus.get("targetMeanAcrossSources"),
                 "targetUpsidePct": fundamental.get("targetUpsidePct"),
                 "price": fundamental.get("price"),
@@ -1678,9 +3966,10 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
                 "consensusSources": consensus.get("sources", []),
                 "significantEvents": events,
                 "eventAlert": event_alert_summary(events),
+                "newswebFetch": newsweb_fetch,
                 "links": {
                     "yahoo": f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}",
-                    "newsweb": f"https://newsweb.oslobors.no/search?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
+                    "newsweb": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
                     "screener": SCREENER_URL,
                 },
             }
@@ -1692,11 +3981,21 @@ def watchlist_overview(name: str = "Core Watchlist") -> dict:
         "errors": errors,
         "screenerError": screener_error,
         "technicalError": technical_error,
+        "technicalCoverage": {
+            "watchlistSymbols": [item["symbol"] for item in items],
+            "coveredSymbols": [item["symbol"] for item in items if item["symbol"] not in technical_missing_symbols],
+            "missingSymbols": technical_missing_symbols,
+            "coveredCount": len(items) - len(technical_missing_symbols),
+            "missingCount": len(technical_missing_symbols),
+            "status": "complete" if not technical_missing_symbols else "partial",
+            "missingDataPolicy": "Watchlist symbols absent from the current oslo-screener latest.csv/report output are kept visible as missing coverage, not treated as technical signals.",
+        },
+        "refreshRequested": refresh,
         "sourceNotes": {
-            "consensus": "Target and recommendation fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
+            "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
             "watchlist": "The Watchlist is the synthesis view. Each major research tab should expose a compact Watchlist summary field.",
-            "events": "Significant events are currently manual/tracked entries. Automated NewsWeb monitoring is still a later sprint.",
-            "technical": "Technical indicators come from oslo-screener latest.csv and are screening context only.",
+            "events": "News/events are watchlist-first NewsWeb on-demand rows plus manual/source-reviewed rows. The daily digest is generated on demand from the same NewsWeb path with visible fetch status and duplicate/correction grouping.",
+            "technical": "Technical indicators come from current oslo-screener latest.csv/report output and are screening context only.",
         },
     }
 
@@ -1717,7 +4016,18 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
                 payload["cacheStatus"] = "cached"
                 return payload
 
-        payload = fetch_yfinance(symbol)
+        try:
+            payload = fetch_yfinance(symbol)
+        except Exception as exc:
+            if row:
+                payload = json.loads(row["payload"])
+                payload.pop("valuationFlag", None)
+                payload = enrich_fundamental_payload(payload)
+                payload["cacheStatus"] = "stale-after-error"
+                payload["sourceRefreshError"] = f"Yahoo/yfinance refresh failed for {symbol}: {exc}"
+                payload["sourceRefreshAttemptedAt"] = utc_now()
+                return payload
+            raise
         payload.pop("valuationFlag", None)
         payload = enrich_fundamental_payload(payload)
         con.execute(
@@ -1766,7 +4076,11 @@ def needs_historical_context_refresh(payload: dict) -> bool:
     price_history = payload.get("priceHistory") or {}
     if not price_history:
         return True
-    return "quarterWindows" not in price_history
+    return (
+        "quarterWindows" not in price_history
+        or "chart" not in price_history
+        or "quarterlyStatements" not in payload
+    )
 
 
 def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
@@ -1901,6 +4215,11 @@ def consensus_target_summary(fundamental: dict, consensus: dict) -> dict:
         "targetHigh": max(target_highs) if target_highs else fundamental.get("targetHighPrice"),
         "targetUpsidePct": upside,
         "providerRows": len(target_values),
+        "sourceRows": consensus.get("sourceCount", 0),
+        "sourceLinkedRows": consensus.get("sourceLinkedRows", 0),
+        "reviewedRows": consensus.get("reviewedRows", 0),
+        "status": consensus.get("status"),
+        "confidence": consensus.get("confidence"),
         "source": fundamental.get("targetPriceSource"),
         "method": fundamental.get("targetPriceMethod"),
     }
@@ -2166,6 +4485,33 @@ def own_history_observation(row) -> dict:
     return {"payload": json.loads(row["payload"]), "fetched_at": row["fetched_at"]}
 
 
+def own_history_chart(metric: dict, observations: list[dict]) -> dict:
+    points = []
+    for item in observations:
+        value = numeric_metric(item["payload"], metric["key"], metric.get("positiveOnly", False))
+        if value is None:
+            continue
+        points.append({"date": item["fetched_at"], "value": value})
+    sampled = sampled_points(points, SNAPSHOT_CHART_SAMPLE_POINTS)
+    available = len(points) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS and len(sampled) >= 2
+    return {
+        "type": "fundamental_snapshot",
+        "key": metric["key"],
+        "label": metric["label"],
+        "unit": metric["unit"],
+        "status": "available" if available else "insufficient observations",
+        "points": sampled if available else [],
+        "observationCount": len(points),
+        "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+        "source": "local fundamentals snapshots",
+        "fetchedAt": points[-1]["date"] if points else None,
+        "firstObservationAt": points[0]["date"] if points else None,
+        "lastObservationAt": points[-1]["date"] if points else None,
+        "confidence": "screening-grade" if available else "insufficient observations",
+        "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
+    }
+
+
 def own_history_summary(symbol: str, current_payload: dict | None = None) -> dict:
     with connect() as con:
         rows = con.execute(
@@ -2224,10 +4570,17 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
                 "trailingPE": numeric_metric(payload, "trailingPE", True),
                 "forwardPE": numeric_metric(payload, "forwardPE", True),
                 "priceToBook": numeric_metric(payload, "priceToBook", True),
+                "priceToSalesTrailing12Months": numeric_metric(payload, "priceToSalesTrailing12Months", True),
+                "enterpriseToRevenue": numeric_metric(payload, "enterpriseToRevenue", True),
                 "enterpriseToEbitda": numeric_metric(payload, "enterpriseToEbitda", True),
                 "dividendYield": numeric_metric(payload, "dividendYield", False),
             }
         )
+    chart_metrics = [
+        own_history_chart(metric, observations)
+        for metric in BENCHMARK_METRICS
+        if metric["key"] in OWN_HISTORY_METRIC_KEYS
+    ]
     return {
         "symbol": symbol,
         "snapshotCount": len(observations),
@@ -2235,6 +4588,7 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
         "lastSnapshotAt": observations[-1]["fetched_at"] if observations else None,
         "metrics": summaries,
         "trendRows": trend_rows,
+        "trendCharts": chart_metrics,
         "status": "insufficient history" if len(observations) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS else "usable history",
         "requirement": (
             "Own-history valuation context needs several dated observations. "
@@ -2385,19 +4739,22 @@ def historical_pricing_context(symbol: str, payload: dict) -> dict:
         "status": "available" if has_context else "insufficient history",
         "priceWindow": price_window,
         "snapshotHistory": snapshot_history,
+        "quarterlyStatementHistory": payload.get("quarterlyStatements")
+        or fetch_yfinance_quarterly_statements_missing(payload.get("financialCurrency") or ""),
         "watchlistSignal": watchlist_signal,
         "requirements": {
             "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
             "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
         },
         "quarterlyFundamentalPlan": {
-            "status": "not implemented",
+            "status": "implemented when source returns dated statement rows",
             "label": "True quarterly fundamental windows",
             "requirement": (
                 "Requires dated quarterly statement fields such as revenue, EBIT/EBITDA, EPS, book value, "
                 "net debt, and sector KPIs before quarterly valuation windows can be shown."
             ),
-            "currentProxy": "Only price quarter windows are shown today from Yahoo/yfinance daily closes.",
+            "currentProxy": "Price quarter windows remain separate and use Yahoo/yfinance daily closes only.",
+            "sourcePath": "Yahoo/yfinance quarterly statement tables; missing source rows stay missing.",
         },
         "policy": (
             "Historical context is descriptive only. It compares current values with own price history and local "
@@ -2786,10 +5143,24 @@ class AppHandler(SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         sys.stderr.write("%s - %s\n" % (self.address_string(), format % args))
 
+    def auth_ok(self, parsed) -> bool:
+        if parsed.path == "/api/health":
+            return True
+        if valid_basic_auth(self.headers.get("authorization")):
+            return True
+        self.send_response(HTTPStatus.UNAUTHORIZED)
+        self.send_header("www-authenticate", 'Basic realm="Oslo Stock web-app"')
+        self.send_header("cache-control", "no-store")
+        self.send_header("content-length", "0")
+        self.end_headers()
+        return False
+
     def do_GET(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/health":
-            return send_json(self, {"ok": True, "time": utc_now()})
+            return send_json(self, {"ok": True, "time": utc_now(), "sharing": sharing_config()})
         if parsed.path == "/api/tickers":
             return self.handle_tickers()
         if parsed.path == "/api/watchlist":
@@ -2806,6 +5177,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_consensus_get(parsed)
         if parsed.path == "/api/events":
             return self.handle_events_get(parsed)
+        if parsed.path == "/api/quarterly-statement-reviews":
+            return self.handle_quarterly_statement_reviews_get(parsed)
+        if parsed.path == "/api/event-monitoring":
+            return self.handle_event_monitoring(parsed)
         if parsed.path == "/api/screener-signals":
             return self.handle_screener_signals(parsed)
         if parsed.path == "/api/screener-alerts":
@@ -2818,6 +5193,8 @@ class AppHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/tickers":
             return self.handle_ticker_post()
         if parsed.path == "/api/watchlist":
@@ -2832,10 +5209,14 @@ class AppHandler(SimpleHTTPRequestHandler):
             return self.handle_consensus_post()
         if parsed.path == "/api/events":
             return self.handle_events_post()
+        if parsed.path == "/api/quarterly-statement-reviews":
+            return self.handle_quarterly_statement_reviews_post()
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
     def do_DELETE(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
+        if not self.auth_ok(parsed):
+            return
         if parsed.path == "/api/watchlist":
             return self.handle_watchlist_delete(parsed)
         return send_json(self, {"error": "Not found"}, HTTPStatus.NOT_FOUND)
@@ -2881,7 +5262,8 @@ class AppHandler(SimpleHTTPRequestHandler):
     def handle_watchlist_overview(self, parsed) -> None:
         qs = urllib.parse.parse_qs(parsed.query)
         name = qs.get("name", ["Core Watchlist"])[0]
-        send_json(self, watchlist_overview(name))
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        send_json(self, watchlist_overview(name, refresh=refresh))
 
     def handle_watchlist_post(self) -> None:
         body = get_json_body(self)
@@ -2946,6 +5328,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                 rows.append(cached_fundamental(symbol, refresh=refresh))
             except Exception as exc:
                 errors.append({"symbol": symbol, "error": str(exc)})
+        rows = apply_quarterly_statement_reviews(rows)
         send_json(
             self,
             {
@@ -3090,6 +5473,10 @@ class AppHandler(SimpleHTTPRequestHandler):
             rows = rows_to_dicts(con.execute("select * from consensus_sources order by symbol, source").fetchall())
         for row in rows:
             row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+            row["sourceType"] = consensus_source_type(row)
+            row["reviewStatus"] = consensus_review_status(row)
+            row["isReviewed"] = is_reviewed_consensus_row(row)
+            row["isSourceLinked"] = is_source_linked_consensus_row(row)
         send_json(self, {"sources": rows})
 
     def handle_consensus_post(self) -> None:
@@ -3104,36 +5491,46 @@ class AppHandler(SimpleHTTPRequestHandler):
             con.execute(
                 """
                 insert into consensus_sources(
-                    symbol, source, target_mean, target_high, target_low, analyst_count,
-                    recommendation, recommendation_score, source_url, confidence, method_note,
-                    collected_at_epoch, collected_at
+                    symbol, source, source_type, review_status, target_mean, target_high, target_low, analyst_count,
+                    recommendation, recommendation_score, target_currency, as_of_date, source_url, confidence,
+                    method_note, limitation_note, collected_at_epoch, collected_at
                 )
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 on conflict(symbol, source) do update set
+                    source_type = excluded.source_type,
+                    review_status = excluded.review_status,
                     target_mean = excluded.target_mean,
                     target_high = excluded.target_high,
                     target_low = excluded.target_low,
                     analyst_count = excluded.analyst_count,
                     recommendation = excluded.recommendation,
                     recommendation_score = excluded.recommendation_score,
+                    target_currency = excluded.target_currency,
+                    as_of_date = excluded.as_of_date,
                     source_url = excluded.source_url,
                     confidence = excluded.confidence,
                     method_note = excluded.method_note,
+                    limitation_note = excluded.limitation_note,
                     collected_at_epoch = excluded.collected_at_epoch,
                     collected_at = excluded.collected_at
                 """,
                 (
                     symbol,
                     source,
+                    body.get("sourceType", "manual-source"),
+                    body.get("reviewStatus", "draft"),
                     pick_body_number(body, "targetMean"),
                     pick_body_number(body, "targetHigh"),
                     pick_body_number(body, "targetLow"),
                     pick_body_number(body, "analystCount"),
                     body.get("recommendation"),
                     pick_body_number(body, "recommendationScore"),
+                    body.get("currency", ""),
+                    body.get("asOfDate", ""),
                     body.get("sourceUrl"),
                     body.get("confidence", "manual"),
                     body.get("methodNote", "Manual consensus/source entry."),
+                    body.get("limitationNote", ""),
                     now_epoch,
                     collected_at,
                 ),
@@ -3145,17 +5542,125 @@ class AppHandler(SimpleHTTPRequestHandler):
         symbol = qs.get("symbol", [""])[0].strip()
         with connect() as con:
             if symbol:
+                rows = enrich_event_rows(
+                    rows_to_dicts(
+                        con.execute(
+                            "select * from significant_events where symbol = ? order by created_at_epoch desc",
+                            (normalize_symbol(symbol),),
+                        ).fetchall()
+                    )
+                )
+            else:
+                rows = enrich_event_rows(
+                    rows_to_dicts(
+                        con.execute("select * from significant_events order by created_at_epoch desc").fetchall()
+                    )
+                )
+        send_json(self, {"events": rows, "categories": EVENT_CATEGORIES, "sourcePolicy": event_source_policy()})
+
+    def handle_quarterly_statement_reviews_get(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        symbol = normalize_symbol(qs.get("symbol", [""])[0]) if qs.get("symbol") else ""
+        with connect() as con:
+            if symbol:
                 rows = rows_to_dicts(
                     con.execute(
-                        "select * from significant_events where symbol = ? order by created_at_epoch desc",
-                        (normalize_symbol(symbol),),
+                        """
+                        select *
+                        from quarterly_statement_reviews
+                        where symbol = ?
+                        order by period_end desc
+                        """,
+                        (symbol,),
                     ).fetchall()
                 )
             else:
                 rows = rows_to_dicts(
-                    con.execute("select * from significant_events order by created_at_epoch desc").fetchall()
+                    con.execute(
+                        """
+                        select *
+                        from quarterly_statement_reviews
+                        order by symbol, period_end desc
+                        """
+                    ).fetchall()
                 )
-        send_json(self, {"events": rows})
+        send_json(
+            self,
+            {
+                "reviews": [quarterly_review_row(row) for row in rows],
+                "policy": quarterly_statement_review_policy(),
+            },
+        )
+
+    def handle_quarterly_statement_reviews_post(self) -> None:
+        body = get_json_body(self)
+        symbol = normalize_symbol(body.get("symbol", ""))
+        period_end = (body.get("periodEnd") or body.get("period_end") or "").strip()
+        if not symbol or not period_end:
+            return send_json(self, {"error": "symbol and periodEnd are required"}, HTTPStatus.BAD_REQUEST)
+        status = normalize_quarterly_review_status(body.get("reviewStatus") or body.get("review_status"))
+        if status == "unverified":
+            return send_json(
+                self,
+                {"error": "reviewStatus must be a reviewed/needs-review/not-found status for stored rows"},
+                HTTPStatus.BAD_REQUEST,
+            )
+        source_url = (body.get("sourceUrl") or body.get("source_url") or "").strip()
+        if status == "reviewed-match" and not source_url:
+            return send_json(
+                self,
+                {"error": "reviewed-match requires a sourceUrl pointing to the primary report"},
+                HTTPStatus.BAD_REQUEST,
+            )
+        now = utc_now()
+        with connect() as con:
+            con.execute(
+                """
+                insert into quarterly_statement_reviews(
+                    symbol, period_end, review_status, source_name, source_url, report_period,
+                    reviewer_note, limitation_note, reviewed_at, updated_at
+                )
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                on conflict(symbol, period_end) do update set
+                    review_status = excluded.review_status,
+                    source_name = excluded.source_name,
+                    source_url = excluded.source_url,
+                    report_period = excluded.report_period,
+                    reviewer_note = excluded.reviewer_note,
+                    limitation_note = excluded.limitation_note,
+                    reviewed_at = excluded.reviewed_at,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    symbol,
+                    period_end,
+                    status,
+                    (body.get("sourceName") or body.get("source_name") or "").strip(),
+                    source_url,
+                    (body.get("reportPeriod") or body.get("report_period") or "").strip(),
+                    (body.get("reviewerNote") or body.get("reviewer_note") or "").strip(),
+                    (body.get("limitationNote") or body.get("limitation_note") or "").strip(),
+                    (body.get("reviewedAt") or body.get("reviewed_at") or now).strip(),
+                    now,
+                ),
+            )
+        reviews = quarterly_statement_reviews_for_symbols([symbol]).get(symbol, {})
+        send_json(
+            self,
+            {
+                "ok": True,
+                "symbol": symbol,
+                "periodEnd": period_end,
+                "review": reviews.get(period_end) or quarterly_review_row(None),
+                "policy": quarterly_statement_review_policy(),
+            },
+        )
+
+    def handle_event_monitoring(self, parsed) -> None:
+        qs = urllib.parse.parse_qs(parsed.query)
+        name = qs.get("watchlist", ["Core Watchlist"])[0]
+        refresh = qs.get("refresh", ["0"])[0] == "1"
+        send_json(self, event_monitoring_payload(name, refresh_newsweb=refresh))
 
     def handle_events_post(self) -> None:
         body = get_json_body(self)
@@ -3170,19 +5675,24 @@ class AppHandler(SimpleHTTPRequestHandler):
                 """
                 insert into significant_events(
                     symbol, title, category, importance, source, url, note,
-                    published_at, created_at_epoch, created_at
+                    published_at, source_type, review_status, confidence,
+                    limitation_note, created_at_epoch, created_at
                 )
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     symbol,
                     title,
-                    body.get("category", "update"),
+                    normalize_event_category(body.get("category")),
                     body.get("importance", "normal"),
                     body.get("source", "manual"),
                     body.get("url", ""),
                     body.get("note", ""),
                     body.get("publishedAt"),
+                    body.get("sourceType", "manual-source"),
+                    body.get("reviewStatus", "draft"),
+                    body.get("confidence", "manual"),
+                    body.get("limitationNote", ""),
                     now_epoch,
                     created_at,
                 ),
@@ -3227,15 +5737,25 @@ def source_notes() -> dict:
         "technicalIndicators": {
             "url": TECHNICAL_INDICATORS_URLS[0],
             "verification": "The app reads the published oslo-screener latest.csv first and falls back to the GitHub raw file if needed. The embedded dashboard tab remains separate.",
-            "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice.",
+            "limitations": "Technical indicators are screening context only. BUY/SELL labels are source signal names from the screener CSV and are not app investment advice. A missing watchlist row means the symbol is absent from the current latest.csv/report output, not that no all-name screener report exists.",
         },
         "yfinance": {
-            "use": "Open/free Yahoo Finance data for price, 52-week daily price history, multiples, and analyst target fields where available.",
-            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. Target-price and recommendation fields are labeled as Yahoo/yfinance only and should be verified against other consensus sources.",
+            "use": "Open/free Yahoo Finance data for price, 52-week daily price history, source-gated EV/EBITDA inputs, other multiples, and analyst target fields where available.",
+            "limitations": "Delayed, rate-limited, not guaranteed complete. Historical prices may include gaps or adjustment differences. EV/EBITDA is computed from enterprise value, TTM EBITDA, and FX when needed; the raw provider EV/EBITDA field is retained separately and not used as the displayed value. Target-price and rating-label fields are labeled as Yahoo/yfinance provider rows and should be verified against other sources.",
         },
         "historicalContext": {
-            "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes and local dated fundamentals snapshots.",
-            "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and is not a sector, peer, or valuation verdict.",
+            "use": "Fundamentals now shows descriptive own-history context from Yahoo/yfinance 52-week daily closes, local dated fundamentals snapshots, and yfinance dated quarterly statement rows where available.",
+            "limitations": "Watchlist own-history signals require minimum observation counts. Multiple history depends on repeated local refreshes and quarterly statement history depends on yfinance returning dated statement tables; neither is a sector, peer, or valuation verdict.",
+        },
+        "quarterlyStatements": {
+            "use": "True quarterly statement history is read from yfinance quarterly income statement, balance sheet, and cash-flow tables when they contain dated quarter-end columns.",
+            "verification": "The app keeps only explicit statement rows such as revenue, EBIT/EBITDA, net income, equity, debt, cash, operating cash flow, capex, and free cash flow, and labels accounting values with yfinance financialCurrency only when that field is supplied. It does not backfill quarterly statement history from current summary fields. Primary company-report review is tracked separately per symbol and period through /api/quarterly-statement-reviews.",
+            "limitations": "Open/free statement tables are screening-grade, may lag filings, may use provider-normalized row labels, and may omit some quarters or fields. Missing rows stay missing. Unreviewed periods remain screening-grade until checked against company reports; source-reviewed periods still do not create recommendation or valuation verdict logic.",
+        },
+        "sharingConfig": {
+            "use": "Environment variables can set host, port, database path, and optional Basic Auth for a future shared run.",
+            "verification": "The default run remains local-only at 127.0.0.1:8765. Non-local bind hosts are blocked unless Basic Auth credentials are configured or an explicit unauthenticated override is set.",
+            "limitations": "Basic Auth is a sharing-prep gate, not a full production security model. Use HTTPS, backups, access controls, and reviewed deployment settings before external sharing.",
         },
         "benchmarks": {
             "use": "Editable peer groups plus cached yfinance metrics for descriptive relative context. Sector benchmark components now separate Oslo peers, international peers, and optional sector index/proxy roles.",
@@ -3246,8 +5766,15 @@ def source_notes() -> dict:
             "limitations": "Missing sector KPIs stay missing until explicit reviewed inputs exist. The app does not infer sector KPI values from yfinance sector labels.",
         },
         "newsweb": {
-            "use": "Ticker-specific search links in the MVP.",
-            "limitations": "The public site is JavaScript-driven and no stable public API/RSS feed was confirmed during setup.",
+            "url": NEWSWEB_URL,
+            "use": "Ticker-specific NewsWeb search links, on-demand NewsWeb announcement rows for the watchlist, and a 24-hour watchlist digest generated from the same ticker source path.",
+            "verification": "Euronext describes NewsWeb as the listed-company news site updated immediately 24/7. The official NewsWeb frontend discovers api3.oslo.oslobors.no via urls.json and ticker queries return issuer announcements from /v1/newsreader/customQuery.",
+            "limitations": "On-demand event rows and daily digest groups are screening-grade metadata with source links. Duplicate/correction grouping is heuristic, fetch errors stay visible, and scheduled automation remains separate.",
+        },
+        "euronextPublicationService": {
+            "url": EURONEXT_PUBLICATION_SERVICE_URL,
+            "use": "Reference only for source-path evaluation.",
+            "limitations": "Euronext describes EuroStockNews/API capabilities for issuer/corporate website publication services; this does not confirm a public research-app ingestion API.",
         },
         "tradingView": {
             "use": "Search links only in this MVP.",
@@ -3317,6 +5844,65 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
     for row in rows:
         status = row.get("cacheStatus") or "unknown"
         cache_statuses[status] = cache_statuses.get(status, 0) + 1
+    multiple_review_fields = [
+        "trailingPE",
+        "forwardPE",
+        "priceToBook",
+        "priceToSalesTrailing12Months",
+        "enterpriseToRevenue",
+        "enterpriseToEbitda",
+        "evToEbit",
+        "dividendYield",
+        "targetUpsidePct",
+        "pnAv",
+    ]
+    multiple_review = []
+    for field in multiple_review_fields:
+        field_rows = []
+        classifications: dict[str, int] = {}
+        statuses: dict[str, int] = {}
+        for row in rows:
+            metadata = (row.get("multipleSourceMetadata") or {}).get(field) or {}
+            classification = metadata.get("classification") or "unclassified"
+            status = metadata.get("status") or "missing"
+            classifications[classification] = classifications.get(classification, 0) + 1
+            statuses[status] = statuses.get(status, 0) + 1
+            if metadata.get("value") is None or status != "computed":
+                field_rows.append(
+                    {
+                        "symbol": row.get("symbol"),
+                        "status": status,
+                        "classification": classification,
+                        "providerValue": metadata.get("providerValue"),
+                        "limitation": metadata.get("limitation"),
+                    }
+                )
+        multiple_review.append(
+            {
+                "field": field,
+                "label": ((rows[0].get("multipleSourceMetadata") or {}).get(field) or {}).get("label", field) if rows else field,
+                "classifications": classifications,
+                "statuses": statuses,
+                "gatedOrMissingRows": field_rows[:12],
+            }
+        )
+    quarterly_coverage = []
+    for row in rows:
+        history = ((row.get("historicalContext") or {}).get("quarterlyStatementHistory")) or row.get("quarterlyStatements") or {}
+        primary_review = history.get("primaryReportVerification") or {}
+        quarterly_coverage.append(
+            {
+                "symbol": row.get("symbol"),
+                "status": history.get("status") or "missing",
+                "periodCount": history.get("periodCount") or 0,
+                "latestPeriodEnd": history.get("latestPeriodEnd"),
+                "presentFields": history.get("presentFields") or [],
+                "source": history.get("source") or "Yahoo Finance via yfinance quarterly statement tables",
+                "primaryReviewStatus": primary_review.get("status") or "not-started",
+                "primaryReviewedMatchCount": primary_review.get("reviewedMatchCount") or 0,
+                "primarySourceLinkedCount": primary_review.get("sourceLinkedCount") or 0,
+            }
+        )
 
     return {
         "rowCount": total,
@@ -3325,6 +5911,8 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
         "fetchedAtNewest": fetched_values[-1] if fetched_values else None,
         "cacheStatuses": cache_statuses,
         "fieldCoverage": field_coverage,
+        "multipleReview": multiple_review,
+        "quarterlyStatementCoverage": quarterly_coverage,
         "shippingSectorGaps": shipping_gaps,
         "minimumDataRequirements": MINIMUM_DATA_REQUIREMENTS,
         "defaultTableDecision": "Keep the current default table unchanged for now. P/NAV remains visible as explicit missing context for shipping and asset-backed sectors; NAV/fleet values, EBIT/kg, backlog, ROE/CET1, LTV/WAULT, and similar sector KPIs belong behind reviewed manual/source-linked fields before any computed presentation.",
@@ -3333,11 +5921,11 @@ def fundamental_data_validation(rows: list[dict]) -> dict:
 
 
 def main() -> None:
+    validate_runtime_config()
     init_db()
-    host = "127.0.0.1"
-    port = 8765
-    server = ThreadingHTTPServer((host, port), AppHandler)
-    print(f"Oslo Stock web-app running at http://{host}:{port}")
+    server = ThreadingHTTPServer((APP_HOST, APP_PORT), AppHandler)
+    auth_note = "auth required" if auth_required() else "local/no auth"
+    print(f"Oslo Stock web-app running at http://{APP_HOST}:{APP_PORT} ({auth_note})")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
