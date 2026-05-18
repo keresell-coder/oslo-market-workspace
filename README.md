@@ -105,6 +105,8 @@ Beta/operator routine:
 
 - `docs/operator-refresh-checklist.md`: refresh order and source-quality checks
   before sharing a beta view.
+- `docs/watchlist-edit-workflow.md`: static Pages watchlist edit flow using
+  YAML, PRs, generated data, and public verification.
 
 Current release target: **Beta v0.1.0**. The active next sprint is now the
 static GitHub Pages remake. Hosted Public Access Completion is paused unless the
@@ -165,6 +167,11 @@ Local folder:
   laptop/tablet check if not already done by the operator, monitor scheduled
   GitHub Actions refreshes, and decide how far to expand static all-universe
   output beyond the watchlist-focused beta.
+- Watchlist edit workflow polish started on 19 May 2026: static Pages edit
+  guidance now shows the YAML -> PR -> static-data workflow -> public
+  verification sequence, and `docs/watchlist-edit-workflow.md` records the
+  operator path. The current watchlist source now includes `BRG.OL` /
+  Borregaard ASA.
 - Public static beta verification on 17 May 2026: PR #1 was merged to `main`,
   GitHub Pages serves `https://keresell-coder.github.io/oslo-market-workspace/`
   with HTTP 200, the first manual `Static GitHub Pages data` workflow run
@@ -182,6 +189,10 @@ Local folder:
   Sloan Accruals Ratio context. These are descriptive screening frameworks only;
   missing inputs stay missing and outputs must not become advice or valuation
   verdicts.
+- Fundamental frameworks sprint is now explicitly deferred while a separate
+  `oslo-quant` repository is being developed as a possible external source
+  artifact, similar to `oslo-screener`. Do not implement the frameworks tab
+  until that repo's status/output contract is reviewed.
 - Fundamental Multiples And Technical Coverage Verification is complete:
   TTM P/E, forward P/E, P/B, P/S, EV/revenue, EV/EBITDA, dividend yield,
   target-derived fields, P/NAV, and EV/EBIT now carry classification,
@@ -191,17 +202,23 @@ Local folder:
   `docs/data/technical-indicators-watchlist.json`, the Watchlist, and the
   Technical indicators tab list watchlist symbols missing from the current
   Oslo Screener `latest.csv`/report output rather than silently dropping them.
+- Current generated technical coverage after the 19 May 2026 static rebuild is
+  13 covered watchlist rows and one missing row, `KMAR.OL`, which remains
+  history-gated. BRG.OL is covered by the current screener CSV.
 - Oslo Screener coverage reconciliation on 16 May 2026 confirmed HAFNI.OL,
   KMAR.OL, LINK.OL, PUBLI.OL, and VEND.OL are absent from published
   `latest.csv`, raw `main/latest.csv`, the latest committed `report_*.csv`,
   `summaries/latest.md`, `tickers.txt`, `valid_tickers.txt`, and
   `raw_tickers.txt`. `invalid_tickers.csv` only mentions old VENDA.OL/VENDB.OL,
-  so the current gap is the screener input universe, not frontend filtering.
-- Screener-side fix is pending as draft PR
+  so that gap was the screener input universe at that time, not frontend
+  filtering.
+- Screener-side follow-up PR
   https://github.com/keresell-coder/oslo-screener/pull/12. The PR adds the five
   symbols to the active screener input list, aligns validation with the
   30-observation screener gate, preserves the existing `latest.csv` schema, and
-  keeps KMAR.OL in `invalid_tickers.csv` until enough history exists.
+  keeps KMAR.OL in `invalid_tickers.csv` until enough history exists. Current
+  generated Oslo Stock static data now covers HAFNI.OL, LINK.OL, PUBLI.OL, and
+  VEND.OL from the screener output.
 - Public MVP gap: the hosted backend path is intentionally paused. The next
   public MVP should be a static GitHub Pages dashboard with scheduled/manual
   generated data and explicit source/freshness/error states.
@@ -538,6 +555,6 @@ After each completed task, update the relevant docs so they reflect what changed
 ## Next Sprint
 
 Return to the static beta follow-up tasks: capture an explicit another-device
-check if still needed, monitor the scheduled GitHub Actions refreshes, and only
-then decide how far to expand static all-universe output beyond the
-watchlist-focused beta.
+check if still needed, merge/verify the BRG watchlist edit workflow PR, monitor
+the scheduled GitHub Actions refreshes, and only then decide how far to expand
+static all-universe output beyond the watchlist-focused beta.

@@ -12,6 +12,7 @@ let staticManifest = null;
 const repositoryUrl = "https://github.com/keresell-coder/oslo-market-workspace";
 const staticWorkflowUrl = `${repositoryUrl}/actions/workflows/static-data.yml`;
 const watchlistSourceUrl = `${repositoryUrl}/edit/main/data/watchlist.yml`;
+const pullRequestsUrl = `${repositoryUrl}/pulls`;
 const refreshStatusConfig = {
   watchlist: {
     target: "watchlist-refresh-status",
@@ -538,6 +539,8 @@ function codexWatchlistPrompt(symbol = "", note = "") {
 Keep the YAML schema valid:
 - watchlist: Core Watchlist
 - items: list of symbol/name/sector/industry/note rows
+- keep symbols uppercase and include the .OL suffix for Oslo-listed names
+- keep missing/unknown notes as an empty string
 
 Preserve the app guardrails:
 - no buy/sell investment advice
@@ -545,18 +548,32 @@ Preserve the app guardrails:
 - missing data stays missing
 - source and limitation notes remain visible
 
-Open a pull request with the watchlist change. After merge, run the Static GitHub Pages data workflow manually or wait for the next scheduled refresh.`;
+Use branch prefix codex/. Open a pull request with the watchlist change. After merge, run the Static GitHub Pages data workflow manually or wait for the next scheduled refresh, then verify the public Pages URL and manifest.`;
+}
+
+function renderWatchlistEditSteps(steps = []) {
+  const defaultSteps = [
+    "Edit data/watchlist.yml on a branch or ask Codex to do it.",
+    "Open and merge a pull request after the YAML and generated data pass checks.",
+    "Run the Static GitHub Pages data workflow manually or wait for the next schedule.",
+    "Verify the public Pages URL, manifest timestamp, and affected rows.",
+  ];
+  const items = (steps.length ? steps : defaultSteps).map((step) => `<li>${escapeHtml(step)}</li>`).join("");
+  return `<ol class="static-edit-steps">${items}</ol>`;
 }
 
 function staticWatchlistEditMarkup(symbol = "", note = "") {
+  const steps = staticManifest?.watchlistEdit?.steps || [];
   return `
     <div class="static-edit-helper">
       <div>
-        <strong>Edit through GitHub or Codex</strong>
-        <span class="muted">Public Pages is read-only; no GitHub write token is stored in this app.</span>
+        <strong>Watchlist edit workflow</strong>
+        <span class="muted">Public Pages is read-only; no GitHub write token is stored in this app. Changes go through YAML, PR, generated data, then public verification.</span>
       </div>
+      ${renderWatchlistEditSteps(steps)}
       <div class="actions">
         <a class="button-link" href="${escapeHtml(watchlistSourceUrl)}" target="_blank" rel="noreferrer">Open watchlist YAML</a>
+        <a class="button-link secondary" href="${escapeHtml(pullRequestsUrl)}" target="_blank" rel="noreferrer">Open pull requests</a>
         <a class="button-link secondary" href="${escapeHtml(staticWorkflowUrl)}" target="_blank" rel="noreferrer">Manual refresh workflow</a>
       </div>
       <textarea readonly rows="8" data-static-watchlist-prompt>${escapeHtml(codexWatchlistPrompt(symbol, note))}</textarea>
@@ -586,9 +603,11 @@ function renderStaticModeBanner(manifest = staticManifest) {
         <strong>Static GitHub Pages beta</strong>
         <span>Last generated ${escapeHtml(dateTime(manifest?.generatedAt))}. The browser reads committed JSON files and does not perform live backend refreshes.</span>
         <span>${escapeHtml(manifest?.watchlistEdit?.policy || "Watchlist edits happen through GitHub/Codex/PRs.")}</span>
+        ${renderWatchlistEditSteps(manifest?.watchlistEdit?.steps || [])}
       </div>
       <div class="actions">
         <a class="button-link" href="${escapeHtml(manifest?.watchlistEdit?.sourceUrl || watchlistSourceUrl)}" target="_blank" rel="noreferrer">Edit watchlist source</a>
+        <a class="button-link secondary" href="${escapeHtml(manifest?.watchlistEdit?.pullRequestsUrl || pullRequestsUrl)}" target="_blank" rel="noreferrer">Pull requests</a>
         <a class="button-link secondary" href="${escapeHtml(manifest?.watchlistEdit?.workflowUrl || staticWorkflowUrl)}" target="_blank" rel="noreferrer">Manual data run</a>
       </div>
     </section>
