@@ -25,6 +25,7 @@ STATIC_DIR = ROOT / "app" / "static"
 REPO_URL = "https://github.com/keresell-coder/oslo-market-workspace"
 WATCHLIST_SOURCE_URL = f"{REPO_URL}/edit/main/data/watchlist.yml"
 WORKFLOW_URL = f"{REPO_URL}/actions/workflows/static-data.yml"
+PULL_REQUESTS_URL = f"{REPO_URL}/pulls"
 
 
 class SchemaError(ValueError):
@@ -741,10 +742,17 @@ def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refre
         "watchlistEdit": {
             "sourceUrl": WATCHLIST_SOURCE_URL,
             "workflowUrl": WORKFLOW_URL,
+            "pullRequestsUrl": PULL_REQUESTS_URL,
+            "steps": [
+                "Edit data/watchlist.yml on a codex/ branch or ask Codex to do it.",
+                "Open and merge a pull request after YAML and generated data checks pass.",
+                "Run the Static GitHub Pages data workflow manually or wait for the next schedule.",
+                "Verify the public Pages URL, manifest timestamp, and affected rows.",
+            ],
             "codexPrompt": (
                 "Please edit data/watchlist.yml in keresell-coder/oslo-market-workspace, keep the YAML schema valid, "
                 "preserve the no-advice guardrails, and open a PR with the watchlist change. After merge, run the "
-                "Static GitHub Pages data workflow or wait for the next scheduled refresh."
+                "Static GitHub Pages data workflow or wait for the next scheduled refresh, then verify the public Pages URL and manifest."
             ),
             "policy": "Public GitHub Pages JavaScript does not contain a GitHub write token. Watchlist edits happen through GitHub/Codex/PRs.",
         },

@@ -35,6 +35,7 @@
 - Static generated-data manifest: `docs/data/manifest.json`
 - Primary report verification notes: `docs/primary-report-verification.md`
 - Operator refresh checklist: `docs/operator-refresh-checklist.md`
+- Watchlist edit workflow: `docs/watchlist-edit-workflow.md`
 - Runtime config example: `.env.example`
 - Hosted runtime config example: `deploy/oslo-stock.env.example`
 - Hosted systemd service template: `deploy/oslo-stock.service`
@@ -52,6 +53,7 @@
 - `docs/hosted-public-access-runbook.md`
 - `docs/static-github-pages-remake.md`
 - `docs/operator-refresh-checklist.md`
+- `docs/watchlist-edit-workflow.md`
 - `scripts/open_in_safari.sh`
 - `scripts/backup_database.sh`
 - `scripts/restore_database.sh`
@@ -158,6 +160,17 @@ reported screener/technical/event/watchlist errors. Local release-prep
 verification and public Pages browser checks passed; capture an explicit
 another-device laptop/tablet check if not already done by the operator.
 
+Watchlist edit workflow status as of 19 May 2026: the public Pages app remains
+read-only and token-free. Watchlist changes use `data/watchlist.yml`, a PR,
+regenerated `docs/data/*.json`, and public Pages verification. The starter
+polish pass adds in-app edit steps, `docs/watchlist-edit-workflow.md`, and
+`BRG.OL` / Borregaard ASA to the repo-owned watchlist source.
+
+Fundamental frameworks status as of 19 May 2026: deferred while a separate
+`oslo-quant` repository is being developed as a possible external source
+artifact, similar to `oslo-screener`. Wait for a status update and stable output
+contract before integrating framework tabs or generated framework JSON here.
+
 Watchlist streamlining status as of 16 May 2026: the shared local/static
 frontend now renders compact Watchlist synthesis rows, visible source chips, and
 expandable per-row source-detail drawers instead of repeating dense caveat text
@@ -233,6 +246,10 @@ the current Oslo Screener `latest.csv`/report output as missing coverage rows.
   latest committed dated report, the summary, and the public ticker input lists.
   The app describes these as current report-output gaps and does not compute or
   merge fallback technical labels.
+- Current generated Oslo Stock static data after the 19 May 2026 rebuild shows
+  BRG.OL covered by the screener CSV and only KMAR.OL missing/history-gated in
+  watchlist technical coverage. HAFNI.OL, LINK.OL, PUBLI.OL, and VEND.OL are
+  now covered by the generated screener output.
 
 ## External Sources Considered But Not Automated
 

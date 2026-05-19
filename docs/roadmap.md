@@ -80,6 +80,9 @@ Important current limitations:
   from `oslo-screener/latest.csv` appear as missing coverage rows in
   `/api/technical-indicators`, `docs/data/technical-indicators-watchlist.json`,
   the Watchlist, and the Technical indicators tab.
+- Current generated technical coverage after the 19 May 2026 static rebuild is
+  13 covered watchlist rows and one missing row, `KMAR.OL`; BRG.OL is covered
+  by the current screener CSV.
 - The Oslo Screener `latest.csv` can be current while the separate dashboard HTML is stale if the dashboard repo's default branch or `gh-pages` deployment path drifts. Confirm both the CSV timestamp and dashboard page date when the RSI14 tab looks old.
 - Current reliability guard: `oslo-screener-dashboard` now defaults to `main`, runs after the screener producer with a backup schedule, verifies generated HTML before deploy, and renders `latest.csv` source-generation freshness.
 
@@ -102,11 +105,15 @@ until the first hosted cycle is observed.
 
 - Capture an explicit another-device laptop/tablet check if not already done by
   the operator.
+- Merge and publicly verify the BRG watchlist edit workflow PR, which starts
+  the static Pages watchlist-edit polish path.
 - Monitor the next scheduled `.github/workflows/static-data.yml` refresh on
   GitHub after the successful first manual run.
 - Decide how far to expand static all-universe output beyond the
   watchlist-focused beta.
 - Keep the hosted Python/SQLite path paused unless explicitly revived.
+- Keep Fundamental frameworks deferred while the separate `oslo-quant` repo is
+  being developed as a possible external source artifact.
 
 Release-task status checked on 17 May 2026:
 
@@ -136,6 +143,10 @@ Release-task status checked on 17 May 2026:
   all-universe output beyond the current technical all-output JSON until the
   public beta has at least one operator/another-device review and scheduled
   refresh behavior is observed.
+- Watchlist edit workflow polish started on 19 May 2026: add `BRG.OL` /
+  Borregaard ASA to `data/watchlist.yml`, show clearer static edit steps in the
+  public app, and document the YAML -> PR -> static-data workflow -> public
+  verification sequence in `docs/watchlist-edit-workflow.md`.
 
 ### Completed Sprint: Oslo Screener Coverage Reconciliation
 
@@ -193,9 +204,11 @@ Delivered:
   EBIT, or sector KPIs from generic provider fields.
 - Added multiple source-gate review output to the Fundamentals validation panel
   and kept Own history and Benchmarks on the same generated fields.
-- Added technical coverage metadata and missing coverage rows. Current
-  `latest.csv`/report-output watchlist gaps are HAFNI.OL, KMAR.OL, LINK.OL,
-  PUBLI.OL, and VEND.OL.
+- Added technical coverage metadata and missing coverage rows. The 16 May 2026
+  `latest.csv`/report-output watchlist gaps were HAFNI.OL, KMAR.OL, LINK.OL,
+  PUBLI.OL, and VEND.OL; after the screener-side follow-up and the 19 May 2026
+  static rebuild, only KMAR.OL remains missing/history-gated in generated Oslo
+  Stock technical coverage.
 - Kept the separate RSI14 screener dashboard unchanged and kept technical
   BUY/SELL labels as external source labels only.
 
@@ -284,6 +297,11 @@ Delivered:
 Goal: add structured, source-gated fundamental evaluation frameworks as
 descriptive screening context.
 
+Status as of 19 May 2026: deferred. A separate `oslo-quant` repository is being
+developed as a possible external generated/source artifact, similar to
+`oslo-screener`. Wait for a status update and stable output contract before
+implementing any Fundamental frameworks tab or generated framework JSON here.
+
 Preferred first UI: one **Fundamental frameworks** tab with subpanels for each
 framework, plus a compact Watchlist summary column later. A single tab avoids
 navigation clutter while the framework coverage and missing-data gates are
@@ -369,6 +387,7 @@ Remaining:
 
 - Capture an explicit another-device laptop/tablet check if not already done by
   the operator.
+- Merge and verify the BRG watchlist edit workflow PR on public Pages.
 - Monitor the next scheduled GitHub Actions refresh after the successful manual
   run.
 - Decide whether the static all-universe Fundamentals view should expand beyond

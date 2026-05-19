@@ -188,6 +188,10 @@ Keep:
 - coverage reconciliation on 16 May 2026 confirmed HAFNI.OL, KMAR.OL, LINK.OL,
   PUBLI.OL, and VEND.OL are absent from the public screener input lists and
   current report output, not lost by the static frontend or `/api/*` parser
+- current generated Oslo Stock static data after the 19 May 2026 rebuild shows
+  BRG.OL covered by the screener CSV and only KMAR.OL missing/history-gated in
+  watchlist technical coverage; HAFNI.OL, LINK.OL, PUBLI.OL, and VEND.OL are
+  now covered by generated screener output
 - release check on 16 May 2026 found GitHub Pages still disabled/404 for
   `keresell-coder/oslo-market-workspace`; the static workflow and generated
   `docs/` app assets also are not on `origin/main` yet, so real
@@ -209,6 +213,10 @@ Keep:
   framework JSON for Piotroski F-Score, Mohanram G-Score, DuPont, Ohlson
   O-Score, and Sloan Accruals Ratio, with component inputs and missing-data
   gates visible
+- Fundamental frameworks are deferred while the separate `oslo-quant` repo is
+  being developed as a possible external source artifact, similar to
+  `oslo-screener`; wait for a status update and stable output contract before
+  implementing framework tabs or JSON here
 
 Reduce or remove:
 
@@ -304,6 +312,10 @@ Recently completed:
   Pages is live at `https://keresell-coder.github.io/oslo-market-workspace/`,
   the first manual static-data workflow run succeeded, public JSON endpoints
   validate, and the public app browser-checks in Static mode.
+- Watchlist edit workflow polish starter: `BRG.OL` / Borregaard ASA added to
+  `data/watchlist.yml`, static edit UI steps clarified, and
+  `docs/watchlist-edit-workflow.md` added for the YAML -> PR -> static-data
+  workflow -> public verification path.
 - Watchlist Synthesis Streamlining
 - EV/EBITDA source-gate fix: displayed EV/EBITDA is computed from yfinance
   enterprise value, yfinance TTM EBITDA, and FX conversion where needed; the raw
@@ -321,12 +333,14 @@ Monitor the now-live Static GitHub Pages beta.
 Scope:
 - Capture an explicit another-device laptop/tablet check if not already done by
   the operator.
+- Merge and publicly verify the BRG watchlist edit workflow PR.
 - Monitor the next scheduled `.github/workflows/static-data.yml` refresh after
   the successful first manual run.
 - Decide how far to expand static all-universe output beyond the
   watchlist-focused beta.
 - Keep Fundamental frameworks deferred until the static beta has been observed
-  through at least one hosted schedule cycle.
+  through at least one hosted schedule cycle and the `oslo-quant` status/output
+  contract is reviewed.
 
 Guardrails:
 - no buy/sell investment advice
