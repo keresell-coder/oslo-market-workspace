@@ -5,7 +5,7 @@
       "confidenceReason": "Peer group is a draft seed or manual edit. Use as a research prompt until reviewed company-by-company.",
       "configuredItems": [
         {
-          "created_at": "2026-05-20T18:37:02+00:00",
+          "created_at": "2026-05-21T08:46:26+00:00",
           "group_key": "tel-ol-draft-peers",
           "industry": "Telecom Services",
           "market": "Oslo",
@@ -15,10 +15,10 @@
           "sector": "Communication Services",
           "source": "manual",
           "symbol": "TEL.OL",
-          "updated_at": "2026-05-20T18:37:02+00:00"
+          "updated_at": "2026-05-21T08:46:26+00:00"
         },
         {
-          "created_at": "2026-05-20T18:37:02+00:00",
+          "created_at": "2026-05-21T08:46:26+00:00",
           "group_key": "tel-ol-draft-peers",
           "industry": null,
           "market": "Stockholm",
@@ -28,7 +28,7 @@
           "sector": null,
           "source": "manual",
           "symbol": "TELIA",
-          "updated_at": "2026-05-20T18:37:02+00:00"
+          "updated_at": "2026-05-21T08:46:26+00:00"
         }
       ],
       "coverage": {
@@ -36,7 +36,7 @@
         "errors": 0,
         "loadedRows": 2
       },
-      "created_at": "2026-05-20T18:37:02+00:00",
+      "created_at": "2026-05-21T08:46:26+00:00",
       "curator_note": "Backend-assisted draft only. Review peers in order of Oslo, Nordic, European, then international fit. Do not promote until business model, segment mix, scale, source quality, and missing sector KPIs are checked.",
       "description": "Draft peer group for TEL.OL. Candidates are generated from local ticker metadata and yfinance sector/industry matches where available.",
       "errors": [],
@@ -70,9 +70,9 @@
             "sources": [
               {
                 "analyst_count": 19.0,
-                "as_of_date": "2026-05-20T18:37:28+00:00",
-                "collected_at": "2026-05-20T18:39:02+00:00",
-                "collected_at_epoch": 1779302342,
+                "as_of_date": "2026-05-21T08:46:45+00:00",
+                "collected_at": "2026-05-21T08:47:50+00:00",
+                "collected_at_epoch": 1779353270,
                 "confidence": "single-provider",
                 "isReviewed": false,
                 "isSourceLinked": true,
@@ -101,19 +101,19 @@
           },
           "currency": "NOK",
           "dividendRate": 9.7,
-          "dividendYield": 6.092964824120603,
-          "enterpriseToEbitda": 6.531670244706764,
+          "dividendYield": 6.089139987445071,
+          "enterpriseToEbitda": 6.381080271313472,
           "enterpriseToEbitdaConfidence": "screening-grade computed",
           "enterpriseToEbitdaInputs": {
             "classification": "source-gated computed",
             "confidence": "screening-grade computed",
             "ebitdaInEnterpriseValueCurrency": 42696000000.0,
-            "enterpriseValue": 278876192768.0,
+            "enterpriseValue": 272446603264.0,
             "enterpriseValueCurrency": "NOK",
-            "fetchedAt": "2026-05-20T18:37:28+00:00",
+            "fetchedAt": "2026-05-21T08:46:45+00:00",
             "field": "enterpriseToEbitda",
             "fxError": null,
-            "fxFetchedAt": "2026-05-20T18:37:29+00:00",
+            "fxFetchedAt": "2026-05-21T08:46:45+00:00",
             "fxPair": "NOK/NOK",
             "fxRate": 1.0,
             "fxSource": "same currency",
@@ -121,8 +121,8 @@
             "label": "EV/EBITDA",
             "limitation": "",
             "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
-            "providerDifferencePct": 60.83175675491586,
-            "providerEnterpriseToEbitda": 10.505,
+            "providerDifferencePct": 60.819164838490366,
+            "providerEnterpriseToEbitda": 10.262,
             "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
             "status": "computed",
             "ttmEbitda": 42696000000.0,
@@ -130,225 +130,225 @@
             "ttmEbitdaPeriodEnd": "2026-03-31",
             "ttmEbitdaSourceRow": "EBITDA",
             "unit": "x",
-            "value": 6.531670244706764
+            "value": 6.381080271313472
           },
           "enterpriseToEbitdaLimitation": "",
           "enterpriseToEbitdaMethod": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
           "enterpriseToEbitdaSource": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
           "enterpriseToEbitdaStatus": "computed",
-          "enterpriseToRevenue": 3.655570899328859,
-          "enterpriseValue": 278876192768.0,
+          "enterpriseToRevenue": 3.5712904161073826,
+          "enterpriseValue": 272446603264.0,
           "epsForward": 9.58737,
-          "epsTrailingTwelveMonths": 12.28,
+          "epsTrailingTwelveMonths": 12.27,
           "evToEbit": null,
-          "fetchedAt": "2026-05-20T18:37:28+00:00",
+          "fetchedAt": "2026-05-21T08:46:45+00:00",
           "financialCurrency": "NOK",
-          "forwardPE": 16.60517952264281,
+          "forwardPE": 16.6156099117902,
           "historicalContext": {
             "policy": "Historical context is descriptive only. It compares current values with own price history and local fundamentals snapshots without producing cheap, expensive, buy, sell, or hold conclusions.",
             "priceWindow": {
               "chart": {
                 "confidence": "screening-grade",
                 "currency": "NOK",
-                "fetchedAt": "2026-05-20T18:37:28+00:00",
-                "firstObservationAt": "2025-05-20",
+                "fetchedAt": "2026-05-21T08:46:45+00:00",
+                "firstObservationAt": "2025-05-21",
                 "label": "1y close trend",
-                "lastObservationAt": "2026-05-20",
+                "lastObservationAt": "2026-05-21",
                 "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
                 "minimumObservations": 120,
                 "observationCount": 250,
                 "points": [
                   {
-                    "date": "2025-05-20",
-                    "value": 158.3000030517578
+                    "date": "2025-05-21",
+                    "value": 158.5
                   },
                   {
-                    "date": "2025-05-27",
-                    "value": 155.89999389648438
+                    "date": "2025-05-28",
+                    "value": 155.0
                   },
                   {
-                    "date": "2025-06-05",
-                    "value": 155.6999969482422
+                    "date": "2025-06-06",
+                    "value": 155.0
                   },
                   {
-                    "date": "2025-06-13",
-                    "value": 152.5
+                    "date": "2025-06-16",
+                    "value": 152.10000610351562
                   },
                   {
-                    "date": "2025-06-20",
-                    "value": 153.6999969482422
+                    "date": "2025-06-23",
+                    "value": 154.60000610351562
                   },
                   {
-                    "date": "2025-06-27",
-                    "value": 155.3000030517578
+                    "date": "2025-06-30",
+                    "value": 156.6999969482422
                   },
                   {
-                    "date": "2025-07-07",
-                    "value": 156.5
+                    "date": "2025-07-08",
+                    "value": 156.10000610351562
                   },
                   {
-                    "date": "2025-07-14",
-                    "value": 157.39999389648438
+                    "date": "2025-07-15",
+                    "value": 157.8000030517578
                   },
                   {
-                    "date": "2025-07-21",
-                    "value": 160.0
+                    "date": "2025-07-22",
+                    "value": 161.1999969482422
                   },
                   {
-                    "date": "2025-07-29",
-                    "value": 159.10000610351562
+                    "date": "2025-07-30",
+                    "value": 158.39999389648438
                   },
                   {
-                    "date": "2025-08-05",
-                    "value": 162.1999969482422
+                    "date": "2025-08-06",
+                    "value": 162.3000030517578
                   },
                   {
-                    "date": "2025-08-12",
-                    "value": 161.3000030517578
-                  },
-                  {
-                    "date": "2025-08-20",
-                    "value": 166.89999389648438
-                  },
-                  {
-                    "date": "2025-08-27",
-                    "value": 166.6999969482422
-                  },
-                  {
-                    "date": "2025-09-03",
-                    "value": 166.0
-                  },
-                  {
-                    "date": "2025-09-10",
-                    "value": 168.60000610351562
-                  },
-                  {
-                    "date": "2025-09-18",
-                    "value": 165.39999389648438
-                  },
-                  {
-                    "date": "2025-09-25",
+                    "date": "2025-08-13",
                     "value": 163.39999389648438
                   },
                   {
-                    "date": "2025-10-02",
-                    "value": 164.60000610351562
+                    "date": "2025-08-21",
+                    "value": 166.10000610351562
                   },
                   {
-                    "date": "2025-10-10",
-                    "value": 166.3000030517578
+                    "date": "2025-08-28",
+                    "value": 166.6999969482422
                   },
                   {
-                    "date": "2025-10-17",
-                    "value": 165.6999969482422
+                    "date": "2025-09-04",
+                    "value": 170.3000030517578
                   },
                   {
-                    "date": "2025-10-24",
-                    "value": 164.0
+                    "date": "2025-09-11",
+                    "value": 170.3000030517578
                   },
                   {
-                    "date": "2025-11-03",
-                    "value": 150.10000610351562
+                    "date": "2025-09-19",
+                    "value": 166.0
                   },
                   {
-                    "date": "2025-11-10",
-                    "value": 149.39999389648438
+                    "date": "2025-09-26",
+                    "value": 165.3000030517578
                   },
                   {
-                    "date": "2025-11-17",
-                    "value": 144.1999969482422
+                    "date": "2025-10-03",
+                    "value": 164.89999389648438
                   },
                   {
-                    "date": "2025-11-24",
-                    "value": 145.8000030517578
+                    "date": "2025-10-13",
+                    "value": 164.8000030517578
                   },
                   {
-                    "date": "2025-12-02",
-                    "value": 145.10000610351562
+                    "date": "2025-10-20",
+                    "value": 165.8000030517578
                   },
                   {
-                    "date": "2025-12-09",
-                    "value": 144.10000610351562
+                    "date": "2025-10-27",
+                    "value": 163.5
                   },
                   {
-                    "date": "2025-12-16",
-                    "value": 145.10000610351562
+                    "date": "2025-11-04",
+                    "value": 148.60000610351562
                   },
                   {
-                    "date": "2025-12-29",
-                    "value": 146.1999969482422
+                    "date": "2025-11-11",
+                    "value": 146.10000610351562
                   },
                   {
-                    "date": "2026-01-07",
-                    "value": 144.3000030517578
+                    "date": "2025-11-18",
+                    "value": 143.0
                   },
                   {
-                    "date": "2026-01-14",
-                    "value": 144.39999389648438
+                    "date": "2025-11-25",
+                    "value": 146.6999969482422
                   },
                   {
-                    "date": "2026-01-22",
-                    "value": 156.60000610351562
+                    "date": "2025-12-03",
+                    "value": 143.89999389648438
                   },
                   {
-                    "date": "2026-01-29",
-                    "value": 161.39999389648438
+                    "date": "2025-12-10",
+                    "value": 143.1999969482422
                   },
                   {
-                    "date": "2026-02-05",
-                    "value": 161.89999389648438
+                    "date": "2025-12-17",
+                    "value": 145.39999389648438
                   },
                   {
-                    "date": "2026-02-12",
-                    "value": 177.10000610351562
+                    "date": "2025-12-30",
+                    "value": 146.6999969482422
                   },
                   {
-                    "date": "2026-02-20",
-                    "value": 174.1999969482422
+                    "date": "2026-01-08",
+                    "value": 146.0
                   },
                   {
-                    "date": "2026-02-27",
-                    "value": 176.3000030517578
+                    "date": "2026-01-15",
+                    "value": 143.1999969482422
                   },
                   {
-                    "date": "2026-03-06",
-                    "value": 170.0
+                    "date": "2026-01-23",
+                    "value": 154.89999389648438
                   },
                   {
-                    "date": "2026-03-16",
-                    "value": 172.89999389648438
+                    "date": "2026-01-30",
+                    "value": 162.0
                   },
                   {
-                    "date": "2026-03-23",
-                    "value": 167.3000030517578
+                    "date": "2026-02-06",
+                    "value": 173.5
                   },
                   {
-                    "date": "2026-03-30",
-                    "value": 168.10000610351562
+                    "date": "2026-02-13",
+                    "value": 177.0
                   },
                   {
-                    "date": "2026-04-10",
-                    "value": 169.1999969482422
+                    "date": "2026-02-23",
+                    "value": 173.60000610351562
                   },
                   {
-                    "date": "2026-04-17",
-                    "value": 160.3000030517578
+                    "date": "2026-03-02",
+                    "value": 174.8000030517578
                   },
                   {
-                    "date": "2026-04-24",
-                    "value": 164.3000030517578
+                    "date": "2026-03-09",
+                    "value": 169.0
                   },
                   {
-                    "date": "2026-05-04",
-                    "value": 153.5
+                    "date": "2026-03-17",
+                    "value": 172.1999969482422
                   },
                   {
-                    "date": "2026-05-12",
-                    "value": 156.8000030517578
+                    "date": "2026-03-24",
+                    "value": 166.39999389648438
                   },
                   {
-                    "date": "2026-05-20",
-                    "value": 159.1999969482422
+                    "date": "2026-03-31",
+                    "value": 170.3000030517578
+                  },
+                  {
+                    "date": "2026-04-13",
+                    "value": 165.3000030517578
+                  },
+                  {
+                    "date": "2026-04-20",
+                    "value": 162.8000030517578
+                  },
+                  {
+                    "date": "2026-04-27",
+                    "value": 162.1999969482422
+                  },
+                  {
+                    "date": "2026-05-05",
+                    "value": 152.8000030517578
+                  },
+                  {
+                    "date": "2026-05-13",
+                    "value": 157.5
+                  },
+                  {
+                    "date": "2026-05-21",
+                    "value": 159.3000030517578
                   }
                 ],
                 "source": "Yahoo Finance via yfinance",
@@ -357,18 +357,18 @@
               },
               "confidence": "screening-grade",
               "currency": "NOK",
-              "current": 159.2,
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
-              "firstObservationAt": "2025-05-20",
+              "current": 159.3,
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
+              "firstObservationAt": "2025-05-21",
               "high": 177.10000610351562,
-              "lastObservationAt": "2026-05-20",
+              "lastObservationAt": "2026-05-21",
               "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
               "low": 141.5,
               "median": 160.3000030517578,
               "observationCount": 250,
-              "pctFromHigh": -10.10728711836013,
-              "pctFromLow": 12.508833922261475,
-              "percentileInWindow": 47.199999999999996,
+              "pctFromHigh": -10.050821846449542,
+              "pctFromLow": 12.579505300353366,
+              "percentileInWindow": 46.800000000000004,
               "quarterWindows": [
                 {
                   "close": 165.39999389648438,
@@ -401,17 +401,17 @@
                   "observationCount": 63
                 },
                 {
-                  "close": 159.1999969482422,
+                  "close": 159.3000030517578,
                   "firstObservationAt": "2026-04-01",
                   "high": 170.3000030517578,
                   "label": "2026 Q2",
-                  "lastObservationAt": "2026-05-20",
+                  "lastObservationAt": "2026-05-21",
                   "low": 150.3000030517578,
-                  "median": 161.8000030517578,
-                  "observationCount": 31
+                  "median": 161.25,
+                  "observationCount": 32
                 }
               ],
-              "rangePositionPct": 49.71909259940282,
+              "rangePositionPct": 49.99999142764809,
               "source": "Yahoo Finance via yfinance",
               "status": "available",
               "window": "1y daily close"
@@ -445,7 +445,7 @@
               "currency": "NOK",
               "currencySource": "yfinance financialCurrency",
               "errors": [],
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "fields": [
                 {
                   "key": "totalRevenue",
@@ -850,16 +850,16 @@
               "snapshotMinimumObservations": 5
             },
             "snapshotHistory": {
-              "firstSnapshotAt": "2026-05-20T18:37:28+00:00",
+              "firstSnapshotAt": "2026-05-21T08:46:45+00:00",
               "largestGaps": [],
-              "lastSnapshotAt": "2026-05-20T18:37:28+00:00",
+              "lastSnapshotAt": "2026-05-21T08:46:45+00:00",
               "metrics": [
                 {
                   "confidence": "insufficient observations",
-                  "current": 12.964169381107492,
-                  "historyMax": 12.964169381107492,
-                  "historyMedian": 12.964169381107492,
-                  "historyMin": 12.964169381107492,
+                  "current": 12.982885085574573,
+                  "historyMax": 12.982885085574573,
+                  "historyMedian": 12.982885085574573,
+                  "historyMin": 12.982885085574573,
                   "key": "trailingPE",
                   "label": "TTM P/E",
                   "minimumDataMet": false,
@@ -872,10 +872,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 16.60517952264281,
-                  "historyMax": 16.60517952264281,
-                  "historyMedian": 16.60517952264281,
-                  "historyMin": 16.60517952264281,
+                  "current": 16.6156099117902,
+                  "historyMax": 16.6156099117902,
+                  "historyMedian": 16.6156099117902,
+                  "historyMin": 16.6156099117902,
                   "key": "forwardPE",
                   "label": "Forward P/E",
                   "minimumDataMet": false,
@@ -888,10 +888,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 3.090662007377208,
-                  "historyMax": 3.090662007377208,
-                  "historyMedian": 3.090662007377208,
-                  "historyMin": 3.090662007377208,
+                  "current": 3.0926033779848576,
+                  "historyMax": 3.0926033779848576,
+                  "historyMedian": 3.0926033779848576,
+                  "historyMin": 3.0926033779848576,
                   "key": "priceToBook",
                   "label": "P/B",
                   "minimumDataMet": false,
@@ -904,10 +904,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 2.855379543624161,
-                  "historyMax": 2.855379543624161,
-                  "historyMedian": 2.855379543624161,
-                  "historyMin": 2.855379543624161,
+                  "current": 2.8571732617449666,
+                  "historyMax": 2.8571732617449666,
+                  "historyMedian": 2.8571732617449666,
+                  "historyMin": 2.8571732617449666,
                   "key": "priceToSalesTrailing12Months",
                   "label": "P/S",
                   "minimumDataMet": false,
@@ -920,10 +920,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 3.655570899328859,
-                  "historyMax": 3.655570899328859,
-                  "historyMedian": 3.655570899328859,
-                  "historyMin": 3.655570899328859,
+                  "current": 3.5712904161073826,
+                  "historyMax": 3.5712904161073826,
+                  "historyMedian": 3.5712904161073826,
+                  "historyMin": 3.5712904161073826,
                   "key": "enterpriseToRevenue",
                   "label": "EV/revenue",
                   "minimumDataMet": false,
@@ -936,10 +936,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 6.531670244706764,
-                  "historyMax": 6.531670244706764,
-                  "historyMedian": 6.531670244706764,
-                  "historyMin": 6.531670244706764,
+                  "current": 6.381080271313472,
+                  "historyMax": 6.381080271313472,
+                  "historyMedian": 6.381080271313472,
+                  "historyMin": 6.381080271313472,
                   "key": "enterpriseToEbitda",
                   "label": "EV/EBITDA",
                   "minimumDataMet": false,
@@ -952,10 +952,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 6.092964824120603,
-                  "historyMax": 6.092964824120603,
-                  "historyMedian": 6.092964824120603,
-                  "historyMin": 6.092964824120603,
+                  "current": 6.089139987445071,
+                  "historyMax": 6.089139987445071,
+                  "historyMedian": 6.089139987445071,
+                  "historyMin": 6.089139987445071,
                   "key": "dividendYield",
                   "label": "Dividend yield",
                   "minimumDataMet": false,
@@ -968,10 +968,10 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "current": 5.726005025125636,
-                  "historyMax": 5.726005025125636,
-                  "historyMedian": 5.726005025125636,
-                  "historyMin": 5.726005025125636,
+                  "current": 5.65963590709353,
+                  "historyMax": 5.65963590709353,
+                  "historyMedian": 5.65963590709353,
+                  "historyMin": 5.65963590709353,
                   "key": "targetUpsidePct",
                   "label": "Target upside",
                   "minimumDataMet": false,
@@ -991,11 +991,11 @@
               "trendCharts": [
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "trailingPE",
                   "label": "TTM P/E",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1007,11 +1007,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "forwardPE",
                   "label": "Forward P/E",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1023,11 +1023,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "priceToBook",
                   "label": "P/B",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1039,11 +1039,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "priceToSalesTrailing12Months",
                   "label": "P/S",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1055,11 +1055,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "enterpriseToRevenue",
                   "label": "EV/revenue",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1071,11 +1071,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "enterpriseToEbitda",
                   "label": "EV/EBITDA",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1087,11 +1087,11 @@
                 },
                 {
                   "confidence": "insufficient observations",
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "firstObservationAt": "2026-05-20T18:37:28+00:00",
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "firstObservationAt": "2026-05-21T08:46:45+00:00",
                   "key": "dividendYield",
                   "label": "Dividend yield",
-                  "lastObservationAt": "2026-05-20T18:37:28+00:00",
+                  "lastObservationAt": "2026-05-21T08:46:45+00:00",
                   "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
                   "minimumObservations": 5,
                   "observationCount": 1,
@@ -1104,14 +1104,14 @@
               ],
               "trendRows": [
                 {
-                  "dividendYield": 6.092964824120603,
-                  "enterpriseToEbitda": 6.531670244706764,
-                  "enterpriseToRevenue": 3.655570899328859,
-                  "fetchedAt": "2026-05-20T18:37:28+00:00",
-                  "forwardPE": 16.60517952264281,
-                  "priceToBook": 3.090662007377208,
-                  "priceToSalesTrailing12Months": 2.855379543624161,
-                  "trailingPE": 12.964169381107492
+                  "dividendYield": 6.089139987445071,
+                  "enterpriseToEbitda": 6.381080271313472,
+                  "enterpriseToRevenue": 3.5712904161073826,
+                  "fetchedAt": "2026-05-21T08:46:45+00:00",
+                  "forwardPE": 16.6156099117902,
+                  "priceToBook": 3.0926033779848576,
+                  "priceToSalesTrailing12Months": 2.8571732617449666,
+                  "trailingPE": 12.982885085574573
                 }
               ]
             },
@@ -1126,39 +1126,39 @@
             }
           },
           "industry": "Telecom Services",
-          "marketCap": 217831194624.0,
+          "marketCap": 217968033792.0,
           "multipleSourceMetadata": {
             "dividendYield": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "dividendYield",
               "inputs": {
                 "annualDividendRate": 9.7,
                 "currency": "NOK",
-                "price": 159.2
+                "price": 159.3
               },
               "label": "Dividend yield",
               "limitation": "Dividend yield uses yfinance annual dividend rate divided by the cached price when both inputs are available.",
               "method": "Computed as annual dividend rate divided by cached price, shown as percent.",
-              "providerDifferencePct": -2.8387628865979453,
+              "providerDifferencePct": 0.01412371134021928,
               "providerField": "dividendYield",
-              "providerValue": 5.92,
+              "providerValue": 6.09,
               "source": "Yahoo Finance via yfinance dividendRate and cached price",
               "status": "computed",
               "unit": "%",
-              "value": 6.092964824120603
+              "value": 6.089139987445071
             },
             "enterpriseToEbitda": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
               "ebitdaInEnterpriseValueCurrency": 42696000000.0,
-              "enterpriseValue": 278876192768.0,
+              "enterpriseValue": 272446603264.0,
               "enterpriseValueCurrency": "NOK",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "enterpriseToEbitda",
               "fxError": null,
-              "fxFetchedAt": "2026-05-20T18:37:29+00:00",
+              "fxFetchedAt": "2026-05-21T08:46:45+00:00",
               "fxPair": "NOK/NOK",
               "fxRate": 1.0,
               "fxSource": "same currency",
@@ -1166,10 +1166,10 @@
               "label": "EV/EBITDA",
               "limitation": "",
               "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
-              "providerDifferencePct": 60.83175675491586,
-              "providerEnterpriseToEbitda": 10.505,
+              "providerDifferencePct": 60.819164838490366,
+              "providerEnterpriseToEbitda": 10.262,
               "providerField": "enterpriseToEbitda",
-              "providerValue": 10.505,
+              "providerValue": 10.262,
               "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
               "status": "computed",
               "ttmEbitda": 42696000000.0,
@@ -1177,12 +1177,12 @@
               "ttmEbitdaPeriodEnd": "2026-03-31",
               "ttmEbitdaSourceRow": "EBITDA",
               "unit": "x",
-              "value": 6.531670244706764
+              "value": 6.381080271313472
             },
             "enterpriseToRevenue": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "enterpriseToRevenue",
               "inputs": {
                 "denominator": 76288000000.0,
@@ -1191,12 +1191,12 @@
                 "denominatorPeriodEnd": "2026-03-31",
                 "denominatorSourceRow": "Total Revenue",
                 "fxError": null,
-                "fxFetchedAt": "2026-05-20T18:37:29+00:00",
+                "fxFetchedAt": "2026-05-21T08:46:45+00:00",
                 "fxPair": "NOK/NOK",
                 "fxRate": 1.0,
                 "fxSource": "same currency",
                 "fxStatus": "same-currency",
-                "numerator": 278876192768.0,
+                "numerator": 272446603264.0,
                 "numeratorCurrency": "NOK",
                 "numeratorLabel": "enterprise value",
                 "rawTtmCurrency": "NOK",
@@ -1205,18 +1205,18 @@
               "label": "EV/revenue",
               "limitation": "EV/revenue is margin-sensitive and sector-specific.",
               "method": "Computed as enterprise value divided by yfinance TTM revenue converted to the quote currency.",
-              "providerDifferencePct": 0.011738266961813792,
+              "providerDifferencePct": -0.008131965579516454,
               "providerField": "enterpriseToRevenue",
-              "providerValue": 3.656,
+              "providerValue": 3.571,
               "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
               "status": "computed",
               "unit": "x",
-              "value": 3.655570899328859
+              "value": 3.5712904161073826
             },
             "evToEbit": {
               "classification": "intentionally not implemented",
               "confidence": "missing",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "evToEbit",
               "inputs": {},
               "label": "EV/EBIT",
@@ -1232,7 +1232,7 @@
             "forwardPE": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "forwardPE",
               "inputs": {
                 "denominator": 9.58737,
@@ -1240,25 +1240,25 @@
                 "denominatorLabel": "forward EPS estimate",
                 "denominatorPeriodEnd": null,
                 "denominatorSourceRow": null,
-                "numerator": 159.2,
+                "numerator": 159.3,
                 "numeratorCurrency": "NOK",
                 "numeratorLabel": "cached share price"
               },
               "label": "Forward P/E",
               "limitation": "Forward EPS is an estimate field with unverified methodology and contributor coverage.",
               "method": "Computed as cached share price divided by yfinance forward EPS estimate.",
-              "providerDifferencePct": -3.1474685968646554e-06,
+              "providerDifferencePct": 5.308851136476278e-07,
               "providerField": "forwardPE",
-              "providerValue": 16.605179,
+              "providerValue": 16.61561,
               "source": "Yahoo Finance via yfinance price and forward EPS estimate fields",
               "status": "computed",
               "unit": "x",
-              "value": 16.60517952264281
+              "value": 16.6156099117902
             },
             "pnAv": {
               "classification": "intentionally not implemented",
               "confidence": "missing",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "pnAv",
               "inputs": {},
               "label": "P/NAV",
@@ -1274,7 +1274,7 @@
             "priceToBook": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "priceToBook",
               "inputs": {
                 "denominator": 51.51,
@@ -1282,25 +1282,25 @@
                 "denominatorLabel": "book value per share",
                 "denominatorPeriodEnd": null,
                 "denominatorSourceRow": null,
-                "numerator": 159.2,
+                "numerator": 159.3,
                 "numeratorCurrency": "NOK",
                 "numeratorLabel": "cached share price"
               },
               "label": "P/B",
               "limitation": "Book value is not NAV, replacement value, fleet value, or reviewed accounting equity.",
               "method": "Computed as cached share price divided by yfinance book value per share.",
-              "providerDifferencePct": -2.3869346499338917e-07,
+              "providerDifferencePct": 7.11864389657535e-07,
               "providerField": "priceToBook",
-              "providerValue": 3.090662,
+              "providerValue": 3.0926034,
               "source": "Yahoo Finance via yfinance price and bookValue fields",
               "status": "computed",
               "unit": "x",
-              "value": 3.090662007377208
+              "value": 3.0926033779848576
             },
             "priceToSalesTrailing12Months": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "priceToSalesTrailing12Months",
               "inputs": {
                 "denominator": 76288000000.0,
@@ -1309,12 +1309,12 @@
                 "denominatorPeriodEnd": "2026-03-31",
                 "denominatorSourceRow": "Total Revenue",
                 "fxError": null,
-                "fxFetchedAt": "2026-05-20T18:37:29+00:00",
+                "fxFetchedAt": "2026-05-21T08:46:45+00:00",
                 "fxPair": "NOK/NOK",
                 "fxRate": 1.0,
                 "fxSource": "same currency",
                 "fxStatus": "same-currency",
-                "numerator": 217831194624.0,
+                "numerator": 217968033792.0,
                 "numeratorCurrency": "NOK",
                 "numeratorLabel": "market cap",
                 "rawTtmCurrency": "NOK",
@@ -1323,22 +1323,22 @@
               "label": "P/S",
               "limitation": "Revenue multiples need margin, growth, sector, and accounting context.",
               "method": "Computed as market cap divided by yfinance TTM revenue converted to the quote currency.",
-              "providerDifferencePct": 1.974372865198859e-06,
+              "providerDifferencePct": -2.161050827176325e-06,
               "providerField": "priceToSalesTrailing12Months",
-              "providerValue": 2.8553796,
+              "providerValue": 2.8571732,
               "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
               "status": "computed",
               "unit": "x",
-              "value": 2.855379543624161
+              "value": 2.8571732617449666
             },
             "targetUpsidePct": {
               "classification": "provider-derived",
               "confidence": "low to screening-grade provider row",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "targetUpsidePct",
               "inputs": {
                 "currency": "NOK",
-                "price": 159.2,
+                "price": 159.3,
                 "targetHighPrice": 210.0,
                 "targetLowPrice": 138.0,
                 "targetMeanPrice": 168.3158
@@ -1351,33 +1351,33 @@
               "source": "Yahoo Finance via yfinance",
               "status": "provider-row",
               "unit": "%",
-              "value": 5.726005025125636
+              "value": 5.65963590709353
             },
             "trailingPE": {
               "classification": "source-gated computed",
               "confidence": "screening-grade computed",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
               "field": "trailingPE",
               "inputs": {
-                "denominator": 12.28,
+                "denominator": 12.27,
                 "denominatorCurrency": "NOK",
                 "denominatorLabel": "TTM EPS",
                 "denominatorPeriodEnd": null,
                 "denominatorSourceRow": null,
-                "numerator": 159.2,
+                "numerator": 159.3,
                 "numeratorCurrency": "NOK",
                 "numeratorLabel": "cached share price"
               },
               "label": "TTM P/E",
               "limitation": "Trailing EPS can differ from company adjusted EPS and may include one-offs.",
               "method": "Computed as cached share price divided by yfinance trailing EPS.",
-              "providerDifferencePct": 9.170854298190534e-07,
+              "providerDifferencePct": -8.361581926852324e-06,
               "providerField": "trailingPE",
-              "providerValue": 12.9641695,
+              "providerValue": 12.982884,
               "source": "Yahoo Finance via yfinance price and EPS fields",
               "status": "computed",
               "unit": "x",
-              "value": 12.964169381107492
+              "value": 12.982885085574573
             }
           },
           "name": "TELENOR",
@@ -1395,210 +1395,210 @@
           "peerRole": "focus company",
           "peerSource": "manual",
           "pnAv": null,
-          "price": 159.2,
+          "price": 159.3,
           "priceHistory": {
             "chart": {
               "confidence": "screening-grade",
               "currency": "NOK",
-              "fetchedAt": "2026-05-20T18:37:28+00:00",
-              "firstObservationAt": "2025-05-20",
+              "fetchedAt": "2026-05-21T08:46:45+00:00",
+              "firstObservationAt": "2025-05-21",
               "label": "1y close trend",
-              "lastObservationAt": "2026-05-20",
+              "lastObservationAt": "2026-05-21",
               "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
               "minimumObservations": 120,
               "observationCount": 250,
               "points": [
                 {
-                  "date": "2025-05-20",
-                  "value": 158.3000030517578
+                  "date": "2025-05-21",
+                  "value": 158.5
                 },
                 {
-                  "date": "2025-05-27",
-                  "value": 155.89999389648438
+                  "date": "2025-05-28",
+                  "value": 155.0
                 },
                 {
-                  "date": "2025-06-05",
-                  "value": 155.6999969482422
+                  "date": "2025-06-06",
+                  "value": 155.0
                 },
                 {
-                  "date": "2025-06-13",
-                  "value": 152.5
+                  "date": "2025-06-16",
+                  "value": 152.10000610351562
                 },
                 {
-                  "date": "2025-06-20",
-                  "value": 153.6999969482422
+                  "date": "2025-06-23",
+                  "value": 154.60000610351562
                 },
                 {
-                  "date": "2025-06-27",
-                  "value": 155.3000030517578
+                  "date": "2025-06-30",
+                  "value": 156.6999969482422
                 },
                 {
-                  "date": "2025-07-07",
-                  "value": 156.5
+                  "date": "2025-07-08",
+                  "value": 156.10000610351562
                 },
                 {
-                  "date": "2025-07-14",
-                  "value": 157.39999389648438
+                  "date": "2025-07-15",
+                  "value": 157.8000030517578
                 },
                 {
-                  "date": "2025-07-21",
-                  "value": 160.0
+                  "date": "2025-07-22",
+                  "value": 161.1999969482422
                 },
                 {
-                  "date": "2025-07-29",
-                  "value": 159.10000610351562
+                  "date": "2025-07-30",
+                  "value": 158.39999389648438
                 },
                 {
-                  "date": "2025-08-05",
-                  "value": 162.1999969482422
+                  "date": "2025-08-06",
+                  "value": 162.3000030517578
                 },
                 {
-                  "date": "2025-08-12",
-                  "value": 161.3000030517578
-                },
-                {
-                  "date": "2025-08-20",
-                  "value": 166.89999389648438
-                },
-                {
-                  "date": "2025-08-27",
-                  "value": 166.6999969482422
-                },
-                {
-                  "date": "2025-09-03",
-                  "value": 166.0
-                },
-                {
-                  "date": "2025-09-10",
-                  "value": 168.60000610351562
-                },
-                {
-                  "date": "2025-09-18",
-                  "value": 165.39999389648438
-                },
-                {
-                  "date": "2025-09-25",
+                  "date": "2025-08-13",
                   "value": 163.39999389648438
                 },
                 {
-                  "date": "2025-10-02",
-                  "value": 164.60000610351562
+                  "date": "2025-08-21",
+                  "value": 166.10000610351562
                 },
                 {
-                  "date": "2025-10-10",
-                  "value": 166.3000030517578
+                  "date": "2025-08-28",
+                  "value": 166.6999969482422
                 },
                 {
-                  "date": "2025-10-17",
-                  "value": 165.6999969482422
+                  "date": "2025-09-04",
+                  "value": 170.3000030517578
                 },
                 {
-                  "date": "2025-10-24",
-                  "value": 164.0
+                  "date": "2025-09-11",
+                  "value": 170.3000030517578
                 },
                 {
-                  "date": "2025-11-03",
-                  "value": 150.10000610351562
+                  "date": "2025-09-19",
+                  "value": 166.0
                 },
                 {
-                  "date": "2025-11-10",
-                  "value": 149.39999389648438
+                  "date": "2025-09-26",
+                  "value": 165.3000030517578
                 },
                 {
-                  "date": "2025-11-17",
-                  "value": 144.1999969482422
+                  "date": "2025-10-03",
+                  "value": 164.89999389648438
                 },
                 {
-                  "date": "2025-11-24",
-                  "value": 145.8000030517578
+                  "date": "2025-10-13",
+                  "value": 164.8000030517578
                 },
                 {
-                  "date": "2025-12-02",
-                  "value": 145.10000610351562
+                  "date": "2025-10-20",
+                  "value": 165.8000030517578
                 },
                 {
-                  "date": "2025-12-09",
-                  "value": 144.10000610351562
+                  "date": "2025-10-27",
+                  "value": 163.5
                 },
                 {
-                  "date": "2025-12-16",
-                  "value": 145.10000610351562
+                  "date": "2025-11-04",
+                  "value": 148.60000610351562
                 },
                 {
-                  "date": "2025-12-29",
-                  "value": 146.1999969482422
+                  "date": "2025-11-11",
+                  "value": 146.10000610351562
                 },
                 {
-                  "date": "2026-01-07",
-                  "value": 144.3000030517578
+                  "date": "2025-11-18",
+                  "value": 143.0
                 },
                 {
-                  "date": "2026-01-14",
-                  "value": 144.39999389648438
+                  "date": "2025-11-25",
+                  "value": 146.6999969482422
                 },
                 {
-                  "date": "2026-01-22",
-                  "value": 156.60000610351562
+                  "date": "2025-12-03",
+                  "value": 143.89999389648438
                 },
                 {
-                  "date": "2026-01-29",
-                  "value": 161.39999389648438
+                  "date": "2025-12-10",
+                  "value": 143.1999969482422
                 },
                 {
-                  "date": "2026-02-05",
-                  "value": 161.89999389648438
+                  "date": "2025-12-17",
+                  "value": 145.39999389648438
                 },
                 {
-                  "date": "2026-02-12",
-                  "value": 177.10000610351562
+                  "date": "2025-12-30",
+                  "value": 146.6999969482422
                 },
                 {
-                  "date": "2026-02-20",
-                  "value": 174.1999969482422
+                  "date": "2026-01-08",
+                  "value": 146.0
                 },
                 {
-                  "date": "2026-02-27",
-                  "value": 176.3000030517578
+                  "date": "2026-01-15",
+                  "value": 143.1999969482422
                 },
                 {
-                  "date": "2026-03-06",
-                  "value": 170.0
+                  "date": "2026-01-23",
+                  "value": 154.89999389648438
                 },
                 {
-                  "date": "2026-03-16",
-                  "value": 172.89999389648438
+                  "date": "2026-01-30",
+                  "value": 162.0
                 },
                 {
-                  "date": "2026-03-23",
-                  "value": 167.3000030517578
+                  "date": "2026-02-06",
+                  "value": 173.5
                 },
                 {
-                  "date": "2026-03-30",
-                  "value": 168.10000610351562
+                  "date": "2026-02-13",
+                  "value": 177.0
                 },
                 {
-                  "date": "2026-04-10",
-                  "value": 169.1999969482422
+                  "date": "2026-02-23",
+                  "value": 173.60000610351562
                 },
                 {
-                  "date": "2026-04-17",
-                  "value": 160.3000030517578
+                  "date": "2026-03-02",
+                  "value": 174.8000030517578
                 },
                 {
-                  "date": "2026-04-24",
-                  "value": 164.3000030517578
+                  "date": "2026-03-09",
+                  "value": 169.0
                 },
                 {
-                  "date": "2026-05-04",
-                  "value": 153.5
+                  "date": "2026-03-17",
+                  "value": 172.1999969482422
                 },
                 {
-                  "date": "2026-05-12",
-                  "value": 156.8000030517578
+                  "date": "2026-03-24",
+                  "value": 166.39999389648438
                 },
                 {
-                  "date": "2026-05-20",
-                  "value": 159.1999969482422
+                  "date": "2026-03-31",
+                  "value": 170.3000030517578
+                },
+                {
+                  "date": "2026-04-13",
+                  "value": 165.3000030517578
+                },
+                {
+                  "date": "2026-04-20",
+                  "value": 162.8000030517578
+                },
+                {
+                  "date": "2026-04-27",
+                  "value": 162.1999969482422
+                },
+                {
+                  "date": "2026-05-05",
+                  "value": 152.8000030517578
+                },
+                {
+                  "date": "2026-05-13",
+                  "value": 157.5
+                },
+                {
+                  "date": "2026-05-21",
+                  "value": 159.3000030517578
                 }
               ],
               "source": "Yahoo Finance via yfinance",
@@ -1607,18 +1607,18 @@
             },
             "confidence": "screening-grade",
             "currency": "NOK",
-            "current": 159.2,
-            "fetchedAt": "2026-05-20T18:37:28+00:00",
-            "firstObservationAt": "2025-05-20",
+            "current": 159.3,
+            "fetchedAt": "2026-05-21T08:46:45+00:00",
+            "firstObservationAt": "2025-05-21",
             "high": 177.10000610351562,
-            "lastObservationAt": "2026-05-20",
+            "lastObservationAt": "2026-05-21",
             "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
             "low": 141.5,
             "median": 160.3000030517578,
             "observationCount": 250,
-            "pctFromHigh": -10.10728711836013,
-            "pctFromLow": 12.508833922261475,
-            "percentileInWindow": 47.199999999999996,
+            "pctFromHigh": -10.050821846449542,
+            "pctFromLow": 12.579505300353366,
+            "percentileInWindow": 46.800000000000004,
             "quarterWindows": [
               {
                 "close": 165.39999389648438,
@@ -1651,30 +1651,30 @@
                 "observationCount": 63
               },
               {
-                "close": 159.1999969482422,
+                "close": 159.3000030517578,
                 "firstObservationAt": "2026-04-01",
                 "high": 170.3000030517578,
                 "label": "2026 Q2",
-                "lastObservationAt": "2026-05-20",
+                "lastObservationAt": "2026-05-21",
                 "low": 150.3000030517578,
-                "median": 161.8000030517578,
-                "observationCount": 31
+                "median": 161.25,
+                "observationCount": 32
               }
             ],
-            "rangePositionPct": 49.71909259940282,
+            "rangePositionPct": 49.99999142764809,
             "source": "Yahoo Finance via yfinance",
             "status": "available",
             "window": "1y daily close"
           },
-          "priceToBook": 3.090662007377208,
-          "priceToSalesTrailing12Months": 2.855379543624161,
-          "providerDividendYield": 5.92,
-          "providerEnterpriseToEbitda": 10.505,
-          "providerEnterpriseToRevenue": 3.656,
-          "providerForwardPE": 16.605179,
-          "providerPriceToBook": 3.090662,
-          "providerPriceToSalesTrailing12Months": 2.8553796,
-          "providerTrailingPE": 12.9641695,
+          "priceToBook": 3.0926033779848576,
+          "priceToSalesTrailing12Months": 2.8571732617449666,
+          "providerDividendYield": 6.09,
+          "providerEnterpriseToEbitda": 10.262,
+          "providerEnterpriseToRevenue": 3.571,
+          "providerForwardPE": 16.61561,
+          "providerPriceToBook": 3.0926034,
+          "providerPriceToSalesTrailing12Months": 2.8571732,
+          "providerTrailingPE": 12.982884,
           "quarterlyStatements": {
             "confidence": "screening-grade",
             "coverageByField": {
@@ -1697,7 +1697,7 @@
             "currency": "NOK",
             "currencySource": "yfinance financialCurrency",
             "errors": [],
-            "fetchedAt": "2026-05-20T18:37:28+00:00",
+            "fetchedAt": "2026-05-21T08:46:45+00:00",
             "fields": [
               {
                 "key": "totalRevenue",
@@ -2112,9 +2112,9 @@
           "targetPriceSource": "Yahoo Finance via yfinance",
           "targetSourceCount": 1,
           "targetStatus": "single-provider-row",
-          "targetUpsidePct": 5.726005025125636,
+          "targetUpsidePct": 5.65963590709353,
           "tradingViewSearchUrl": "https://www.tradingview.com/search/?query=TEL",
-          "trailingPE": 12.964169381107492,
+          "trailingPE": 12.982885085574573,
           "ttmEbitda": 42696000000.0,
           "ttmEbitdaCurrency": "NOK",
           "ttmEbitdaPeriodEnd": "2026-03-31"
@@ -2161,7 +2161,7 @@
             "ebitdaInEnterpriseValueCurrency": null,
             "enterpriseValue": null,
             "enterpriseValueCurrency": "NOK",
-            "fetchedAt": "2026-05-20T18:39:03+00:00",
+            "fetchedAt": "2026-05-21T08:47:50+00:00",
             "field": "enterpriseToEbitda",
             "fxError": "Quote currency or financial currency is missing.",
             "fxFetchedAt": null,
@@ -2192,7 +2192,7 @@
           "epsForward": null,
           "epsTrailingTwelveMonths": null,
           "evToEbit": null,
-          "fetchedAt": "2026-05-20T18:39:03+00:00",
+          "fetchedAt": "2026-05-21T08:47:50+00:00",
           "financialCurrency": null,
           "forwardPE": null,
           "historicalContext": {
@@ -2200,7 +2200,7 @@
             "priceWindow": {
               "confidence": "missing",
               "currency": "NOK",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
               "observationCount": 0,
               "source": "Yahoo Finance via yfinance",
@@ -2236,7 +2236,7 @@
               "currency": "",
               "currencySource": "not supplied by yfinance",
               "errors": [],
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "fields": [
                 {
                   "key": "totalRevenue",
@@ -2418,9 +2418,9 @@
               "snapshotMinimumObservations": 5
             },
             "snapshotHistory": {
-              "firstSnapshotAt": "2026-05-20T18:39:03+00:00",
+              "firstSnapshotAt": "2026-05-21T08:47:50+00:00",
               "largestGaps": [],
-              "lastSnapshotAt": "2026-05-20T18:39:03+00:00",
+              "lastSnapshotAt": "2026-05-21T08:47:50+00:00",
               "metrics": [
                 {
                   "confidence": "insufficient observations",
@@ -2675,7 +2675,7 @@
                   "dividendYield": null,
                   "enterpriseToEbitda": null,
                   "enterpriseToRevenue": null,
-                  "fetchedAt": "2026-05-20T18:39:03+00:00",
+                  "fetchedAt": "2026-05-21T08:47:50+00:00",
                   "forwardPE": null,
                   "priceToBook": null,
                   "priceToSalesTrailing12Months": null,
@@ -2699,7 +2699,7 @@
             "dividendYield": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "dividendYield",
               "inputs": {
                 "annualDividendRate": null,
@@ -2723,7 +2723,7 @@
               "ebitdaInEnterpriseValueCurrency": null,
               "enterpriseValue": null,
               "enterpriseValueCurrency": "NOK",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "enterpriseToEbitda",
               "fxError": "Quote currency or financial currency is missing.",
               "fxFetchedAt": null,
@@ -2750,7 +2750,7 @@
             "enterpriseToRevenue": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "enterpriseToRevenue",
               "inputs": {
                 "denominator": null,
@@ -2784,7 +2784,7 @@
             "evToEbit": {
               "classification": "intentionally not implemented",
               "confidence": "missing",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "evToEbit",
               "inputs": {},
               "label": "EV/EBIT",
@@ -2800,7 +2800,7 @@
             "forwardPE": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "forwardPE",
               "inputs": {
                 "denominator": null,
@@ -2826,7 +2826,7 @@
             "pnAv": {
               "classification": "intentionally not implemented",
               "confidence": "missing",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "pnAv",
               "inputs": {},
               "label": "P/NAV",
@@ -2842,7 +2842,7 @@
             "priceToBook": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "priceToBook",
               "inputs": {
                 "denominator": null,
@@ -2868,7 +2868,7 @@
             "priceToSalesTrailing12Months": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "priceToSalesTrailing12Months",
               "inputs": {
                 "denominator": null,
@@ -2902,7 +2902,7 @@
             "targetUpsidePct": {
               "classification": "provider-derived",
               "confidence": "low to screening-grade provider row",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "targetUpsidePct",
               "inputs": {
                 "currency": "NOK",
@@ -2924,7 +2924,7 @@
             "trailingPE": {
               "classification": "unavailable",
               "confidence": "gated",
-              "fetchedAt": "2026-05-20T18:39:03+00:00",
+              "fetchedAt": "2026-05-21T08:47:50+00:00",
               "field": "trailingPE",
               "inputs": {
                 "denominator": null,
@@ -2967,7 +2967,7 @@
           "priceHistory": {
             "confidence": "missing",
             "currency": "NOK",
-            "fetchedAt": "2026-05-20T18:39:03+00:00",
+            "fetchedAt": "2026-05-21T08:47:50+00:00",
             "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
             "observationCount": 0,
             "source": "Yahoo Finance via yfinance",
@@ -3005,7 +3005,7 @@
             "currency": "",
             "currencySource": "not supplied by yfinance",
             "errors": [],
-            "fetchedAt": "2026-05-20T18:39:03+00:00",
+            "fetchedAt": "2026-05-21T08:47:50+00:00",
             "fields": [
               {
                 "key": "totalRevenue",
@@ -3207,7 +3207,7 @@
       ],
       "metricSummaries": [
         {
-          "focusValue": 12.964169381107492,
+          "focusValue": 12.982885085574573,
           "key": "trailingPE",
           "label": "TTM P/E",
           "minimumDataMet": false,
@@ -3222,7 +3222,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 16.60517952264281,
+          "focusValue": 16.6156099117902,
           "key": "forwardPE",
           "label": "Forward P/E",
           "minimumDataMet": false,
@@ -3237,7 +3237,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 3.090662007377208,
+          "focusValue": 3.0926033779848576,
           "key": "priceToBook",
           "label": "P/B",
           "minimumDataMet": false,
@@ -3252,7 +3252,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 2.855379543624161,
+          "focusValue": 2.8571732617449666,
           "key": "priceToSalesTrailing12Months",
           "label": "P/S",
           "minimumDataMet": false,
@@ -3267,7 +3267,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 3.655570899328859,
+          "focusValue": 3.5712904161073826,
           "key": "enterpriseToRevenue",
           "label": "EV/revenue",
           "minimumDataMet": false,
@@ -3282,7 +3282,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 6.531670244706764,
+          "focusValue": 6.381080271313472,
           "key": "enterpriseToEbitda",
           "label": "EV/EBITDA",
           "minimumDataMet": false,
@@ -3297,7 +3297,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 6.092964824120603,
+          "focusValue": 6.089139987445071,
           "key": "dividendYield",
           "label": "Dividend yield",
           "minimumDataMet": false,
@@ -3312,7 +3312,7 @@
           "vsPeerMedianPct": null
         },
         {
-          "focusValue": 5.726005025125636,
+          "focusValue": 5.65963590709353,
           "key": "targetUpsidePct",
           "label": "Target upside",
           "minimumDataMet": false,
@@ -3386,7 +3386,7 @@
       "name": "Telecom Services - TEL.OL draft peers",
       "source": "manual",
       "status": "draft",
-      "updated_at": "2026-05-20T18:37:02+00:00"
+      "updated_at": "2026-05-21T08:46:26+00:00"
     }
   ],
   "minimumData": {
@@ -3446,14 +3446,14 @@
     "valuationScoreEnabled": false
   },
   "ownHistory": {
-    "firstSnapshotAt": "2026-05-20T18:37:28+00:00",
-    "lastSnapshotAt": "2026-05-20T18:37:28+00:00",
+    "firstSnapshotAt": "2026-05-21T08:46:45+00:00",
+    "lastSnapshotAt": "2026-05-21T08:46:45+00:00",
     "metrics": [
       {
-        "current": 12.964169381107492,
-        "historyMax": 12.964169381107492,
-        "historyMedian": 12.964169381107492,
-        "historyMin": 12.964169381107492,
+        "current": 12.982885085574573,
+        "historyMax": 12.982885085574573,
+        "historyMedian": 12.982885085574573,
+        "historyMin": 12.982885085574573,
         "key": "trailingPE",
         "label": "TTM P/E",
         "minimumDataMet": false,
@@ -3463,10 +3463,10 @@
         "unit": "x"
       },
       {
-        "current": 16.60517952264281,
-        "historyMax": 16.60517952264281,
-        "historyMedian": 16.60517952264281,
-        "historyMin": 16.60517952264281,
+        "current": 16.6156099117902,
+        "historyMax": 16.6156099117902,
+        "historyMedian": 16.6156099117902,
+        "historyMin": 16.6156099117902,
         "key": "forwardPE",
         "label": "Forward P/E",
         "minimumDataMet": false,
@@ -3476,10 +3476,10 @@
         "unit": "x"
       },
       {
-        "current": 3.090662007377208,
-        "historyMax": 3.090662007377208,
-        "historyMedian": 3.090662007377208,
-        "historyMin": 3.090662007377208,
+        "current": 3.0926033779848576,
+        "historyMax": 3.0926033779848576,
+        "historyMedian": 3.0926033779848576,
+        "historyMin": 3.0926033779848576,
         "key": "priceToBook",
         "label": "P/B",
         "minimumDataMet": false,
@@ -3489,10 +3489,10 @@
         "unit": "x"
       },
       {
-        "current": 2.855379543624161,
-        "historyMax": 2.855379543624161,
-        "historyMedian": 2.855379543624161,
-        "historyMin": 2.855379543624161,
+        "current": 2.8571732617449666,
+        "historyMax": 2.8571732617449666,
+        "historyMedian": 2.8571732617449666,
+        "historyMin": 2.8571732617449666,
         "key": "priceToSalesTrailing12Months",
         "label": "P/S",
         "minimumDataMet": false,
@@ -3502,10 +3502,10 @@
         "unit": "x"
       },
       {
-        "current": 3.655570899328859,
-        "historyMax": 3.655570899328859,
-        "historyMedian": 3.655570899328859,
-        "historyMin": 3.655570899328859,
+        "current": 3.5712904161073826,
+        "historyMax": 3.5712904161073826,
+        "historyMedian": 3.5712904161073826,
+        "historyMin": 3.5712904161073826,
         "key": "enterpriseToRevenue",
         "label": "EV/revenue",
         "minimumDataMet": false,
@@ -3515,10 +3515,10 @@
         "unit": "x"
       },
       {
-        "current": 6.531670244706764,
-        "historyMax": 6.531670244706764,
-        "historyMedian": 6.531670244706764,
-        "historyMin": 6.531670244706764,
+        "current": 6.381080271313472,
+        "historyMax": 6.381080271313472,
+        "historyMedian": 6.381080271313472,
+        "historyMin": 6.381080271313472,
         "key": "enterpriseToEbitda",
         "label": "EV/EBITDA",
         "minimumDataMet": false,
@@ -3528,10 +3528,10 @@
         "unit": "x"
       },
       {
-        "current": 6.092964824120603,
-        "historyMax": 6.092964824120603,
-        "historyMedian": 6.092964824120603,
-        "historyMin": 6.092964824120603,
+        "current": 6.089139987445071,
+        "historyMax": 6.089139987445071,
+        "historyMedian": 6.089139987445071,
+        "historyMin": 6.089139987445071,
         "key": "dividendYield",
         "label": "Dividend yield",
         "minimumDataMet": false,
@@ -3541,10 +3541,10 @@
         "unit": "%"
       },
       {
-        "current": 5.726005025125636,
-        "historyMax": 5.726005025125636,
-        "historyMedian": 5.726005025125636,
-        "historyMin": 5.726005025125636,
+        "current": 5.65963590709353,
+        "historyMax": 5.65963590709353,
+        "historyMedian": 5.65963590709353,
+        "historyMin": 5.65963590709353,
         "key": "targetUpsidePct",
         "label": "Target upside",
         "minimumDataMet": false,
@@ -3562,11 +3562,11 @@
     "trendCharts": [
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "trailingPE",
         "label": "TTM P/E",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3578,11 +3578,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "forwardPE",
         "label": "Forward P/E",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3594,11 +3594,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "priceToBook",
         "label": "P/B",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3610,11 +3610,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "priceToSalesTrailing12Months",
         "label": "P/S",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3626,11 +3626,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "enterpriseToRevenue",
         "label": "EV/revenue",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3642,11 +3642,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "enterpriseToEbitda",
         "label": "EV/EBITDA",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3658,11 +3658,11 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "firstObservationAt": "2026-05-20T18:37:28+00:00",
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "firstObservationAt": "2026-05-21T08:46:45+00:00",
         "key": "dividendYield",
         "label": "Dividend yield",
-        "lastObservationAt": "2026-05-20T18:37:28+00:00",
+        "lastObservationAt": "2026-05-21T08:46:45+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "observationCount": 1,
@@ -3675,14 +3675,14 @@
     ],
     "trendRows": [
       {
-        "dividendYield": 6.092964824120603,
-        "enterpriseToEbitda": 6.531670244706764,
-        "enterpriseToRevenue": 3.655570899328859,
-        "fetchedAt": "2026-05-20T18:37:28+00:00",
-        "forwardPE": 16.60517952264281,
-        "priceToBook": 3.090662007377208,
-        "priceToSalesTrailing12Months": 2.855379543624161,
-        "trailingPE": 12.964169381107492
+        "dividendYield": 6.089139987445071,
+        "enterpriseToEbitda": 6.381080271313472,
+        "enterpriseToRevenue": 3.5712904161073826,
+        "fetchedAt": "2026-05-21T08:46:45+00:00",
+        "forwardPE": 16.6156099117902,
+        "priceToBook": 3.0926033779848576,
+        "priceToSalesTrailing12Months": 2.8571732617449666,
+        "trailingPE": 12.982885085574573
       }
     ]
   },
