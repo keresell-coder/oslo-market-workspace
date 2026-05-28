@@ -39,10 +39,11 @@
       "TEL.OL",
       "VEND.OL"
     ],
-    "missingCount": 1,
+    "missingCount": 2,
     "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
     "missingSymbols": [
-      "KMAR.OL"
+      "KMAR.OL",
+      "NORBT.OL"
     ],
     "sourceRowCount": 114,
     "status": "partial",
@@ -57,13 +58,14 @@
       "LINK.OL",
       "MOWI.OL",
       "NOD.OL",
+      "NORBT.OL",
       "ODL.OL",
       "PUBLI.OL",
       "TEL.OL",
       "VEND.OL"
     ]
   },
-  "fetchedAt": "2026-05-27T18:37:32+00:00",
+  "fetchedAt": "2026-05-28T08:59:57+00:00",
   "rows": [
     {
       "adx14": 22.49,
@@ -499,6 +501,32 @@
       "stopLossPct": null,
       "symbol": "KMAR.OL",
       "ticker": "KMAR",
+      "watchlistMember": true
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Watchlist symbol was not present in the current oslo-screener latest.csv/report output. Missing rows stay missing; this is not a technical signal.",
+      "coverageStatus": "missing-from-latest-csv",
+      "dashboardSignal": null,
+      "date": null,
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": null,
+      "risk": "not in current report output",
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "MISSING",
+      "signalTone": "missing",
+      "sma50": null,
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "NORBT.OL",
+      "ticker": "NORBT",
       "watchlistMember": true
     }
   ],
