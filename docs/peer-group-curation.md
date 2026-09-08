@@ -4,6 +4,32 @@ Research date: 2026-04-27
 
 Purpose: define reviewed peer groups for descriptive benchmark context. These groups are not investment recommendations and do not imply that any stock is cheap, expensive, or fairly valued.
 
+## Static Editing Workflow
+
+Peer groups are now curated through `data/peer_groups.yml` and published through
+generated static benchmark JSON.
+
+Use this low-risk path:
+
+1. Edit `data/peer_groups.yml` on a `codex/` branch.
+2. Run `python3 scripts/validate_static_inputs.py`.
+3. Regenerate static data with `python3 scripts/build_static_site_data.py`.
+4. Validate generated JSON and frontend syntax.
+5. Open a PR, merge it, run or observe the static-data workflow, then verify
+   the public Pages benchmark row for the affected company.
+
+Schema rules enforced by the static input validator:
+
+- group status must be `draft`, `reviewed`, or `trusted`
+- each group must have exactly one `focus company`
+- allowed roles are `focus company`, `Oslo peer`, `Nordic peer`,
+  `European peer`, `international peer`, and `sector index/proxy`
+- duplicate peer symbols inside a group fail validation
+
+Screener or yfinance sector/industry output can propose candidates, but those
+rows stay `draft` until the peer fit is reviewed company-by-company. Removing
+unsuitable candidates is acceptable as a first simple curation step.
+
 ## Curation Rules
 
 - Prefer Oslo-listed peers where business fit is reasonable.

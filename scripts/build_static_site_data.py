@@ -26,6 +26,15 @@ REPO_URL = "https://github.com/keresell-coder/oslo-market-workspace"
 WATCHLIST_SOURCE_URL = f"{REPO_URL}/edit/main/data/watchlist.yml"
 WORKFLOW_URL = f"{REPO_URL}/actions/workflows/static-data.yml"
 PULL_REQUESTS_URL = f"{REPO_URL}/pulls"
+PEER_GROUP_STATUSES = {"draft", "reviewed", "trusted"}
+PEER_GROUP_ROLES = {
+    "focus company",
+    "Oslo peer",
+    "Nordic peer",
+    "European peer",
+    "international peer",
+    "sector index/proxy",
+}
 
 
 class SchemaError(ValueError):
@@ -66,6 +75,12 @@ def validate_str(label: str, value: Any, *, required: bool = True) -> str:
     if required and not value.strip():
         raise SchemaError(f"{label} cannot be blank")
     return value.strip()
+
+
+def validate_choice(label: str, value: str, allowed: set[str]) -> str:
+    if value not in allowed:
+        raise SchemaError(f"{label} must be one of: {', '.join(sorted(allowed))}")
+    return value
 
 
 def validate_number(label: str, value: Any) -> float | None:
@@ -174,7 +189,15 @@ def validate_manual_consensus(data: dict[str, Any]) -> list[dict[str, Any]]:
 def validate_peer_groups(data: dict[str, Any]) -> list[dict[str, Any]]:
     validate_keys("peer_groups.yml", data, set(), {"groups", "notes"})
     groups = validate_row_list(data, "groups", "peer_groups.yml")
-    group_allowed = {"group_key", "name", "description", "status", "curator_note", "source", "items"}
+    group_allowed = {
+        "group_key",
+        "name",
+        "description",
+        "status",
+        "curator_note",
+        "source",
+        "items",
+    }
     item_allowed = {"symbol", "role", "market", "note"}
     seen_groups: set[str] = set()
     normalized = []
@@ -184,11 +207,14 @@ def validate_peer_groups(data: dict[str, Any]) -> list[dict[str, Any]]:
         if group_key in seen_groups:
             raise SchemaError(f"peer_groups.yml duplicates group {group_key}")
         seen_groups.add(group_key)
+        status = validate_str(f"peer_groups.yml:groups[{group_index}].status", group.get("status", "draft"), required=False) or "draft"
+        validate_choice(f"peer_groups.yml:groups[{group_index}].status", status, PEER_GROUP_STATUSES)
         items = group.get("items", [])
         if not isinstance(items, list):
             raise SchemaError(f"peer_groups.yml:groups[{group_index}].items must be a list")
         normalized_items = []
         seen_items: set[str] = set()
+        focus_count = 0
         for item_index, item in enumerate(items, start=1):
             if not isinstance(item, dict):
                 raise SchemaError(f"peer_groups.yml:groups[{group_index}].items[{item_index}] must be a mapping")
@@ -202,22 +228,28 @@ def validate_peer_groups(data: dict[str, Any]) -> list[dict[str, Any]]:
             if symbol in seen_items:
                 raise SchemaError(f"peer_groups.yml group {group_key} duplicates item {symbol}")
             seen_items.add(symbol)
+            role = validate_str(f"peer_groups.yml:groups[{group_index}].items[{item_index}].role", item["role"])
+            validate_choice(f"peer_groups.yml:groups[{group_index}].items[{item_index}].role", role, PEER_GROUP_ROLES)
+            if role == "focus company":
+                focus_count += 1
             normalized_items.append(
                 {
                     "symbol": symbol,
-                    "role": validate_str(f"peer_groups.yml:groups[{group_index}].items[{item_index}].role", item["role"]),
+                    "role": role,
                     "market": validate_str(f"peer_groups.yml:groups[{group_index}].items[{item_index}].market", item.get("market", ""), required=False),
                     "note": validate_str(f"peer_groups.yml:groups[{group_index}].items[{item_index}].note", item.get("note", ""), required=False),
                 }
             )
         if not normalized_items:
             raise SchemaError(f"peer_groups.yml group {group_key} must have at least one item")
+        if focus_count != 1:
+            raise SchemaError(f"peer_groups.yml group {group_key} must contain exactly one focus company")
         normalized.append(
             {
                 "group_key": group_key,
                 "name": validate_str(f"peer_groups.yml:groups[{group_index}].name", group["name"]),
                 "description": validate_str(f"peer_groups.yml:groups[{group_index}].description", group.get("description", ""), required=False),
-                "status": validate_str(f"peer_groups.yml:groups[{group_index}].status", group.get("status", "draft"), required=False) or "draft",
+                "status": status,
                 "curator_note": validate_str(f"peer_groups.yml:groups[{group_index}].curator_note", group.get("curator_note", ""), required=False),
                 "source": validate_str(f"peer_groups.yml:groups[{group_index}].source", group.get("source", "manual"), required=False) or "manual",
                 "items": normalized_items,
