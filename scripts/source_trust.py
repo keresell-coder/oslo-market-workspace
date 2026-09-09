@@ -228,7 +228,10 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
 def promote(candidate_dir, published_dir, health):
     candidate_dir, published_dir = Path(candidate_dir), Path(published_dir)
     health_path = published_dir.parent / "health.json"
-    previous = read_json(health_path) if health_path.exists() else {}
+    try:
+        previous = read_json(health_path)
+    except (OSError, ValueError):
+        previous = {}
     if health.get("status") not in {"current", "degraded"}:
         health["status"] = "blocked"
         health.update(published_content_retained=True,
@@ -240,19 +243,24 @@ def promote(candidate_dir, published_dir, health):
     replacement = published_dir.with_name(published_dir.name + ".candidate")
     backup = published_dir.with_name(published_dir.name + ".previous")
     shutil.copytree(candidate_dir, replacement)
+    had_previous = published_dir.exists()
     try:
-        if published_dir.exists():
+        if had_previous:
             os.replace(published_dir, backup)
         os.replace(replacement, published_dir)
+        health.update(published_content_retained=False, last_good_snapshot_id=health["snapshot_id"])
+        write_json(health_path, health)
     except Exception:
-        if backup.exists() and not published_dir.exists():
+        if backup.exists():
+            if published_dir.exists():
+                shutil.rmtree(published_dir)
             os.replace(backup, published_dir)
+        elif not had_previous and published_dir.exists():
+            shutil.rmtree(published_dir)
         raise
     finally:
         if replacement.exists():
             shutil.rmtree(replacement)
-    health.update(published_content_retained=False, last_good_snapshot_id=health["snapshot_id"])
-    write_json(health_path, health)
     if backup.exists():
         shutil.rmtree(backup)
     return True

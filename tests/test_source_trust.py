@@ -169,6 +169,26 @@ def test_failure_before_collection_creates_public_health(tmp_path, monkeypatch):
     assert not public.exists()
 
 
+def test_health_write_failure_rolls_back_promoted_data(tmp_path, monkeypatch):
+    public, candidate = tmp_path / "public" / "data", tmp_path / "candidate"
+    public.mkdir(parents=True); candidate.mkdir()
+    (public / "value.json").write_text('"good"')
+    (candidate / "value.json").write_text('"new"')
+    def fail(*args):
+        raise OSError("simulated health disk-write failure")
+    monkeypatch.setattr(trust, "write_json", fail)
+    with pytest.raises(OSError):
+        trust.promote(candidate, public, {"snapshot_id": "new", "status": "degraded"})
+    assert (public / "value.json").read_text() == '"good"'
+
+
+def test_corrupt_previous_health_does_not_hide_new_failure(tmp_path):
+    public = tmp_path / "data"
+    (tmp_path / "health.json").write_text("truncated old health")
+    assert not trust.promote(public, public, {"snapshot_id": "failed", "status": "blocked"})
+    assert trust.read_json(tmp_path / "health.json")["status"] == "blocked"
+
+
 def csv_source(**changes):
     row = {"ticker": "MOWI.OL", "date": "2026-09-08", "snapshot_id": "s1", "data_status": "current",
            "close": 200, "rsi14": 25, "rsi_dir": 1, "macd_hist": 1, "sma50": 190, "adx14": 25, "rsi6": 30,
