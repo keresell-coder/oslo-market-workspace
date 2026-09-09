@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import urllib.parse
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,8 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts import source_trust
 INPUT_DIR = ROOT / "data"
 OUTPUT_DIR = ROOT / "docs" / "data"
 DOCS_DIR = ROOT / "docs"
@@ -589,7 +592,7 @@ def install_inputs(server, inputs: dict[str, Any]) -> None:
 
 def write_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
 
 
 def copy_static_assets(static_marker: bool = True) -> list[str]:
@@ -661,7 +664,8 @@ def consensus_payload(server) -> dict[str, Any]:
     return {"sources": rows}
 
 
-def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refresh: bool, include_all_universe: bool) -> dict[str, Any]:
+def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refresh: bool, include_all_universe: bool, snapshot_id=None) -> dict[str, Any]:
+    snapshot_id = snapshot_id or uuid.uuid4().hex
     output_dir.mkdir(parents=True, exist_ok=True)
     benchmark_dir = output_dir / "benchmarks"
     if benchmark_dir.exists():
@@ -674,6 +678,8 @@ def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refre
     files: list[str] = []
 
     def emit(name: str, data: Any) -> None:
+        if isinstance(data, dict):
+            data["snapshotId"] = snapshot_id
         write_json(output_dir / name, data)
         files.append(f"docs/data/{name}")
 
@@ -682,7 +688,16 @@ def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refre
     emit("technical-indicators-watchlist.json", server.technical_indicators(universe="watchlist", watchlist=watchlist_name, refresh=refresh))
     emit("technical-indicators-all.json", server.technical_indicators(universe="all", watchlist=watchlist_name, refresh=False))
 
-    watchlist_overview = server.watchlist_overview(name=watchlist_name, refresh=refresh)
+    # First collect watchlist sources, then populate every peer dependency.
+    # Only render the overview after benchmark coverage is actually available.
+    server.watchlist_overview(name=watchlist_name, refresh=refresh)
+    benchmark_files = {}
+    for symbol in watchlist_symbols:
+        payload = server.benchmark_for_symbol(symbol, refresh=False)
+        filename = f"benchmarks/{urllib.parse.quote(symbol, safe='')}.json"
+        emit(filename, payload)
+        benchmark_files[symbol] = f"data/{filename}"
+    watchlist_overview = server.watchlist_overview(name=watchlist_name, refresh=False)
     emit("watchlist-overview.json", watchlist_overview)
     emit("fundamentals-watchlist.json", fundamentals_payload(server, watchlist_symbols, refresh=False))
 
@@ -707,13 +722,6 @@ def build_static_outputs(server, inputs: dict[str, Any], output_dir: Path, refre
     emit("events.json", event_payload)
     emit("sources.json", server.source_notes())
     emit("consensus.json", consensus_payload(server))
-
-    benchmark_files = {}
-    for symbol in watchlist_symbols:
-        payload = server.benchmark_for_symbol(symbol, refresh=False)
-        filename = f"benchmarks/{urllib.parse.quote(symbol, safe='')}.json"
-        emit(filename, payload)
-        benchmark_files[symbol] = f"data/{filename}"
 
     manifest = {
         "generatedAt": generated_at,
@@ -789,6 +797,20 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    try:
+        return build_and_publish(args)
+    except Exception as exc:
+        # Configuration/cache/database errors must also update failure health,
+        # even when collection could not start.
+        health = {"schema": "oslo_workspace.health.v1", "snapshot_id": uuid.uuid4().hex,
+                  "generated_at": utc_now(), "status": "blocked", "issues": [f"Build failed: {exc}"],
+                  "reasons": [f"Build failed: {exc}"]}
+        source_trust.promote(args.output_dir, args.output_dir, health)
+        print(json.dumps(health, indent=2), file=sys.stderr)
+        return 1
+
+
+def build_and_publish(args) -> int:
     inputs = load_inputs(args.input_dir)
     with tempfile.TemporaryDirectory(prefix="oslo-static-build-") as tmp:
         db_path = Path(tmp) / "static.sqlite3"
@@ -797,15 +819,33 @@ def main() -> int:
         if not args.no_cache_db:
             copy_cache_tables(args.cache_db, db_path)
         install_inputs(server, inputs)
-        if not args.skip_assets:
-            copy_static_assets(static_marker=True)
-        manifest = build_static_outputs(
-            server=server,
-            inputs=inputs,
-            output_dir=args.output_dir,
-            refresh=args.refresh,
-            include_all_universe=args.include_all_universe,
-        )
+        candidate = Path(tmp) / "data"
+        snapshot_id = uuid.uuid4().hex
+        try:
+            source_trust.restore_history(server, args.output_dir)
+            manifest = build_static_outputs(
+                server=server, inputs=inputs, output_dir=candidate,
+                refresh=args.refresh, include_all_universe=args.include_all_universe, snapshot_id=snapshot_id,
+            )
+            history = source_trust.export_history(server, candidate)
+            health = source_trust.validate_bundle(candidate, [r["symbol"] for r in inputs["watchlist"]["items"]], snapshot_id)
+            manifest.update(snapshotId=snapshot_id, healthStatus=health["status"],
+                            history={"path": "data/fundamentals-history.json", "dateBasis": history["date_basis"],
+                                     "observationCount": len(history["rows"])})
+            manifest["outputFiles"].append("docs/data/fundamentals-history.json")
+            write_json(candidate / "manifest.json", manifest)
+            if not source_trust.promote(candidate, args.output_dir, health):
+                print(json.dumps(health, indent=2))
+                return 1
+            if not args.skip_assets:
+                copy_static_assets(static_marker=True)
+        except Exception as exc:
+            health = {"schema": "oslo_workspace.health.v1", "snapshot_id": snapshot_id,
+                      "generated_at": utc_now(), "status": "blocked", "issues": [f"Build failed: {exc}"],
+                      "reasons": [f"Build failed: {exc}"]}
+            source_trust.promote(candidate, args.output_dir, health)
+            print(json.dumps(health, indent=2), file=sys.stderr)
+            return 1
     print(
         f"Generated {len(manifest['outputFiles'])} static data files for "
         f"{manifest['watchlistCount']} watchlist symbols at {manifest['generatedAt']}."

@@ -8,6 +8,13 @@ event/consensus context.
 
 The app is intentionally conservative. It must not produce buy/sell investment advice, and it must not label stocks cheap, expensive, fair, or neutral from standalone multiples. Valuation context must be relative to peers, sector, own history, source quality, and missing data.
 
+Source trust repair (2026-09-09): staged publication now validates actual source
+dates, missing coverage, completed-session technical provenance, snapshot identity,
+and peer/overview agreement. Failed builds retain previous data and publish a
+failure health record. Daily history survives fresh builds; same-day refreshes do
+not create extra observations. See [source trust and validation](docs/source-trust.md)
+and [public health](https://keresell-coder.github.io/oslo-market-workspace/health.json).
+
 ## Run
 
 ```bash

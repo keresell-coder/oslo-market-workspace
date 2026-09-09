@@ -15,6 +15,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: static-data-publish
+  cancel-in-progress: false
+
 jobs:
   build-static-data:
     runs-on: ubuntu-latest
@@ -31,9 +35,12 @@ jobs:
         run: python3 -m pip install -r requirements.txt
 
       - name: Build static data
+        id: build
+        continue-on-error: true
         run: python3 scripts/build_static_site_data.py --refresh --no-cache-db
 
       - name: Validate generated JSON
+        if: steps.build.outcome == 'success'
         run: |
           python3 -m json.tool docs/data/manifest.json >/dev/null
           python3 -m json.tool docs/data/watchlist-overview.json >/dev/null
@@ -43,12 +50,18 @@ jobs:
 
       - name: Commit generated site data
         run: |
-          if git diff --quiet -- docs data app/static docs/index.html docs/app.js docs/styles.css docs/manifest.json; then
-            echo "No static data changes to commit."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs data
+          if [ "${{ steps.build.outcome }}" = "success" ]; then
+            git add docs
+          else
+            # A failed attempt may expose failure health only, never candidate data.
+            git add docs/health.json
+          fi
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "Refresh static Oslo Stock data"
           git push
+
+      - name: Fail an invalid publication attempt
+        if: steps.build.outcome != 'success'
+        run: exit 1

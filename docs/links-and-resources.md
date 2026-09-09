@@ -251,6 +251,17 @@ the current Oslo Screener `latest.csv`/report output as missing coverage rows.
   watchlist technical coverage. HAFNI.OL, LINK.OL, PUBLI.OL, and VEND.OL are
   now covered by the generated screener output.
 
+## Publication trust contract — 2026-09-09
+
+- [Workspace public health](https://keresell-coder.github.io/oslo-market-workspace/health.json)
+- [Technical producer health](https://keresell-coder.github.io/oslo-screener/health.json)
+- [Source trust, date policies, and validation](source-trust.md)
+
+The workspace uses provider retrieval and quote observation times separately.
+Primary filing publication dates and underlying analyst estimate dates remain
+unverified. Empty configured peer symbols need review; a recent fetch alone does
+not establish actual coverage. Earlier dated coverage notes below are historical.
+
 ## External Sources Considered But Not Automated
 
 - TradingView analyst/target-price pages

@@ -294,7 +294,44 @@ async function loadStaticManifest() {
   if (!isStaticDataMode()) return null;
   if (staticManifest) return staticManifest;
   staticManifest = await fetchStaticJson("manifest.json");
+  try {
+    staticManifest.health = await fetchStaticJson("../health.json");
+  } catch {
+    staticManifest.health = { status: "blocked", issues: ["Public source health is unavailable; source status unverified."] };
+  }
   return staticManifest;
+}
+
+function staticTrustIssue(manifest = staticManifest) {
+  const health = manifest?.health;
+  if (!health || health.status === "blocked") return "Latest collection failed or source health is unavailable. Previous report retained; signals withheld.";
+  if (!manifest.snapshotId || manifest.snapshotId !== health.snapshot_id) return "Report and source health snapshots differ; signals withheld.";
+  const generated = Date.parse(health.generated_at);
+  const expiry = Date.parse(health.valid_until);
+  if (!Number.isFinite(generated) || generated > Date.now() || Date.now() - generated > 86400000) return "Source health is stale or invalid; signals withheld.";
+  if (!Number.isFinite(expiry) || Date.now() >= expiry) return "A newer completed session is due; signals withheld.";
+  return null;
+}
+
+async function trustedStaticJson(filename) {
+  const manifest = await loadStaticManifest();
+  const data = await fetchStaticJson(filename);
+  const issue = staticTrustIssue(manifest) || (data.snapshotId !== manifest.snapshotId ? "Data and publication snapshots differ; signals withheld." : null);
+  if (issue) {
+    const withhold = (row) => ({ ...row, signal: "WITHHELD", signalTone: "missing",
+      stopLossPct: null, positionPct: null, risk: null, dashboardSignal: null,
+      withheldReason: issue, coverageStatus: "withheld", coverageDetail: issue });
+    data.rows = (data.rows || []).map((row) => filename.startsWith("technical-")
+      ? withhold(row) : { ...row, screenerSignal: null, technicalSignal: withhold(row.technicalSignal || {}) });
+    data.matches = [];
+    data.matchCount = 0;
+    data.sourceTrustIssue = issue;
+    if (filename.startsWith("technical-")) {
+      data.coverage = { ...data.coverage, coveredCount: 0, withheldCount: data.rows.length,
+        withheldSymbols: data.rows.map(row => row.symbol), status: "blocked" };
+    }
+  }
+  return data;
 }
 
 async function staticApi(path, options = {}) {
@@ -305,14 +342,14 @@ async function staticApi(path, options = {}) {
   const url = new URL(path, window.location.href);
   if (url.pathname === "/api/health") {
     const manifest = await loadStaticManifest();
-    return { ok: true, time: manifest?.generatedAt || "", static: true, manifest };
+    return { ok: !staticTrustIssue(manifest), time: manifest?.generatedAt || "", static: true, manifest };
   }
   if (url.pathname === "/api/watchlist") return fetchStaticJson("watchlist.json");
-  if (url.pathname === "/api/watchlist-overview") return fetchStaticJson("watchlist-overview.json");
-  if (url.pathname === "/api/screener-alerts") return fetchStaticJson("screener-alerts.json");
+  if (url.pathname === "/api/watchlist-overview") return trustedStaticJson("watchlist-overview.json");
+  if (url.pathname === "/api/screener-alerts") return trustedStaticJson("screener-alerts.json");
   if (url.pathname === "/api/technical-indicators") {
     const universe = url.searchParams.get("universe") === "all" ? "all" : "watchlist";
-    return fetchStaticJson(`technical-indicators-${universe}.json`);
+    return trustedStaticJson(`technical-indicators-${universe}.json`);
   }
   if (url.pathname === "/api/fundamentals") {
     const universe = url.searchParams.get("universe") === "all" ? "all" : "watchlist";
@@ -597,11 +634,16 @@ async function copyStaticPrompt(button) {
 
 function renderStaticModeBanner(manifest = staticManifest) {
   if (!isStaticDataMode()) return "";
+  const health = manifest?.health || {};
+  const trustIssue = staticTrustIssue(manifest);
   return `
     <section class="static-mode-banner">
       <div>
-        <strong>Static GitHub Pages beta</strong>
-        <span>Last generated ${escapeHtml(dateTime(manifest?.generatedAt))}. The browser reads committed JSON files and does not perform live backend refreshes.</span>
+        <strong>Source health: ${escapeHtml(trustIssue ? "blocked / unverified" : health.status || "unverified")}</strong>
+        <span>${escapeHtml(trustIssue || "Latest collection passed publication checks; source limitations still apply.")}</span>
+        <span>Quote observations ${escapeHtml(health.source_observation_start || "unknown")}–${escapeHtml(health.source_observation_end || "unknown")}; expected completed session ${escapeHtml(health.expected_session || "unknown")}. Source retrieved ${escapeHtml(dateTime(health.source_fetched_at))}; report rendered ${escapeHtml(dateTime(manifest?.generatedAt))}.</span>
+        <span>${escapeHtml((health.issues || []).join(" · "))}</span>
+        <a href="health.json" target="_blank" rel="noreferrer">Source dates and coverage</a>
         <span>${escapeHtml(manifest?.watchlistEdit?.policy || "Watchlist edits happen through GitHub/Codex/PRs.")}</span>
         ${renderWatchlistEditSteps(manifest?.watchlistEdit?.steps || [])}
       </div>
@@ -1033,7 +1075,7 @@ function renderWatchlistDetailDrawer(row) {
       <div class="watchlist-detail-grid">
         <section>
           <strong>Fundamentals</strong>
-          <span>${escapeHtml(row.priceSummary?.source || "Yahoo/yfinance")} / ${escapeHtml(shortDate(row.priceSummary?.fetchedAt || row.fetchedAt))}</span>
+          <span>${escapeHtml(row.priceSummary?.source || "Yahoo/yfinance")} / retrieved ${escapeHtml(dateTime(row.priceSummary?.sourceFetchedAt || row.sourceFetchedAt))}; quote observed ${escapeHtml(dateTime(row.priceSummary?.priceObservedAt || row.priceObservedAt))}</span>
           <span>Cache ${escapeHtml(row.cacheStatus || row.priceSummary?.cacheStatus || "unknown")}${row.sourceRefreshError ? `; ${escapeHtml(row.sourceRefreshError)}` : ""}</span>
         </section>
         <section>
@@ -1044,8 +1086,8 @@ function renderWatchlistDetailDrawer(row) {
         <section>
           <strong>Technical</strong>
           <span>technical output ${technical ? `${escapeHtml(technical.signal || "source label n/a")} / ${escapeHtml(technical.date || technical.coverageStatus || "date n/a")}` : "missing for this row"}</span>
-          ${technical?.coverageStatus === "missing-from-latest-csv" ? `<span>${escapeHtml(technical.coverageDetail || "Missing from source coverage.")}</span>` : ""}
-          <span>RSI14 dashboard ${alert ? `${escapeHtml(alert.signal || "source label")} / RSI ${escapeHtml(value(alert.rsi14))}` : "not in published output"}</span>
+          ${technical?.coverageDetail ? `<span>${escapeHtml(technical.coverageDetail)}</span>` : ""}
+          <span>RSI14 dashboard ${alert ? `${escapeHtml(alert.signal || "source label")} / RSI ${escapeHtml(value(alert.rsi14))}` : "HTML card provenance unverified; open the published source"}</span>
         </section>
         <section>
           <strong>News/Events</strong>
@@ -1290,8 +1332,8 @@ function renderSnapshotHistoryDetails(snapshot) {
   return `
     <div class="history-subsection">
       <div class="requirement-strip">
-        <span class="${(snapshot.snapshotCount || 0) >= (snapshot.minimumObservations || 5) ? "met" : "missing"}">
-          ${escapeHtml(snapshot.snapshotCount ?? 0)} / ${escapeHtml(snapshot.minimumObservations ?? 5)} local snapshots
+        <span class="${snapshot.status === "usable history" ? "met" : "missing"}">
+          ${escapeHtml(snapshot.snapshotCount ?? 0)} / ${escapeHtml(snapshot.minimumObservations ?? 5)} distinct daily snapshots; ${escapeHtml(snapshot.spanDays ?? 0)} / ${escapeHtml(snapshot.minimumSpanDays ?? 90)} calendar days
         </span>
         <span>${escapeHtml(snapshot.status || "history n/a")}</span>
       </div>
@@ -1635,6 +1677,11 @@ function renderRsiScreenerCell(alert) {
 
 function renderTechnicalWatchlistCell(row) {
   const item = row.technicalSignal;
+  if (item?.withheldReason) {
+    return `<button class="summary-button watchlist-summary compact-summary" data-open-technical="${escapeHtml(row.symbol)}">
+      ${compactStatusBadge("withheld", "missing")}<strong>Signal withheld</strong>
+      <span class="muted">${escapeHtml(item.withheldReason)}</span></button>`;
+  }
   if (!item || item.coverageStatus === "missing-from-latest-csv") {
     return `
       <button class="summary-button watchlist-summary compact-summary" data-open-technical="${escapeHtml(row.symbol)}">
@@ -1656,6 +1703,7 @@ function renderTechnicalWatchlistCell(row) {
 }
 
 function technicalIndicatorStatus(key, value, row = {}) {
+  if (row.withheldReason || row.coverageStatus === "withheld") return "missing";
   if (value === null || value === undefined || Number.isNaN(value)) return "missing";
   if (key === "rsi14" || key === "rsi6") {
     if (value <= 30) return "supportive";
@@ -1741,6 +1789,11 @@ function renderScreenerAlertError(error) {
 function renderScreenerAlerts(alerts) {
   const target = document.getElementById("screener-alerts");
   if (!target) return;
+  if (alerts.withheldReason || alerts.sourceTrustIssue) {
+    target.innerHTML = `<div class="alert-card"><strong>Dashboard alert coverage unverified</strong>
+      <span>${escapeHtml(alerts.withheldReason || alerts.sourceTrustIssue)}</span></div>`;
+    return;
+  }
   if (!alerts.matches?.length) {
     target.innerHTML = `
       <div class="alert-card calm">
@@ -1789,6 +1842,9 @@ async function loadTechnicalIndicators(refresh = false) {
     if (coverage.missingCount) {
       coverageWarnings.push(`Missing latest.csv/report output for ${coverage.missingSymbols.join(", ")}`);
     }
+    if (coverage.withheldCount || data.sourceTrustIssue) {
+      coverageWarnings.push(data.sourceTrustIssue || `Signals withheld for ${coverage.withheldCount} watchlist rows: ${coverage.withheldSymbols.join(", ")}`);
+    }
     document.getElementById("technical-errors").innerHTML = coverageWarnings.length
       ? `<div class="error-box">${coverageWarnings.map(escapeHtml).join("<br>")}</div>`
       : "";
@@ -1803,6 +1859,7 @@ async function loadTechnicalIndicators(refresh = false) {
               <span class="muted">${escapeHtml(row.date || row.coverageStatus || "date n/a")}</span>
               ${row.inDashboardScreener ? `<br><span class="tag dashboard-tag">Dashboard alert</span>` : ""}
               ${row.coverageStatus === "missing-from-latest-csv" ? `<br><span class="tag">missing coverage</span>` : ""}
+              ${row.withheldReason ? `<br><span class="tag">${escapeHtml(row.withheldReason)}</span>` : ""}
             </td>
             <td><span class="signal-badge ${signalClass(row.signal)}">${escapeHtml(row.signal || "NEUTRAL")}</span></td>
             <td class="number">${value(row.close)}</td>
@@ -1848,15 +1905,16 @@ async function loadTechnicalIndicators(refresh = false) {
       ...(data.sourceErrors || []).map((item) => `${item.url}: ${item.error}`),
     ];
     setRefreshStatus("technical", {
-      state: data.screenerError || technicalSourceErrors.length || coverage.missingCount || data.cacheStatus === "stale-after-error" ? "warning" : "success",
+      state: data.screenerError || technicalSourceErrors.length || coverage.missingCount || coverage.withheldCount || data.sourceTrustIssue || data.cacheStatus === "stale-after-error" ? "warning" : "success",
       summary: `${data.rows.length} ${data.universe || universe} row${data.rows.length === 1 ? "" : "s"} shown from ${data.count ?? 0} latest.csv/report row${data.count === 1 ? "" : "s"}.`,
-      sourceAt: data.sourceGeneratedAt || data.fetchedAt || data.sourceRefreshAttemptedAt || data.sourceDate,
+      sourceAt: data.sourceDate,
       details: [
         `Source date ${data.sourceDate || "n/a"}`,
         `Generated ${dateTime(data.sourceGeneratedAt)}`,
         `Fetched ${dateTime(data.fetchedAt)}`,
         `Cache ${data.cacheStatus || "n/a"}`,
-        coverage.missingCount ? `Missing watchlist output: ${coverage.missingSymbols.join(", ")}` : "Watchlist coverage complete",
+        `Expected completed session ${data.sourceHealth?.expected_session || "unverified"}`,
+        `Current ${coverage.coveredCount || 0}; withheld ${coverage.withheldCount || 0}; missing ${coverage.missingCount || 0}`,
       ],
       errors: [
         ...(data.screenerError ? [data.screenerError] : []),
@@ -1949,7 +2007,7 @@ function renderTechnicalSummary(data) {
   target.innerHTML = `
     <div class="alert-card calm">
       <div>
-        <strong>${escapeHtml(data.count ?? 0)} rows in current latest.csv/report output; showing ${escapeHtml(data.rows.length)} ${escapeHtml(data.universe || "watchlist")} row${data.rows.length === 1 ? "" : "s"}</strong>
+        <strong>${escapeHtml(data.count ?? 0)} received source rows; ${escapeHtml(coverage.coveredCount || 0)} watchlist rows have verified current coverage</strong>
         <span>Source date ${escapeHtml(data.sourceDate || "n/a")}; generated ${escapeHtml(shortDate(data.sourceGeneratedAt))}; fetched ${escapeHtml(shortDate(data.fetchedAt))}; ${escapeHtml(data.cacheStatus || "unknown")}.</span>
         <span>${escapeHtml(data.sourceReliability || "Technical screening context only.")}</span>
         ${missingSymbols.length ? `<span>Missing watchlist output: ${escapeHtml(missingSymbols.join(", "))}. Missing rows are not fallback signals.</span>` : ""}
@@ -1959,6 +2017,7 @@ function renderTechnicalSummary(data) {
         <span class="alert-chip signal-sell"><strong>SELL</strong><span>${countTechnicalSignals(data.rows, "sell")}</span></span>
         <span class="alert-chip signal-neutral"><strong>Dashboard</strong><span>${dashboardCount}</span></span>
         <span class="alert-chip signal-draft"><strong>Missing</strong><span>${escapeHtml(coverage.missingCount || 0)}</span></span>
+        <span class="alert-chip signal-draft"><strong>Withheld</strong><span>${escapeHtml(coverage.withheldCount || 0)}</span></span>
       </div>
     </div>
   `;
