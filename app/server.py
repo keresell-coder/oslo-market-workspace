@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import hmac
+import hashlib
 import json
 import math
 import os
@@ -18,6 +19,10 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from statistics import median
+try:
+    from app.market_health import evaluate_snapshot, parse_utc
+except ModuleNotFoundError:  # direct python app/server.py invocation
+    from market_health import evaluate_snapshot, parse_utc
 
 try:
     import yfinance as yf
@@ -57,6 +62,7 @@ TECHNICAL_CACHE_TTL_SECONDS = 60 * 15
 TECHNICAL_CACHE: dict = {"fetched_at_epoch": 0, "payload": None}
 PRICE_HISTORY_MIN_OBSERVATIONS = 120
 SNAPSHOT_HISTORY_MIN_OBSERVATIONS = 5
+SNAPSHOT_HISTORY_MIN_SPAN_DAYS = 90  # Disclosed coverage policy, not a calibrated investment edge.
 PRICE_CHART_SAMPLE_POINTS = 48
 SNAPSHOT_CHART_SAMPLE_POINTS = 8
 QUARTERLY_STATEMENT_MAX_PERIODS = 6
@@ -339,6 +345,7 @@ MINIMUM_DATA_REQUIREMENTS = {
     "peerMetricMinimumPeers": 3,
     "priceWindowMinimumObservations": PRICE_HISTORY_MIN_OBSERVATIONS,
     "snapshotMinimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+    "snapshotMinimumSpanDays": SNAPSHOT_HISTORY_MIN_SPAN_DAYS,
     "minimumPeerStatusForDerivedScore": "reviewed",
     "policy": (
         "Derived valuation scores or status markers are disabled until peer fit, sector benchmark components, "
@@ -1462,7 +1469,10 @@ def fetch_yfinance(symbol: str) -> dict:
     info = ticker.get_info()
     now = utc_now()
 
-    current_price = pick_number(info, "currentPrice", "regularMarketPrice", "previousClose")
+    quote_field = next((key for key in ("regularMarketPrice", "currentPrice", "previousClose")
+                        if pick_number(info, key) is not None), None)
+    current_price = pick_number(info, quote_field) if quote_field else None
+    quote_observed_at = utc_from_epoch(pick_number(info, "regularMarketTime")) if quote_field == "regularMarketPrice" else None
     target = pick_number(info, "targetMeanPrice")
     upside = None
     if current_price and target:
@@ -1523,6 +1533,10 @@ def fetch_yfinance(symbol: str) -> dict:
         "source": "Yahoo Finance via yfinance",
         "sourceReliability": "Open/free delayed data. Useful for screening; verify against filings or primary sources before acting.",
         "fetchedAt": now,
+        "sourceFetchedAt": now,
+        "priceObservedAt": quote_observed_at or None,
+        "priceSourceField": quote_field,
+        "priceObservationStatus": "provider quote timestamp" if quote_observed_at else "unverified",
         "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
         "quarterlyStatements": fetch_yfinance_quarterly_statements(
             ticker,
@@ -2772,8 +2786,11 @@ def record_consensus_source(payload: dict) -> None:
     ]
     if all(value in (None, "") for value in target_fields):
         return
-    now_epoch = int(time.time())
-    collected_at = utc_now()
+    # Re-enriching a cache must not claim another provider retrieval, nor turn
+    # the retrieval clock into the unknown underlying analyst estimate date.
+    collected_at = payload.get("sourceFetchedAt") or payload.get("fetchedAt") or ""
+    observed = parse_utc(collected_at)
+    now_epoch = int(observed.timestamp()) if observed else 0
     with connect() as con:
         con.execute(
             """
@@ -2813,7 +2830,7 @@ def record_consensus_source(payload: dict) -> None:
                 payload.get("recommendationKey"),
                 payload.get("recommendationMean"),
                 payload.get("currency") or "",
-                payload.get("fetchedAt") or collected_at,
+                payload.get("estimateAsOfDate") or "",
                 f"https://finance.yahoo.com/quote/{urllib.parse.quote(symbol)}/analysis/",
                 "single-provider",
                 "Yahoo/yfinance target and rating-label fields are not treated as verified consensus weighting.",
@@ -3663,14 +3680,18 @@ def technical_signal_tone(signal: str | None) -> str:
     return "neutral"
 
 
-def parse_technical_csv(text: str, source_url: str) -> dict:
+def parse_technical_csv(text: str, source_url: str, now=None) -> dict:
     comments = [line.strip() for line in text.splitlines() if line.strip().startswith("#")]
     metadata = {}
     for line in comments:
         metadata.update(parse_screener_metadata(line))
     csv_text = "\n".join(line for line in text.splitlines() if line.strip() and not line.strip().startswith("#"))
+    raw_rows = list(csv.DictReader(io.StringIO(csv_text)))
+    health = evaluate_snapshot(raw_rows, metadata, now=now)
+    eligible = {normalize_dashboard_ticker(t) for t in health.get("eligible_tickers", [])}
+    exclusions = {normalize_dashboard_ticker(r["ticker"]): r["reason"] for r in health.get("excluded", [])}
     rows = []
-    for row in csv.DictReader(io.StringIO(csv_text)):
+    for row in raw_rows:
         symbol = normalize_dashboard_ticker(row.get("ticker", ""))
         if not symbol:
             continue
@@ -3690,6 +3711,10 @@ def parse_technical_csv(text: str, source_url: str) -> dict:
                 "mfi14": parse_float(row.get("mfi14")),
                 "rsi6": parse_float(row.get("rsi6")),
                 "signal": signal,
+                "snapshotId": row.get("snapshot_id"),
+                "dataStatus": row.get("data_status") or "unverified",
+                "expectedSession": health.get("expected_session"),
+                "withheldReason": None if symbol in eligible else exclusions.get(symbol) or "; ".join(health.get("reasons", [])) or "not eligible",
                 "signalTone": technical_signal_tone(signal),
                 "primaryCount": parse_float(row.get("primary_count")),
                 "stopLossPct": parse_float(row.get("stop_loss_pct")),
@@ -3698,11 +3723,15 @@ def parse_technical_csv(text: str, source_url: str) -> dict:
                 "sourceUrl": source_url,
             }
         )
+        if symbol not in eligible:
+            rows[-1].update(signal="WITHHELD", signalTone="missing", stopLossPct=None, positionPct=None, risk=None)
     dates = sorted({row["date"] for row in rows if row.get("date")})
     return {
         "sourceUrl": source_url,
         "sourceUrls": TECHNICAL_INDICATORS_URLS,
         "sourceGeneratedAt": metadata.get("generated_at"),
+        "sourceSnapshotId": metadata.get("snapshot_id"),
+        "sourceHealth": health,
         "sourceDataFetchStarted": metadata.get("data_fetch_started"),
         "sourceDataFetchCompleted": metadata.get("data_fetch_completed"),
         "sourceDate": dates[-1] if dates else None,
@@ -3718,8 +3747,14 @@ def fetch_technical_indicators(refresh: bool = False) -> dict:
     now_epoch = int(time.time())
     cached = TECHNICAL_CACHE.get("payload")
     if cached and not refresh and now_epoch - int(TECHNICAL_CACHE["fetched_at_epoch"]) < TECHNICAL_CACHE_TTL_SECONDS:
-        payload = dict(cached)
+        payload = json.loads(json.dumps(cached))
         payload["cacheStatus"] = "cached"
+        expiry = parse_utc(payload.get("sourceHealth", {}).get("valid_until"))
+        if not expiry or now_epoch >= expiry.timestamp():
+            payload.setdefault("sourceHealth", {}).update(status="blocked", actionable=False, eligible_tickers=[])
+            for row in payload.get("rows", []):
+                row.update(signal="WITHHELD", signalTone="missing", stopLossPct=None,
+                           positionPct=None, risk=None, withheldReason="Newer completed session is due")
         return payload
 
     if requests is None:
@@ -3732,6 +3767,23 @@ def fetch_technical_indicators(refresh: bool = False) -> dict:
             response = requests.get(url, timeout=20, headers=headers)
             response.raise_for_status()
             payload = parse_technical_csv(response.text, url)
+            try:
+                check = requests.get("https://keresell-coder.github.io/oslo-screener/health.json", timeout=20, headers=headers)
+                check.raise_for_status()
+                published = check.json()
+                expected_hash = published.get("artifacts", {}).get("latest.csv")
+                if published.get("snapshot_id") != payload.get("sourceSnapshotId") or not expected_hash:
+                    raise ValueError("CSV and published health lack a matching snapshot/hash")
+                if hashlib.sha256(response.content).hexdigest() != expected_hash:
+                    raise ValueError("CSV hash differs from published health")
+                if published.get("status") not in {"current", "degraded"} or published.get("actionable") is not True:
+                    raise ValueError("Published producer health withholds this snapshot")
+            except Exception as exc:
+                payload["sourceHealth"].update(status="blocked", actionable=False, eligible_tickers=[])
+                payload["sourceHealth"]["reasons"].append(f"published_health_unverified: {exc}")
+                for row in payload["rows"]:
+                    row.update(signal="WITHHELD", signalTone="missing", stopLossPct=None,
+                               positionPct=None, risk=None, withheldReason=str(exc))
             payload["sourceErrors"] = errors
             TECHNICAL_CACHE["payload"] = payload
             TECHNICAL_CACHE["fetched_at_epoch"] = now_epoch
@@ -3744,6 +3796,10 @@ def fetch_technical_indicators(refresh: bool = False) -> dict:
     stale = stale_cached_payload(cached, f"Technical indicator refresh failed: {error_summary}")
     if stale:
         stale["sourceErrors"] = errors
+        stale.setdefault("sourceHealth", {}).update(status="blocked", actionable=False, eligible_tickers=[])
+        for row in stale.get("rows", []):
+            row.update(signal="WITHHELD", signalTone="missing", stopLossPct=None,
+                       positionPct=None, risk=None, withheldReason=error_summary)
         return stale
     raise RuntimeError(error_summary)
 
@@ -3768,20 +3824,22 @@ def technical_indicators(
         screener_map, screener_error = {}, str(exc)
     enriched = []
     for row in rows:
-        dashboard_signal = screener_map.get(row["symbol"])
+        # The parsed HTML has no per-card snapshot proof. Keep its separate
+        # dashboard as a source link, not an alternative actionable label.
+        dashboard_signal = None
         enriched.append(
             {
                 **row,
                 "watchlistMember": row["symbol"] in watched,
-                "coverageStatus": "covered",
-                "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
+                "coverageStatus": "withheld" if row.get("withheldReason") else "covered",
+                "coverageDetail": row.get("withheldReason") or "Symbol has a current completed-session observation in the verified source snapshot.",
                 "dashboardSignal": dashboard_signal,
                 "inDashboardScreener": bool(dashboard_signal),
             }
         )
     if universe != "all":
         for symbol in missing_watchlist_symbols:
-            dashboard_signal = screener_map.get(symbol)
+            dashboard_signal = None
             enriched.append(
                 {
                     "symbol": symbol,
@@ -3810,14 +3868,19 @@ def technical_indicators(
                     "inDashboardScreener": bool(dashboard_signal),
                 }
             )
+    current_symbols = {row["symbol"] for row in source_rows if not row.get("withheldReason")}
+    withheld_symbols = sorted((source_symbol_set & watched) - current_symbols)
     coverage = {
         "watchlistSymbols": watched_symbols,
-        "coveredSymbols": [symbol for symbol in watched_symbols if symbol in source_symbol_set],
+        "coveredSymbols": [symbol for symbol in watched_symbols if symbol in current_symbols],
+        "withheldSymbols": withheld_symbols,
         "missingSymbols": missing_watchlist_symbols,
-        "coveredCount": len([symbol for symbol in watched_symbols if symbol in source_symbol_set]),
+        "coveredCount": len(watched & current_symbols),
+        "receivedCount": len(watched & source_symbol_set),
+        "withheldCount": len(withheld_symbols),
         "missingCount": len(missing_watchlist_symbols),
         "sourceRowCount": len(source_rows),
-        "status": "complete" if not missing_watchlist_symbols else "partial",
+        "status": "complete" if not missing_watchlist_symbols and not withheld_symbols else "partial",
         "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
     }
     return {
@@ -3872,8 +3935,11 @@ def screener_alerts(name: str = "Core Watchlist", refresh: bool = False) -> dict
     matches = [signal for signal in screener["signals"] if signal["symbol"] in watched]
     return {
         "watchlist": name,
-        "matches": matches,
-        "matchCount": len(matches),
+        "matches": [],
+        "matchCount": 0,
+        "unverifiedMatchCount": len(matches),
+        "coverageStatus": "unverified-html-snapshot",
+        "withheldReason": "Parsed HTML cards have no per-card snapshot proof. Use the verified Technical indicators source or open the published dashboard.",
         "watchlistCount": len(watched),
         "screenerCount": screener["count"],
         "fetchedAt": screener["fetchedAt"],
@@ -3941,7 +4007,7 @@ def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> d
                 "sector": item.get("sector") or fundamental.get("sector"),
                 "industry": item.get("industry") or fundamental.get("industry"),
                 "priceSummary": price_summary,
-                "screenerSignal": screener_map.get(symbol),
+                "screenerSignal": None,
                 "technicalSignal": technical_map.get(symbol),
                 "fundamentalHighlight": fundamental_highlight(fundamental),
                 "ownHistorySignal": fundamental.get("ownHistorySignal"),
@@ -3953,6 +4019,9 @@ def watchlist_overview(name: str = "Core Watchlist", refresh: bool = False) -> d
                 "consensusTargetMethod": fundamental.get("targetPriceMethod"),
                 "cacheStatus": fundamental.get("cacheStatus"),
                 "fetchedAt": fundamental.get("fetchedAt"),
+                "sourceFetchedAt": fundamental.get("sourceFetchedAt"),
+                "priceObservedAt": fundamental.get("priceObservedAt"),
+                "priceObservationStatus": fundamental.get("priceObservationStatus", "unverified"),
                 "sourceRefreshError": fundamental.get("sourceRefreshError"),
                 "sourceRefreshAttemptedAt": fundamental.get("sourceRefreshAttemptedAt"),
                 "consensusTargetAcrossSources": consensus.get("targetMeanAcrossSources"),
@@ -4041,6 +4110,9 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
             """,
             (symbol, json.dumps(payload), now_epoch, payload["fetchedAt"]),
         )
+        # One observation per UTC retrieval date; repeated refreshes are not history.
+        con.execute("delete from fundamentals_snapshots where symbol = ? and substr(fetched_at, 1, 10) = ?",
+                    (symbol, payload["fetchedAt"][:10]))
         con.execute(
             """
             insert into fundamentals_snapshots(symbol, payload, fetched_at_epoch, fetched_at)
@@ -4112,6 +4184,9 @@ def stock_price_summary(fundamental: dict) -> dict:
         "price": fundamental.get("price"),
         "currency": fundamental.get("currency") or "NOK",
         "fetchedAt": fundamental.get("fetchedAt"),
+        "sourceFetchedAt": fundamental.get("sourceFetchedAt"),
+        "priceObservedAt": fundamental.get("priceObservedAt"),
+        "priceObservationStatus": fundamental.get("priceObservationStatus", "unverified"),
         "source": fundamental.get("source") or "Yahoo Finance via yfinance",
         "cacheStatus": fundamental.get("cacheStatus"),
     }
@@ -4170,6 +4245,13 @@ def fundamental_highlight(fundamental: dict) -> dict:
     }
 
 
+def peer_payload_usable(payload: dict | None) -> bool:
+    # A successful HTTP response containing an empty/delisted ticker is not
+    # loaded peer coverage. At least one actual comparison metric is required.
+    return bool(payload) and any(numeric_metric(payload, m["key"], m.get("positiveOnly", False)) is not None
+                                 for m in BENCHMARK_METRICS)
+
+
 def peer_context_summary(symbol: str, focus: dict) -> dict:
     groups = peer_groups_for_symbol(symbol)
     if not groups:
@@ -4184,7 +4266,7 @@ def peer_context_summary(symbol: str, focus: dict) -> dict:
     group_status = normalize_peer_status(group.get("status", "draft"))
     items = peer_group_items(group["group_key"])
     peer_symbols = [item["symbol"] for item in items if item["symbol"] != symbol]
-    peers = [payload for payload in (cached_payload_if_present(item) for item in peer_symbols) if payload]
+    peers = [payload for payload in (cached_payload_if_present(item) for item in peer_symbols) if peer_payload_usable(payload)]
     minimum_peer_count = MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"]
     loaded_peer_note = f"{len(peers)} loaded peer row(s); minimum {minimum_peer_count} for metric context."
 
@@ -4493,7 +4575,8 @@ def own_history_chart(metric: dict, observations: list[dict]) -> dict:
             continue
         points.append({"date": item["fetched_at"], "value": value})
     sampled = sampled_points(points, SNAPSHOT_CHART_SAMPLE_POINTS)
-    available = len(points) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS and len(sampled) >= 2
+    span = (parse_utc(points[-1]["date"]).date() - parse_utc(points[0]["date"]).date()).days if points else 0
+    available = len(points) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS and len(sampled) >= 2 and span >= SNAPSHOT_HISTORY_MIN_SPAN_DAYS
     return {
         "type": "fundamental_snapshot",
         "key": metric["key"],
@@ -4503,6 +4586,8 @@ def own_history_chart(metric: dict, observations: list[dict]) -> dict:
         "points": sampled if available else [],
         "observationCount": len(points),
         "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+        "spanDays": span,
+        "minimumSpanDays": SNAPSHOT_HISTORY_MIN_SPAN_DAYS,
         "source": "local fundamentals snapshots",
         "fetchedAt": points[-1]["date"] if points else None,
         "firstObservationAt": points[0]["date"] if points else None,
@@ -4535,16 +4620,17 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
         if current_fetched_at and current_fetched_at not in {item["fetched_at"] for item in observations}:
             observations.append({"payload": current_payload, "fetched_at": current_fetched_at})
     observations.sort(key=lambda item: item["fetched_at"] or "")
+    observations = list({item["fetched_at"][:10]: item for item in observations}.values())
+    observations = [item for item in observations if parse_utc(item["fetched_at"]) and parse_utc(item["fetched_at"]) <= datetime.now(timezone.utc)]
+    span = (parse_utc(observations[-1]["fetched_at"]).date() - parse_utc(observations[0]["fetched_at"]).date()).days if observations else 0
     payloads = [item["payload"] for item in observations]
     summaries = []
     for metric in BENCHMARK_METRICS:
-        values = [
-            value
-            for value in (
-                numeric_metric(payload, metric["key"], metric.get("positiveOnly", False)) for payload in payloads
-            )
-            if value is not None
-        ]
+        available_dates = [item["fetched_at"] for item in observations
+                           if numeric_metric(item["payload"], metric["key"], metric.get("positiveOnly", False)) is not None]
+        metric_span = (parse_utc(available_dates[-1]).date() - parse_utc(available_dates[0]).date()).days if available_dates else 0
+        values = [numeric_metric(item["payload"], metric["key"], metric.get("positiveOnly", False))
+                  for item in observations if item["fetched_at"] in available_dates]
         current = values[-1] if values else None
         summaries.append(
             {
@@ -4557,8 +4643,10 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
                 "historyMin": min(values) if values else None,
                 "historyMax": max(values) if values else None,
                 "percentileInOwnHistory": percentile_position(current, values) if len(values) >= 2 else None,
-                "minimumDataMet": len(values) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+                "minimumDataMet": len(values) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS and metric_span >= SNAPSHOT_HISTORY_MIN_SPAN_DAYS,
                 "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+                "spanDays": metric_span,
+                "minimumSpanDays": SNAPSHOT_HISTORY_MIN_SPAN_DAYS,
             }
         )
     trend_rows = []
@@ -4589,12 +4677,14 @@ def own_history_summary(symbol: str, current_payload: dict | None = None) -> dic
         "metrics": summaries,
         "trendRows": trend_rows,
         "trendCharts": chart_metrics,
-        "status": "insufficient history" if len(observations) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS else "usable history",
+        "status": "usable history" if any(m["minimumDataMet"] for m in summaries) else "insufficient history",
         "requirement": (
-            "Own-history valuation context needs several dated observations. "
-            "Local snapshots start accumulating when fundamentals are refreshed."
+            "Own-history context requires five distinct UTC retrieval dates spanning at least 90 calendar days. "
+            "This is a coverage policy, not proof of a representative valuation cycle or a backtest."
         ),
         "minimumObservations": SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
+        "spanDays": span,
+        "minimumSpanDays": SNAPSHOT_HISTORY_MIN_SPAN_DAYS,
     }
 
 
@@ -4611,7 +4701,7 @@ def own_snapshot_signal(history: dict) -> dict | None:
     for metric in history.get("metrics", []):
         if metric.get("key") not in OWN_HISTORY_METRIC_KEYS:
             continue
-        if metric.get("observations", 0) < SNAPSHOT_HISTORY_MIN_OBSERVATIONS:
+        if not metric.get("minimumDataMet"):
             continue
         gap = metric.get("vsHistoryMedianPct")
         if gap is None or abs(gap) < 25:
@@ -5014,8 +5104,8 @@ def minimum_data_assessment(
         {
             "key": "snapshot_history",
             "label": "Local multiple snapshots",
-            "met": (own_history.get("snapshotCount") or 0) >= SNAPSHOT_HISTORY_MIN_OBSERVATIONS,
-            "detail": f"{own_history.get('snapshotCount') or 0} local snapshot(s); minimum {SNAPSHOT_HISTORY_MIN_OBSERVATIONS}.",
+            "met": own_history.get("status") == "usable history",
+            "detail": f"{own_history.get('snapshotCount') or 0} distinct daily snapshot(s), {own_history.get('spanDays', 0)} calendar days; minimum {SNAPSHOT_HISTORY_MIN_OBSERVATIONS} dates over {SNAPSHOT_HISTORY_MIN_SPAN_DAYS} days.",
         },
         {
             "key": "sector_kpis",
@@ -5083,6 +5173,8 @@ def benchmark_for_symbol(symbol: str, group_key: str | None = None, refresh: boo
         for item in items:
             try:
                 row = cached_fundamental(item["symbol"], refresh=refresh, assume_oslo=False)
+                if item["symbol"] != symbol and not peer_payload_usable(row):
+                    raise ValueError("Provider returned no usable peer comparison metrics")
                 row["peerRole"] = item["role"]
                 row["peerMarket"] = item["market"]
                 row["peerNote"] = item.get("note", "")

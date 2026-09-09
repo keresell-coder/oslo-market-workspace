@@ -1,5 +1,14 @@
 # Roadmap
 
+## Source trust repair — 2026-09-09
+
+Implemented staged publication gates, true retrieval/observation dates, completed
+session technical validation, persistent daily history, and peer coverage
+reconciliation. PR/main regressions cover stale, future, missing, failed and mixed
+sources. Next: verify deployed Actions/Pages, review five empty peer identifiers,
+and add primary filing coverage without implying that provider dates are verified.
+See [source-trust.md](source-trust.md) for policy and live-test evidence.
+
 ## Product Intent
 
 Build an Oslo Bors screening workspace where the Watchlist is the main

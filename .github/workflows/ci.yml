@@ -25,7 +25,15 @@ jobs:
           node-version: "22"
 
       - name: Compile server
-        run: python3 -m py_compile app/server.py scripts/build_static_site_data.py
+        run: python3 -m py_compile app/server.py app/market_health.py scripts/build_static_site_data.py scripts/source_trust.py
+
+      - name: Install test dependencies
+        run: python3 -m pip install -r requirements.txt pytest
+
+      - name: Test source trust and publication gates
+        run: |
+          python3 -m pytest -q
+          node --test tests/*.test.cjs
 
       - name: Check frontend syntax
         run: |

@@ -1,5 +1,17 @@
 # Project Handoff
 
+## Source trust update — 2026-09-09
+
+Source retrieval dates, quote observation dates, and statement/primary-review
+coverage are separate. Static builds stage and validate before publication;
+`docs/health.json` exposes failure while prior data/history remain intact. History
+persists by real UTC retrieval date, with a five-date/90-day context gate. Peer
+collection precedes overview rendering; empty peers do not count as loaded.
+Technical labels require the current completed-session producer contract and
+matching snapshot/hash. See [source-trust.md](source-trust.md) for regression and
+live-stage evidence. This repair used isolated clones; the user's local server
+was deliberately left untouched. Remote Actions/Pages verification follows merge.
+
 ## Current State
 
 The project is **Oslo Stock web-app**, a working local MVP for an Oslo Bors research workspace.
