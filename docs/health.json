@@ -17,9 +17,9 @@
     "technical_missing": 0,
     "technical_withheld": 15
   },
-  "evaluated_at": "2026-09-09T10:03:09.593599+00:00",
-  "expected_session": "2026-09-08",
-  "generated_at": "2026-09-09T10:03:09.593599+00:00",
+  "evaluated_at": "2026-09-09T19:22:29.929422+00:00",
+  "expected_session": "2026-09-09",
+  "generated_at": "2026-09-09T19:22:29.929422+00:00",
   "issues": [
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
@@ -28,7 +28,7 @@
     "Primary filing verification: 0/76 statement periods reviewed; filing publication dates unverified",
     "Technical source blocked/unverified; signal and sizing labels withheld"
   ],
-  "last_good_snapshot_id": "a18d893db7d148e2b0396fb985b9e7de",
+  "last_good_snapshot_id": "e39e29ae57e0472ba98db817a3f22f50",
   "market_data_as_of": "2026-09-09",
   "missing_peers": [
     "SDRL.OL",
@@ -47,8 +47,8 @@
     "Technical source blocked/unverified; signal and sizing labels withheld"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "a18d893db7d148e2b0396fb985b9e7de",
-  "source_fetched_at": "2026-09-09T10:01:29+00:00",
+  "snapshot_id": "e39e29ae57e0472ba98db817a3f22f50",
+  "source_fetched_at": "2026-09-09T19:20:29+00:00",
   "source_observation_end": "2026-09-09",
   "source_observation_start": "2026-09-09",
   "sources": {
@@ -84,7 +84,7 @@
         "universe_count": 202
       },
       "eligible_tickers": [],
-      "evaluated_at": "2026-09-09T10:01:28.322381+00:00",
+      "evaluated_at": "2026-09-09T19:20:28.424534+00:00",
       "excluded": [
         {
           "data_status": "stale",
@@ -1299,7 +1299,7 @@
           "ticker": "ZLNA.OL"
         }
       ],
-      "expected_session": "2026-09-08",
+      "expected_session": "2026-09-09",
       "generated_at": "2026-09-09T07:23:00Z",
       "market_data_as_of": "2026-09-07",
       "observation_dates": {
@@ -1308,13 +1308,14 @@
       },
       "reasons": [
         "current_coverage_below_minimum",
+        "snapshot_session_is_not_current",
         "published_health_unverified: Published producer health withholds this snapshot"
       ],
       "schema": "oslo_screener.health.v1",
       "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
       "snapshot_id": "c063788bc6e74829960917d057874139",
       "status": "blocked",
-      "valid_until": "2026-09-09T16:45:00+02:00"
+      "valid_until": "2026-09-10T16:45:00+02:00"
     }
   },
   "statements": {
@@ -1323,5 +1324,5 @@
     "latest_period_start": "2026-03-31"
   },
   "status": "degraded",
-  "valid_until": "2026-09-09T16:45:00+02:00"
+  "valid_until": "2026-09-10T16:45:00+02:00"
 }
