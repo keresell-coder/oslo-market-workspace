@@ -14,6 +14,10 @@
     "mfi14",
     "rsi6",
     "signal",
+    "snapshotId",
+    "dataStatus",
+    "expectedSession",
+    "withheldReason",
     "signalTone",
     "primaryCount",
     "stopLossPct",
@@ -23,8 +27,15 @@
   ],
   "count": 202,
   "coverage": {
-    "coveredCount": 15,
-    "coveredSymbols": [
+    "coveredCount": 0,
+    "coveredSymbols": [],
+    "missingCount": 0,
+    "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
+    "missingSymbols": [],
+    "receivedCount": 15,
+    "sourceRowCount": 202,
+    "status": "partial",
+    "watchlistSymbols": [
       "BRG.OL",
       "DOFG.OL",
       "ELK.OL",
@@ -41,12 +52,8 @@
       "TEL.OL",
       "VEND.OL"
     ],
-    "missingCount": 0,
-    "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
-    "missingSymbols": [],
-    "sourceRowCount": 202,
-    "status": "complete",
-    "watchlistSymbols": [
+    "withheldCount": 15,
+    "withheldSymbols": [
       "BRG.OL",
       "DOFG.OL",
       "ELK.OL",
@@ -64,460 +71,1715 @@
       "VEND.OL"
     ]
   },
-  "fetchedAt": "2026-09-08T19:28:34+00:00",
+  "fetchedAt": "2026-09-09T07:02:54+00:00",
   "rows": [
     {
-      "adx14": 16.96,
-      "close": 435.0,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": {
-        "indicators": {
-          "ADX 14": "17.0",
-          "Confirmations": "2/3",
-          "MACD hist": "2.2433",
-          "MFI 14": "58.6",
-          "RSI 14": "65.7",
-          "Risk": "LOW",
-          "vs SMA50": "+13.8%"
-        },
-        "price": "435.00 NOK",
-        "rsi14": 65.7,
-        "section": "SELL signals 5 stocks",
-        "signal": "SELL",
-        "summary": "FRO SELL YF ↗ OB ↗ 435.00 NOK RSI 14 65.7 ADX 14 17.0 MFI 14 58.6 MACD hist 2.2433 vs SMA50 +13.8% Risk LOW Confirmations 2/3 Stop-loss: 1.75% ATR News — last 14 days NEW Norway shares lower at close of trade; Oslo OBX down 0.04% - Investing.com India Google N",
-        "symbol": "FRO.OL",
-        "ticker": "FRO",
-        "url": "https://keresell-coder.github.io/oslo-screener-dashboard/"
-      },
-      "date": "2026-09-08",
-      "inDashboardScreener": true,
-      "macdHistogram": 2.2433,
-      "mfi14": 58.64,
-      "pctAboveSma50": 13.83,
-      "positionPct": 3.0,
-      "primaryCount": 2.0,
-      "risk": "LOW",
-      "rsi14": 65.65,
-      "rsi6": 72.75,
-      "rsiDirection": -0.17,
-      "signal": "SELL",
-      "signalTone": "bearish",
-      "sma50": 382.152,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "FRO.OL",
-      "ticker": "FRO",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 30.17,
-      "close": 95.8,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": {
-        "indicators": {
-          "ADX 14": "30.2",
-          "Confirmations": "1/3",
-          "MACD hist": "0.3640",
-          "MFI 14": "51.9",
-          "RSI 14": "67.3",
-          "Risk": "HIGH",
-          "vs SMA50": "+9.3%"
-        },
-        "price": "95.80 NOK",
-        "rsi14": 67.3,
-        "section": "SELL-watch 31 stocks\n        — overbought, reversal not yet confirmed",
-        "signal": "SELL-watch",
-        "summary": "ODL SELL-watch YF ↗ OB ↗ 95.80 NOK RSI 14 67.3 ADX 14 30.2 MFI 14 51.9 MACD hist 0.3640 vs SMA50 +9.3% Risk HIGH Confirmations 1/3 Stop-loss: 2.4% S/R News — last 14 days NEW Odfjell Drilling Shares Trade Ex-Dividend for Q2 2026 Payout - TipRanks Google News ·",
-        "symbol": "ODL.OL",
-        "ticker": "ODL",
-        "url": "https://keresell-coder.github.io/oslo-screener-dashboard/"
-      },
-      "date": "2026-09-08",
-      "inDashboardScreener": true,
-      "macdHistogram": 0.364,
-      "mfi14": 51.88,
-      "pctAboveSma50": 9.28,
-      "positionPct": 1.5,
-      "primaryCount": 1.0,
-      "risk": "HIGH",
-      "rsi14": 67.29,
-      "rsi6": 75.46,
-      "rsiDirection": 1.36,
-      "signal": "SELL-watch",
-      "signalTone": "bearish",
-      "sma50": 87.6621,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 5.0,
-      "symbol": "ODL.OL",
-      "ticker": "ODL",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 15.85,
-      "close": 37.14,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": {
-        "indicators": {
-          "ADX 14": "15.8",
-          "Confirmations": "1/3",
-          "MACD hist": "0.3205",
-          "MFI 14": "66.3",
-          "RSI 14": "72.9",
-          "Risk": "LOW",
-          "vs SMA50": "+14.0%"
-        },
-        "price": "37.14 NOK",
-        "rsi14": 72.9,
-        "section": "SELL-watch 31 stocks\n        — overbought, reversal not yet confirmed",
-        "signal": "SELL-watch",
-        "summary": "ELK SELL-watch YF ↗ OB ↗ 37.14 NOK RSI 14 72.9 ADX 14 15.8 MFI 14 66.3 MACD hist 0.3205 vs SMA50 +14.0% Risk LOW Confirmations 1/3 Stop-loss: 1.75% ATR News — last 14 days No news found in the last 14 days. ⚠ Oslo Bors unavailable: Expecting value: line 1 colu",
-        "symbol": "ELK.OL",
-        "ticker": "ELK",
-        "url": "https://keresell-coder.github.io/oslo-screener-dashboard/"
-      },
-      "date": "2026-09-08",
-      "inDashboardScreener": true,
-      "macdHistogram": 0.3205,
-      "mfi14": 66.29,
-      "pctAboveSma50": 14.0,
-      "positionPct": 1.5,
-      "primaryCount": 1.0,
-      "risk": "LOW",
-      "rsi14": 72.93,
-      "rsi6": 86.03,
-      "rsiDirection": 4.82,
-      "signal": "SELL-watch",
-      "signalTone": "bearish",
-      "sma50": 32.5784,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "ELK.OL",
-      "ticker": "ELK",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 15.2,
-      "close": 297.7,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
       "dashboardSignal": null,
+      "dataStatus": "invalid",
       "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
       "inDashboardScreener": false,
-      "macdHistogram": -2.6019,
-      "mfi14": 33.87,
-      "pctAboveSma50": -2.84,
-      "positionPct": 0.0,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
       "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 38.85,
-      "rsi6": 22.8,
-      "rsiDirection": -7.87,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 306.404,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "KOG.OL",
-      "ticker": "KOG",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 18.48,
-      "close": 161.9,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.7871,
-      "mfi14": 36.9,
-      "pctAboveSma50": -5.75,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 41.4,
-      "rsi6": 43.34,
-      "rsiDirection": 0.79,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 171.77,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "NORBT.OL",
-      "ticker": "NORBT",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 16.03,
-      "close": 153.4,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.5404,
-      "mfi14": 51.27,
-      "pctAboveSma50": -1.87,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 41.92,
-      "rsi6": 31.52,
-      "rsiDirection": -5.81,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 156.328,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
+      "stopLossPct": null,
       "symbol": "BRG.OL",
       "ticker": "BRG",
-      "watchlistMember": true
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
     },
     {
-      "adx14": 9.04,
-      "close": 24.56,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
       "dashboardSignal": null,
+      "dataStatus": "invalid",
       "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
       "inDashboardScreener": false,
-      "macdHistogram": -0.1374,
-      "mfi14": 31.43,
-      "pctAboveSma50": -4.2,
-      "positionPct": 0.0,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
       "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 42.6,
-      "rsi6": 35.67,
-      "rsiDirection": -1.62,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 25.6376,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "LINK.OL",
-      "ticker": "LINK",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 22.68,
-      "close": 133.8,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": 0.0482,
-      "mfi14": 41.67,
-      "pctAboveSma50": -1.91,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "MODERATE",
-      "rsi14": 44.92,
-      "rsi6": 40.16,
-      "rsiDirection": 2.87,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 136.402,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 3.0,
-      "symbol": "TEL.OL",
-      "ticker": "TEL",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 16.12,
-      "close": 245.8,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -1.1718,
-      "mfi14": 53.11,
-      "pctAboveSma50": 0.02,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 45.72,
-      "rsi6": 32.58,
-      "rsiDirection": -5.27,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 245.748,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "VEND.OL",
-      "ticker": "VEND",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 11.17,
-      "close": 18.57,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": 0.0447,
-      "mfi14": 62.41,
-      "pctAboveSma50": -2.84,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 49.82,
-      "rsi6": 58.65,
-      "rsiDirection": 5.98,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 19.113,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "PUBLI.OL",
-      "ticker": "PUBLI",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 11.26,
-      "close": 56.64,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.0426,
-      "mfi14": 74.56,
-      "pctAboveSma50": 3.37,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 54.67,
-      "rsi6": 55.99,
-      "rsiDirection": -0.13,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 54.7932,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "KMAR.OL",
-      "ticker": "KMAR",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 24.03,
-      "close": 204.2,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.3704,
-      "mfi14": 53.49,
-      "pctAboveSma50": 4.04,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "MODERATE",
-      "rsi14": 55.14,
-      "rsi6": 54.68,
-      "rsiDirection": 3.67,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 196.2644,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 3.0,
-      "symbol": "MOWI.OL",
-      "ticker": "MOWI",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 11.32,
-      "close": 171.4,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": 0.7258,
-      "mfi14": 59.7,
-      "pctAboveSma50": 3.01,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 57.12,
-      "rsi6": 66.98,
-      "rsiDirection": 3.93,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 166.396,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "NOD.OL",
-      "ticker": "NOD",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 15.17,
-      "close": 80.65,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": 0.7442,
-      "mfi14": 81.57,
-      "pctAboveSma50": 10.84,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "LOW",
-      "rsi14": 61.0,
-      "rsi6": 57.9,
-      "rsiDirection": -11.81,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 72.7627,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 1.75,
-      "symbol": "HAFNI.OL",
-      "ticker": "HAFNI",
-      "watchlistMember": true
-    },
-    {
-      "adx14": 23.15,
-      "close": 132.7,
-      "coverageDetail": "Symbol is present in the current oslo-screener latest.csv/report output.",
-      "coverageStatus": "covered",
-      "dashboardSignal": null,
-      "date": "2026-09-08",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.0733,
-      "mfi14": 53.54,
-      "pctAboveSma50": 7.41,
-      "positionPct": 0.0,
-      "primaryCount": 0.0,
-      "risk": "MODERATE",
-      "rsi14": 61.16,
-      "rsi6": 61.42,
-      "rsiDirection": -0.29,
-      "signal": "NEUTRAL",
-      "signalTone": "neutral",
-      "sma50": 123.5427,
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": 3.0,
+      "stopLossPct": null,
       "symbol": "DOFG.OL",
       "ticker": "DOFG",
-      "watchlistMember": true
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "ELK.OL",
+      "ticker": "ELK",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "FRO.OL",
+      "ticker": "FRO",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "HAFNI.OL",
+      "ticker": "HAFNI",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "KMAR.OL",
+      "ticker": "KMAR",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "KOG.OL",
+      "ticker": "KOG",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "LINK.OL",
+      "ticker": "LINK",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "MOWI.OL",
+      "ticker": "MOWI",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "NOD.OL",
+      "ticker": "NOD",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "NORBT.OL",
+      "ticker": "NORBT",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "ODL.OL",
+      "ticker": "ODL",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "PUBLI.OL",
+      "ticker": "PUBLI",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "TEL.OL",
+      "ticker": "TEL",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
+    },
+    {
+      "adx14": null,
+      "close": null,
+      "coverageDetail": "Published producer health withholds this snapshot",
+      "coverageStatus": "withheld",
+      "dashboardSignal": null,
+      "dataStatus": "invalid",
+      "date": "2026-09-08",
+      "expectedSession": "2026-09-08",
+      "inDashboardScreener": false,
+      "macdHistogram": null,
+      "mfi14": null,
+      "pctAboveSma50": null,
+      "positionPct": null,
+      "primaryCount": 0.0,
+      "risk": null,
+      "rsi14": null,
+      "rsi6": null,
+      "rsiDirection": null,
+      "signal": "WITHHELD",
+      "signalTone": "missing",
+      "sma50": null,
+      "snapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": null,
+      "symbol": "VEND.OL",
+      "ticker": "VEND",
+      "watchlistMember": true,
+      "withheldReason": "Published producer health withholds this snapshot"
     }
   ],
   "screenerError": null,
-  "sourceDataFetchCompleted": "2026-09-08T11:13:03Z",
-  "sourceDataFetchStarted": "2026-09-08T11:12:01Z",
+  "snapshotId": "1319db16aa7b44ab9600b00332a82d9d",
+  "sourceDataFetchCompleted": "2026-09-09T06:50:25Z",
+  "sourceDataFetchStarted": "2026-09-09T06:49:56Z",
   "sourceDate": "2026-09-08",
   "sourceErrors": [],
-  "sourceGeneratedAt": "2026-09-08T11:13:03Z",
+  "sourceGeneratedAt": "2026-09-09T06:50:25Z",
+  "sourceHealth": {
+    "actionable": false,
+    "calendar_verified_through": 2026,
+    "coverage": {
+      "actionable_count": 0,
+      "current": 0,
+      "current_ratio": 0.0,
+      "invalid": 196,
+      "min_current_ratio": 0.9,
+      "missing": 0,
+      "received_count": 202,
+      "stale": 6,
+      "universe_count": 202
+    },
+    "eligible_tickers": [],
+    "evaluated_at": "2026-09-09T07:02:54.173342+00:00",
+    "excluded": [
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "2020.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ABG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ACR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AFG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AFK.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AGLX.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKAST.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKBM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKER.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKRBP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKSO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AKVA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "APR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AQUA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ARCH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ARR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ASA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ATEA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AURG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AUSS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AUTO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "AZT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "B2I.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BAKKA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BEWI.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "BIEN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BINT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BMA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BNOR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BOHUS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BONHR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BOR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BORR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BOUV.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BRG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BWE.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BWLPG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "BWO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CADLR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CAPSL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CAVEN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CLOUD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CMBTO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CONTX.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "COSH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "CRNA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "DELIA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "DFENS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "DNB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "DNO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "DOFG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "EIOF.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ELABS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ELK.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ELMRA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ELO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ENDUR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ENH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ENSU.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ENTRA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ENVIP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "EPR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "EQNR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "EQVA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "FRO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "GENO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "GENT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "GJF.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "GOD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "GSF.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "GYL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HAFNI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HAUTO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HAVI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HBC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HELG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HERMA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HEX.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HGSB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HPUR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HSHP.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "HSPG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HUNT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "HYPRO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "IDEX.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "INIFY.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ININ.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "IOX.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ITERA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "IWS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "JAREN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "JIN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KCC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KID.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KIT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KMAR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KOA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KOG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "KOMPL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "LIFE.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "LINK.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "LSG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MEDI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MELG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MGN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MING.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MORG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MORLD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MOWI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MPCC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "MULTI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NAPA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NAS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NAVA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NEL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NEXT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NHY.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NKR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NOD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NOL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NOM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NONG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NORBT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NORCO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NRC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NSKOG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "NYKD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ODF.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ODFB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ODL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "OET.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "OKEA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ONCIN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ORK.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "OTEC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "OTL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "OTOVO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PARB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PEN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PEXIP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PHO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PLSV.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PLT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PNOR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "POL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PROT.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PRS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PSE.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "PUBLI.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "PYRUM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "QEC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "REACH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "RING.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ROGS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SAGA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SALM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SALME.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SATS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SB1NO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SBNOR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SBO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SCANA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SCATC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SDSD.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SKUE.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SMOP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SNI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SNOR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SNTIA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SOAG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SOFF.OL"
+      },
+      {
+        "data_status": "stale",
+        "market_data_as_of": "2026-09-04",
+        "reason": "missing_expected_completed_session",
+        "ticker": "SOGN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SOMA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SPOG.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SPOL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "STB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "STECH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "STRO.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SUBC.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "SWON.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TECH.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TEKNA.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TEL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TGS.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TOM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TRMED.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "TRSB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VAR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VEI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VEND.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VISTN.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VOIM.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VOW.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "VVL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "WAWI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "WSTEP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "WWI.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "WWIB.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "YAR.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ZAL.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ZAP.OL"
+      },
+      {
+        "data_status": "invalid",
+        "market_data_as_of": "2026-09-08",
+        "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+        "ticker": "ZLNA.OL"
+      }
+    ],
+    "expected_session": "2026-09-08",
+    "generated_at": "2026-09-09T06:50:25Z",
+    "market_data_as_of": "2026-09-07",
+    "observation_dates": {
+      "2026-09-04": 6,
+      "2026-09-08": 196
+    },
+    "reasons": [
+      "current_coverage_below_minimum",
+      "published_health_unverified: Published producer health withholds this snapshot"
+    ],
+    "schema": "oslo_screener.health.v1",
+    "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
+    "snapshot_id": "553dd909723b41b5ade1eb0d07f40ea3",
+    "status": "blocked",
+    "valid_until": "2026-09-09T16:45:00+02:00"
+  },
   "sourceReliability": "Parsed from the current oslo-screener latest.csv/report output. Open/free technical data is screening context only and does not create buy/sell advice.",
+  "sourceSnapshotId": "553dd909723b41b5ade1eb0d07f40ea3",
   "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
   "sourceUrls": [
     "https://keresell-coder.github.io/oslo-screener/latest.csv",
