@@ -9,12 +9,13 @@
       "consensusRatingSummary": {
         "confidence": "low",
         "counts": {
-          "BUY": 1,
+          "BUY": 0,
           "HOLD": 0,
+          "NONE": 1,
           "SELL": 0,
           "unknown": 0
         },
-        "label": "BUY",
+        "label": "NONE",
         "method": "Provider-row count of raw rating labels. No majority, analyst-count weighted, or deduplicated recommendation is produced.",
         "providerRows": 1,
         "reportedAnalystRefs": 4.0,
@@ -22,12 +23,13 @@
       },
       "consensusRecommendation": {
         "counts": {
-          "BUY": 1,
+          "BUY": 0,
           "HOLD": 0,
+          "NONE": 1,
           "SELL": 0,
           "unknown": 0
         },
-        "label": "BUY",
+        "label": "NONE",
         "method": "Provider-row count of raw rating labels. No majority, analyst-count weighted, or deduplicated recommendation is produced.",
         "providerRows": 1,
         "sourceCount": 1
@@ -37,15 +39,15 @@
         {
           "analyst_count": 4.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:41+00:00",
-          "collected_at_epoch": 1790022521,
+          "collected_at": "2026-09-22T10:13:31+00:00",
+          "collected_at_epoch": 1790072011,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
           "limitation_note": "Free provider-row data. Methodology, contributor overlap, and estimate timestamp are not independently verified by this app.",
           "method_note": "Yahoo/yfinance target and rating-label fields are not treated as verified consensus weighting.",
-          "recommendation": "buy",
-          "recommendation_score": 1.8,
+          "recommendation": "none",
+          "recommendation_score": null,
           "reviewStatus": "provider-row",
           "review_status": "provider-row",
           "source": "Yahoo Finance via yfinance",
@@ -77,7 +79,7 @@
         "target": 176.25,
         "targetHigh": 190.0,
         "targetLow": 165.0,
-        "targetUpsidePct": 18.766846361185973
+        "targetUpsidePct": 18.13002680965148
       },
       "eventAlert": {
         "category": "earnings",
@@ -88,7 +90,7 @@
           "category": "earnings",
           "categoryLabel": "Earnings",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:42+00:00",
+          "created_at": "2026-09-22T10:13:32+00:00",
           "created_at_epoch": 1789718245,
           "id": "newsweb-682672",
           "importance": "medium",
@@ -112,9 +114,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:41+00:00",
+      "fetchedAt": "2026-09-22T10:13:31+00:00",
       "fundamentalHighlight": {
-        "detail": "88.3x TTM / 14.1x forward.",
+        "detail": "88.3x TTM / 14.2x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -126,14 +128,14 @@
       },
       "name": "BORREGAARD",
       "newswebFetch": {
-        "ageSeconds": 77,
-        "attemptedAt": "2026-09-21T20:28:42+00:00",
-        "attemptedAtEpoch": 1790022522,
+        "ageSeconds": 76,
+        "attemptedAt": "2026-09-22T10:13:32+00:00",
+        "attemptedAtEpoch": 1790072012,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:42+00:00",
-        "fetchedAtEpoch": 1790022522,
+        "fetchedAt": "2026-09-22T10:13:32+00:00",
+        "fetchedAtEpoch": 1790072012,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -153,18 +155,18 @@
         "label": "No peer group",
         "status": "missing"
       },
-      "price": 148.4,
+      "price": 149.2,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:27+00:00",
+      "priceObservedAt": "2026-09-22T09:52:15+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:41+00:00",
-        "price": 148.4,
+        "fetchedAt": "2026-09-22T10:13:31+00:00",
+        "price": 149.2,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:27+00:00",
+        "priceObservedAt": "2026-09-22T09:52:15+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:41+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:31+00:00"
       },
       "screenerSignal": null,
       "sector": "Basic Materials",
@@ -173,7 +175,7 @@
           "category": "earnings",
           "categoryLabel": "Earnings",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:42+00:00",
+          "created_at": "2026-09-22T10:13:32+00:00",
           "created_at_epoch": 1789718245,
           "id": "newsweb-682672",
           "importance": "medium",
@@ -198,7 +200,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:42+00:00",
+          "created_at": "2026-09-22T10:13:32+00:00",
           "created_at_epoch": 1789643655,
           "id": "newsweb-682559",
           "importance": "medium",
@@ -223,7 +225,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:42+00:00",
+          "created_at": "2026-09-22T10:13:32+00:00",
           "created_at_epoch": 1789624809,
           "id": "newsweb-682523",
           "importance": "normal",
@@ -245,11 +247,11 @@
           "url": "https://newsweb.oslobors.no/message/682523"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:41+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:31+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "BRG.OL",
-      "targetUpsidePct": 18.766846361185973,
+      "targetUpsidePct": 18.13002680965148,
       "technicalSignal": {
         "adx14": 31.8,
         "close": 148.4,
@@ -317,8 +319,8 @@
         {
           "analyst_count": 6.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:43+00:00",
-          "collected_at_epoch": 1790022523,
+          "collected_at": "2026-09-22T10:13:33+00:00",
+          "collected_at_epoch": 1790072013,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -335,14 +337,14 @@
           "staleStatus": "fresh",
           "symbol": "DOFG.OL",
           "target_currency": "NOK",
-          "target_high": 162.50847,
-          "target_low": 135.50244,
-          "target_mean": 149.97054
+          "target_high": 162.54546,
+          "target_low": 135.53328,
+          "target_mean": 150.00468
         }
       ],
       "consensusStatus": "single-provider-row",
-      "consensusTarget": 149.97054,
-      "consensusTargetAcrossSources": 149.97054,
+      "consensusTarget": 150.00468,
+      "consensusTargetAcrossSources": 150.00468,
       "consensusTargetMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
       "consensusTargetSource": "Yahoo Finance via yfinance",
       "consensusTargetSummary": {
@@ -354,10 +356,10 @@
         "sourceLinkedRows": 1,
         "sourceRows": 1,
         "status": "single-provider-row",
-        "target": 149.97054,
-        "targetHigh": 162.50847,
-        "targetLow": 135.50244,
-        "targetUpsidePct": 11.585223214285701
+        "target": 150.00468,
+        "targetHigh": 162.54546,
+        "targetLow": 135.53328,
+        "targetUpsidePct": 14.77022188217294
       },
       "eventAlert": {
         "category": "corporate-action",
@@ -368,7 +370,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:44+00:00",
+          "created_at": "2026-09-22T10:13:33+00:00",
           "created_at_epoch": 1789448731,
           "id": "newsweb-682299",
           "importance": "normal",
@@ -392,9 +394,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:43+00:00",
+      "fetchedAt": "2026-09-22T10:13:33+00:00",
       "fundamentalHighlight": {
-        "detail": "10.3%; check payout durability.",
+        "detail": "10.6%; check payout durability.",
         "label": "Dividend yield stands out",
         "tone": "info"
       },
@@ -407,13 +409,13 @@
       "name": "DOF GROUP ASA",
       "newswebFetch": {
         "ageSeconds": 75,
-        "attemptedAt": "2026-09-21T20:28:44+00:00",
-        "attemptedAtEpoch": 1790022524,
+        "attemptedAt": "2026-09-22T10:13:33+00:00",
+        "attemptedAtEpoch": 1790072013,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:44+00:00",
-        "fetchedAtEpoch": 1790022524,
+        "fetchedAt": "2026-09-22T10:13:33+00:00",
+        "fetchedAtEpoch": 1790072013,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -422,13 +424,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "85th percentile of 250 daily closes; range position 84%.",
-        "label": "High 52-week price percentile",
-        "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 35.2,
-        "metricKey": "price",
-        "source": "Yahoo Finance via yfinance",
-        "status": "available"
+        "detail": "Enough history for context, but no price or multiple gap crossed the Watchlist signal threshold.",
+        "label": "No large own-history gap",
+        "source": "Yahoo/yfinance and local fundamentals snapshots",
+        "status": "no watchlist signal"
       },
       "peerContext": {
         "detail": "7 peers configured. 7 loaded peer row(s); minimum 3 for metric context.",
@@ -439,20 +438,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 7,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 134.4,
+      "price": 130.7,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:28+00:00",
+      "priceObservedAt": "2026-09-22T09:58:29+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:43+00:00",
-        "price": 134.4,
+        "fetchedAt": "2026-09-22T10:13:33+00:00",
+        "price": 130.7,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:28+00:00",
+        "priceObservedAt": "2026-09-22T09:58:29+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:43+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:33+00:00"
       },
       "screenerSignal": null,
       "sector": "Industrials",
@@ -461,7 +460,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:44+00:00",
+          "created_at": "2026-09-22T10:13:33+00:00",
           "created_at_epoch": 1789448731,
           "id": "newsweb-682299",
           "importance": "normal",
@@ -486,7 +485,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:44+00:00",
+          "created_at": "2026-09-22T10:13:33+00:00",
           "created_at_epoch": 1788438083,
           "id": "newsweb-681623",
           "importance": "medium",
@@ -511,7 +510,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:44+00:00",
+          "created_at": "2026-09-22T10:13:33+00:00",
           "created_at_epoch": 1787806810,
           "id": "newsweb-680942",
           "importance": "medium",
@@ -533,11 +532,11 @@
           "url": "https://newsweb.oslobors.no/message/680942"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:43+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:33+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "DOFG.OL",
-      "targetUpsidePct": 11.585223214285701,
+      "targetUpsidePct": 14.77022188217294,
       "technicalSignal": {
         "adx14": 23.97,
         "close": 134.4,
@@ -605,8 +604,8 @@
         {
           "analyst_count": 6.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:44+00:00",
-          "collected_at_epoch": 1790022524,
+          "collected_at": "2026-09-22T10:13:34+00:00",
+          "collected_at_epoch": 1790072014,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -656,7 +655,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:45+00:00",
+          "created_at": "2026-09-22T10:13:35+00:00",
           "created_at_epoch": 1789996224,
           "id": "newsweb-682805",
           "importance": "normal",
@@ -680,7 +679,7 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:44+00:00",
+      "fetchedAt": "2026-09-22T10:13:34+00:00",
       "fundamentalHighlight": {
         "detail": "74.6x TTM / 9.9x forward.",
         "label": "Forward P/E below TTM",
@@ -694,14 +693,14 @@
       },
       "name": "ELKEM",
       "newswebFetch": {
-        "ageSeconds": 74,
-        "attemptedAt": "2026-09-21T20:28:45+00:00",
-        "attemptedAtEpoch": 1790022525,
+        "ageSeconds": 73,
+        "attemptedAt": "2026-09-22T10:13:35+00:00",
+        "attemptedAtEpoch": 1790072015,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:45+00:00",
-        "fetchedAtEpoch": 1790022525,
+        "fetchedAt": "2026-09-22T10:13:35+00:00",
+        "fetchedAtEpoch": 1790072015,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -710,10 +709,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "98th percentile of 250 daily closes; range position 91%.",
+        "detail": "98th percentile of 251 daily closes; range position 91%.",
         "label": "Near 52-week high",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 47.599999999999994,
+        "magnitude": 47.60956175298804,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -726,16 +725,16 @@
       },
       "price": 35.8,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:29:12+00:00",
+      "priceObservedAt": "2026-09-22T09:58:13+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:44+00:00",
+        "fetchedAt": "2026-09-22T10:13:34+00:00",
         "price": 35.8,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:29:12+00:00",
+        "priceObservedAt": "2026-09-22T09:58:13+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:44+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:34+00:00"
       },
       "screenerSignal": null,
       "sector": "Basic Materials",
@@ -744,7 +743,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:45+00:00",
+          "created_at": "2026-09-22T10:13:35+00:00",
           "created_at_epoch": 1789996224,
           "id": "newsweb-682805",
           "importance": "normal",
@@ -769,7 +768,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:45+00:00",
+          "created_at": "2026-09-22T10:13:35+00:00",
           "created_at_epoch": 1789473644,
           "id": "newsweb-682348",
           "importance": "medium",
@@ -794,7 +793,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:45+00:00",
+          "created_at": "2026-09-22T10:13:35+00:00",
           "created_at_epoch": 1789473640,
           "id": "newsweb-682347",
           "importance": "medium",
@@ -816,7 +815,7 @@
           "url": "https://newsweb.oslobors.no/message/682347"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:44+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:34+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "ELK.OL",
@@ -888,8 +887,8 @@
         {
           "analyst_count": 5.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:46+00:00",
-          "collected_at_epoch": 1790022526,
+          "collected_at": "2026-09-22T10:13:35+00:00",
+          "collected_at_epoch": 1790072015,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -906,14 +905,14 @@
           "staleStatus": "fresh",
           "symbol": "FRO.OL",
           "target_currency": "NOK",
-          "target_high": 480.2142,
-          "target_low": 367.78827,
-          "target_mean": 429.01324
+          "target_high": 480.3052,
+          "target_low": 367.85797,
+          "target_mean": 429.09454
         }
       ],
       "consensusStatus": "single-provider-row",
-      "consensusTarget": 429.01324,
-      "consensusTargetAcrossSources": 429.01324,
+      "consensusTarget": 429.09454,
+      "consensusTargetAcrossSources": 429.09454,
       "consensusTargetMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
       "consensusTargetSource": "Yahoo Finance via yfinance",
       "consensusTargetSummary": {
@@ -925,10 +924,10 @@
         "sourceLinkedRows": 1,
         "sourceRows": 1,
         "status": "single-provider-row",
-        "target": 429.01324,
-        "targetHigh": 480.2142,
-        "targetLow": 367.78827,
-        "targetUpsidePct": -12.731236777868194
+        "target": 429.09454,
+        "targetHigh": 480.3052,
+        "targetLow": 367.85797,
+        "targetUpsidePct": -6.596747932085323
       },
       "eventAlert": {
         "category": "dividend",
@@ -939,7 +938,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:47+00:00",
+          "created_at": "2026-09-22T10:13:36+00:00",
           "created_at_epoch": 1789624800,
           "id": "newsweb-682518",
           "importance": "medium",
@@ -963,9 +962,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:46+00:00",
+      "fetchedAt": "2026-09-22T10:13:35+00:00",
       "fundamentalHighlight": {
-        "detail": "20.0%; check payout durability.",
+        "detail": "21.4%; check payout durability.",
         "label": "Dividend yield stands out",
         "tone": "info"
       },
@@ -978,13 +977,13 @@
       "name": "FRONTLINE PLC",
       "newswebFetch": {
         "ageSeconds": 72,
-        "attemptedAt": "2026-09-21T20:28:47+00:00",
-        "attemptedAtEpoch": 1790022527,
+        "attemptedAt": "2026-09-22T10:13:36+00:00",
+        "attemptedAtEpoch": 1790072016,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:47+00:00",
-        "fetchedAtEpoch": 1790022527,
+        "fetchedAt": "2026-09-22T10:13:36+00:00",
+        "fetchedAtEpoch": 1790072016,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -993,10 +992,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "99th percentile of 250 daily closes; range position 95%.",
+        "detail": "98th percentile of 251 daily closes; range position 84%.",
         "label": "Near 52-week high",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 48.8,
+        "magnitude": 47.60956175298804,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -1010,20 +1009,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 5,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 491.6,
+      "price": 459.4,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:27:10+00:00",
+      "priceObservedAt": "2026-09-22T09:58:00+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:46+00:00",
-        "price": 491.6,
+        "fetchedAt": "2026-09-22T10:13:35+00:00",
+        "price": 459.4,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:27:10+00:00",
+        "priceObservedAt": "2026-09-22T09:58:00+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:46+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:35+00:00"
       },
       "screenerSignal": null,
       "sector": "Energy",
@@ -1032,7 +1031,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:47+00:00",
+          "created_at": "2026-09-22T10:13:36+00:00",
           "created_at_epoch": 1789624800,
           "id": "newsweb-682518",
           "importance": "medium",
@@ -1057,7 +1056,7 @@
           "category": "earnings",
           "categoryLabel": "Earnings",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:47+00:00",
+          "created_at": "2026-09-22T10:13:36+00:00",
           "created_at_epoch": 1789589422,
           "id": "newsweb-682512",
           "importance": "medium",
@@ -1082,7 +1081,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:47+00:00",
+          "created_at": "2026-09-22T10:13:36+00:00",
           "created_at_epoch": 1789158900,
           "id": "newsweb-682181",
           "importance": "medium",
@@ -1104,11 +1103,11 @@
           "url": "https://newsweb.oslobors.no/message/682181"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:46+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:35+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "FRO.OL",
-      "targetUpsidePct": -12.731236777868194,
+      "targetUpsidePct": -6.596747932085323,
       "technicalSignal": {
         "adx14": 34.59,
         "close": 491.6,
@@ -1176,8 +1175,8 @@
         {
           "analyst_count": 5.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:47+00:00",
-          "collected_at_epoch": 1790022527,
+          "collected_at": "2026-09-22T10:13:36+00:00",
+          "collected_at_epoch": 1790072016,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -1216,7 +1215,7 @@
         "target": 86.0,
         "targetHigh": 90.0,
         "targetLow": 80.0,
-        "targetUpsidePct": -9.18690601900739
+        "targetUpsidePct": -3.0985915492957705
       },
       "eventAlert": {
         "category": "m-a",
@@ -1227,7 +1226,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:48+00:00",
+          "created_at": "2026-09-22T10:13:37+00:00",
           "created_at_epoch": 1789537507,
           "id": "newsweb-682407",
           "importance": "medium",
@@ -1251,9 +1250,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:47+00:00",
+      "fetchedAt": "2026-09-22T10:13:36+00:00",
       "fundamentalHighlight": {
-        "detail": "11.2%; check payout durability.",
+        "detail": "11.9%; check payout durability.",
         "label": "Dividend yield stands out",
         "tone": "info"
       },
@@ -1266,13 +1265,13 @@
       "name": "HAFNIA LIMITED",
       "newswebFetch": {
         "ageSeconds": 71,
-        "attemptedAt": "2026-09-21T20:28:48+00:00",
-        "attemptedAtEpoch": 1790022528,
+        "attemptedAt": "2026-09-22T10:13:37+00:00",
+        "attemptedAtEpoch": 1790072017,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:48+00:00",
-        "fetchedAtEpoch": 1790022528,
+        "fetchedAt": "2026-09-22T10:13:37+00:00",
+        "fetchedAtEpoch": 1790072017,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -1281,10 +1280,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "100th percentile of 250 daily closes; range position 100%.",
+        "detail": "98th percentile of 251 daily closes; range position 86%.",
         "label": "Near 52-week high",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 50.0,
+        "magnitude": 48.40637450199203,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -1298,20 +1297,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 5,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 94.7,
+      "price": 88.75,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:28+00:00",
+      "priceObservedAt": "2026-09-22T09:58:22+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:47+00:00",
-        "price": 94.7,
+        "fetchedAt": "2026-09-22T10:13:36+00:00",
+        "price": 88.75,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:28+00:00",
+        "priceObservedAt": "2026-09-22T09:58:22+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:47+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:36+00:00"
       },
       "screenerSignal": null,
       "sector": "Industrials",
@@ -1320,7 +1319,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:48+00:00",
+          "created_at": "2026-09-22T10:13:37+00:00",
           "created_at_epoch": 1789537507,
           "id": "newsweb-682407",
           "importance": "medium",
@@ -1345,7 +1344,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:48+00:00",
+          "created_at": "2026-09-22T10:13:37+00:00",
           "created_at_epoch": 1788759177,
           "id": "newsweb-681715",
           "importance": "medium",
@@ -1370,7 +1369,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:48+00:00",
+          "created_at": "2026-09-22T10:13:37+00:00",
           "created_at_epoch": 1788415205,
           "id": "newsweb-681509",
           "importance": "normal",
@@ -1392,11 +1391,11 @@
           "url": "https://newsweb.oslobors.no/message/681509"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:47+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:36+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "HAFNI.OL",
-      "targetUpsidePct": -9.18690601900739,
+      "targetUpsidePct": -3.0985915492957705,
       "technicalSignal": {
         "adx14": 29.25,
         "close": 94.7,
@@ -1464,8 +1463,8 @@
         {
           "analyst_count": 5.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:49+00:00",
-          "collected_at_epoch": 1790022529,
+          "collected_at": "2026-09-22T10:13:38+00:00",
+          "collected_at_epoch": 1790072018,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -1504,7 +1503,7 @@
         "target": 68.8,
         "targetHigh": 80.0,
         "targetLow": 50.0,
-        "targetUpsidePct": 9.86905142127117
+        "targetUpsidePct": 6.172839506172845
       },
       "eventAlert": {
         "category": "financing-private-placement",
@@ -1515,7 +1514,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:49+00:00",
+          "created_at": "2026-09-22T10:13:39+00:00",
           "created_at_epoch": 1787148482,
           "id": "newsweb-680225",
           "importance": "medium",
@@ -1539,9 +1538,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:49+00:00",
+      "fetchedAt": "2026-09-22T10:13:38+00:00",
       "fundamentalHighlight": {
-        "detail": "6.6x book; compare with ROE and growth.",
+        "detail": "6.9x book; compare with ROE and growth.",
         "label": "High P/B multiple",
         "tone": "info"
       },
@@ -1553,14 +1552,14 @@
       },
       "name": "KONGSBERG MARITIME ASA",
       "newswebFetch": {
-        "ageSeconds": 70,
-        "attemptedAt": "2026-09-21T20:28:49+00:00",
-        "attemptedAtEpoch": 1790022529,
+        "ageSeconds": 69,
+        "attemptedAt": "2026-09-22T10:13:39+00:00",
+        "attemptedAtEpoch": 1790072019,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:49+00:00",
-        "fetchedAtEpoch": 1790022529,
+        "fetchedAt": "2026-09-22T10:13:39+00:00",
+        "fetchedAtEpoch": 1790072019,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -1580,18 +1579,18 @@
         "label": "No peer group",
         "status": "missing"
       },
-      "price": 62.62,
+      "price": 64.8,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:29:14+00:00",
+      "priceObservedAt": "2026-09-22T09:58:12+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:49+00:00",
-        "price": 62.62,
+        "fetchedAt": "2026-09-22T10:13:38+00:00",
+        "price": 64.8,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:29:14+00:00",
+        "priceObservedAt": "2026-09-22T09:58:12+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:49+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:38+00:00"
       },
       "screenerSignal": null,
       "sector": "Industrials",
@@ -1600,7 +1599,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:49+00:00",
+          "created_at": "2026-09-22T10:13:39+00:00",
           "created_at_epoch": 1787148482,
           "id": "newsweb-680225",
           "importance": "medium",
@@ -1625,7 +1624,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:49+00:00",
+          "created_at": "2026-09-22T10:13:39+00:00",
           "created_at_epoch": 1786946411,
           "id": "newsweb-679910",
           "importance": "medium",
@@ -1650,7 +1649,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:49+00:00",
+          "created_at": "2026-09-22T10:13:39+00:00",
           "created_at_epoch": 1784115004,
           "id": "newsweb-678246",
           "importance": "medium",
@@ -1672,11 +1671,11 @@
           "url": "https://newsweb.oslobors.no/message/678246"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:49+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:38+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "KMAR.OL",
-      "targetUpsidePct": 9.86905142127117,
+      "targetUpsidePct": 6.172839506172845,
       "technicalSignal": {
         "adx14": 21.96,
         "close": 62.62,
@@ -1744,8 +1743,8 @@
         {
           "analyst_count": 11.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:50+00:00",
-          "collected_at_epoch": 1790022530,
+          "collected_at": "2026-09-22T10:13:39+00:00",
+          "collected_at_epoch": 1790072019,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -1784,7 +1783,7 @@
         "target": 395.45456,
         "targetHigh": 554.0,
         "targetLow": 320.0,
-        "targetUpsidePct": 22.850127368748076
+        "targetUpsidePct": 21.640898185173786
       },
       "eventAlert": {
         "category": "earnings",
@@ -1795,7 +1794,7 @@
           "category": "earnings",
           "categoryLabel": "Earnings",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:51+00:00",
+          "created_at": "2026-09-22T10:13:40+00:00",
           "created_at_epoch": 1789040864,
           "id": "newsweb-681970",
           "importance": "medium",
@@ -1819,9 +1818,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:50+00:00",
+      "fetchedAt": "2026-09-22T10:13:39+00:00",
       "fundamentalHighlight": {
-        "detail": "53.6x TTM / 28.5x forward.",
+        "detail": "54.2x TTM / 28.8x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -1834,13 +1833,13 @@
       "name": "KONGSBERG GRUPPEN",
       "newswebFetch": {
         "ageSeconds": 68,
-        "attemptedAt": "2026-09-21T20:28:51+00:00",
-        "attemptedAtEpoch": 1790022531,
+        "attemptedAt": "2026-09-22T10:13:40+00:00",
+        "attemptedAtEpoch": 1790072020,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:51+00:00",
-        "fetchedAtEpoch": 1790022531,
+        "fetchedAt": "2026-09-22T10:13:40+00:00",
+        "fetchedAtEpoch": 1790072020,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -1863,20 +1862,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 10,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 321.9,
+      "price": 325.1,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:27:32+00:00",
+      "priceObservedAt": "2026-09-22T09:58:03+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:50+00:00",
-        "price": 321.9,
+        "fetchedAt": "2026-09-22T10:13:39+00:00",
+        "price": 325.1,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:27:32+00:00",
+        "priceObservedAt": "2026-09-22T09:58:03+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:50+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:39+00:00"
       },
       "screenerSignal": null,
       "sector": "Industrials",
@@ -1885,7 +1884,7 @@
           "category": "earnings",
           "categoryLabel": "Earnings",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:51+00:00",
+          "created_at": "2026-09-22T10:13:40+00:00",
           "created_at_epoch": 1789040864,
           "id": "newsweb-681970",
           "importance": "medium",
@@ -1910,7 +1909,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:51+00:00",
+          "created_at": "2026-09-22T10:13:40+00:00",
           "created_at_epoch": 1789040864,
           "id": "newsweb-681969",
           "importance": "normal",
@@ -1935,7 +1934,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:51+00:00",
+          "created_at": "2026-09-22T10:13:40+00:00",
           "created_at_epoch": 1788289211,
           "id": "newsweb-681421",
           "importance": "normal",
@@ -1957,11 +1956,11 @@
           "url": "https://newsweb.oslobors.no/message/681421"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:50+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:39+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "KOG.OL",
-      "targetUpsidePct": 22.850127368748076,
+      "targetUpsidePct": 21.640898185173786,
       "technicalSignal": {
         "adx14": 14.49,
         "close": 321.9,
@@ -2031,8 +2030,8 @@
         {
           "analyst_count": 5.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:52+00:00",
-          "collected_at_epoch": 1790022532,
+          "collected_at": "2026-09-22T10:13:40+00:00",
+          "collected_at_epoch": 1790072020,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -2071,7 +2070,7 @@
         "target": 35.0,
         "targetHigh": 38.0,
         "targetLow": 30.0,
-        "targetUpsidePct": 48.054145516074456
+        "targetUpsidePct": 46.32107023411369
       },
       "eventAlert": {
         "category": "corporate-action",
@@ -2082,7 +2081,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:52+00:00",
+          "created_at": "2026-09-22T10:13:41+00:00",
           "created_at_epoch": 1789650003,
           "id": "newsweb-682633",
           "importance": "normal",
@@ -2106,9 +2105,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:52+00:00",
+      "fetchedAt": "2026-09-22T10:13:40+00:00",
       "fundamentalHighlight": {
-        "detail": "38.1x TTM / 13.7x forward.",
+        "detail": "38.6x TTM / 13.9x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -2121,13 +2120,13 @@
       "name": "LINK MOBILITY GROUP HOLDING",
       "newswebFetch": {
         "ageSeconds": 67,
-        "attemptedAt": "2026-09-21T20:28:52+00:00",
-        "attemptedAtEpoch": 1790022532,
+        "attemptedAt": "2026-09-22T10:13:41+00:00",
+        "attemptedAtEpoch": 1790072021,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:52+00:00",
-        "fetchedAtEpoch": 1790022532,
+        "fetchedAt": "2026-09-22T10:13:41+00:00",
+        "fetchedAtEpoch": 1790072021,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -2150,20 +2149,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 6,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 23.64,
+      "price": 23.92,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:57+00:00",
+      "priceObservedAt": "2026-09-22T09:58:16+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:52+00:00",
-        "price": 23.64,
+        "fetchedAt": "2026-09-22T10:13:40+00:00",
+        "price": 23.92,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:57+00:00",
+        "priceObservedAt": "2026-09-22T09:58:16+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:52+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:40+00:00"
       },
       "screenerSignal": null,
       "sector": "Communication Services",
@@ -2172,7 +2171,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:52+00:00",
+          "created_at": "2026-09-22T10:13:41+00:00",
           "created_at_epoch": 1789650003,
           "id": "newsweb-682633",
           "importance": "normal",
@@ -2197,7 +2196,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:52+00:00",
+          "created_at": "2026-09-22T10:13:41+00:00",
           "created_at_epoch": 1789473687,
           "id": "newsweb-682358",
           "importance": "medium",
@@ -2222,7 +2221,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:52+00:00",
+          "created_at": "2026-09-22T10:13:41+00:00",
           "created_at_epoch": 1789117184,
           "id": "newsweb-682104",
           "importance": "normal",
@@ -2244,11 +2243,11 @@
           "url": "https://newsweb.oslobors.no/message/682104"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:52+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:40+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "LINK.OL",
-      "targetUpsidePct": 48.054145516074456,
+      "targetUpsidePct": 46.32107023411369,
       "technicalSignal": {
         "adx14": 17.3,
         "close": 23.64,
@@ -2316,8 +2315,8 @@
         {
           "analyst_count": 11.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:53+00:00",
-          "collected_at_epoch": 1790022533,
+          "collected_at": "2026-09-22T10:13:42+00:00",
+          "collected_at_epoch": 1790072022,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -2334,14 +2333,14 @@
           "staleStatus": "fresh",
           "symbol": "MOWI.OL",
           "target_currency": "NOK",
-          "target_high": 247.8354,
-          "target_low": 194.03395,
-          "target_mean": 224.4179
+          "target_high": 247.84363,
+          "target_low": 194.04039,
+          "target_mean": 224.42535
         }
       ],
       "consensusStatus": "single-provider-row",
-      "consensusTarget": 224.4179,
-      "consensusTargetAcrossSources": 224.4179,
+      "consensusTarget": 224.42535,
+      "consensusTargetAcrossSources": 224.42535,
       "consensusTargetMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
       "consensusTargetSource": "Yahoo Finance via yfinance",
       "consensusTargetSummary": {
@@ -2353,10 +2352,10 @@
         "sourceLinkedRows": 1,
         "sourceRows": 1,
         "status": "single-provider-row",
-        "target": 224.4179,
-        "targetHigh": 247.8354,
-        "targetLow": 194.03395,
-        "targetUpsidePct": 15.85849251419722
+        "target": 224.42535,
+        "targetHigh": 247.84363,
+        "targetLow": 194.04039,
+        "targetUpsidePct": 14.561179173047467
       },
       "eventAlert": {
         "category": "financing-private-placement",
@@ -2367,7 +2366,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:54+00:00",
+          "created_at": "2026-09-22T10:13:43+00:00",
           "created_at_epoch": 1788436470,
           "id": "newsweb-681610",
           "importance": "medium",
@@ -2391,9 +2390,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:53+00:00",
+      "fetchedAt": "2026-09-22T10:13:42+00:00",
       "fundamentalHighlight": {
-        "detail": "P/E 14.7x; fwd 13.0x; yield 3.9%",
+        "detail": "P/E 15.2x; fwd 13.0x; yield 3.9%",
         "label": "Core multiples",
         "tone": "neutral"
       },
@@ -2406,13 +2405,13 @@
       "name": "MOWI",
       "newswebFetch": {
         "ageSeconds": 65,
-        "attemptedAt": "2026-09-21T20:28:54+00:00",
-        "attemptedAtEpoch": 1790022534,
+        "attemptedAt": "2026-09-22T10:13:43+00:00",
+        "attemptedAtEpoch": 1790072023,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:54+00:00",
-        "fetchedAtEpoch": 1790022534,
+        "fetchedAt": "2026-09-22T10:13:43+00:00",
+        "fetchedAtEpoch": 1790072023,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -2421,10 +2420,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "9th percentile of 250 daily closes; range position 20%.",
-        "label": "Near 52-week low",
+        "detail": "14th percentile of 251 daily closes; range position 24%.",
+        "label": "Low 52-week price percentile",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 41.2,
+        "magnitude": 36.454183266932276,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -2438,20 +2437,20 @@
         "note": "Trusted peer group, still descriptive and dependent on source coverage.",
         "peerCount": 6,
         "status": "trusted",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 193.7,
+      "price": 195.9,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:28:02+00:00",
+      "priceObservedAt": "2026-09-22T09:58:07+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:53+00:00",
-        "price": 193.7,
+        "fetchedAt": "2026-09-22T10:13:42+00:00",
+        "price": 195.9,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:28:02+00:00",
+        "priceObservedAt": "2026-09-22T09:58:07+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:53+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:42+00:00"
       },
       "screenerSignal": null,
       "sector": "Consumer Defensive",
@@ -2460,7 +2459,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:54+00:00",
+          "created_at": "2026-09-22T10:13:43+00:00",
           "created_at_epoch": 1788436470,
           "id": "newsweb-681610",
           "importance": "medium",
@@ -2485,7 +2484,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:54+00:00",
+          "created_at": "2026-09-22T10:13:43+00:00",
           "created_at_epoch": 1788263083,
           "id": "newsweb-681402",
           "importance": "medium",
@@ -2510,7 +2509,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:54+00:00",
+          "created_at": "2026-09-22T10:13:43+00:00",
           "created_at_epoch": 1788177005,
           "id": "newsweb-681282",
           "importance": "medium",
@@ -2532,11 +2531,11 @@
           "url": "https://newsweb.oslobors.no/message/681282"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:53+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:42+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "MOWI.OL",
-      "targetUpsidePct": 15.85849251419722,
+      "targetUpsidePct": 14.561179173047467,
       "technicalSignal": {
         "adx14": 18.41,
         "close": 193.7,
@@ -2604,8 +2603,8 @@
         {
           "analyst_count": 16.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:54+00:00",
-          "collected_at_epoch": 1790022534,
+          "collected_at": "2026-09-22T10:13:43+00:00",
+          "collected_at_epoch": 1790072023,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -2644,7 +2643,7 @@
         "target": 195.15494,
         "targetHigh": 250.0,
         "targetLow": 136.479,
-        "targetUpsidePct": 7.227989010989022
+        "targetUpsidePct": 5.261564185544776
       },
       "eventAlert": {
         "category": "financing-private-placement",
@@ -2655,7 +2654,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:55+00:00",
+          "created_at": "2026-09-22T10:13:44+00:00",
           "created_at_epoch": 1787658831,
           "id": "newsweb-680695",
           "importance": "medium",
@@ -2679,9 +2678,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:54+00:00",
+      "fetchedAt": "2026-09-22T10:13:43+00:00",
       "fundamentalHighlight": {
-        "detail": "40.3x; verify before using.",
+        "detail": "41.3x; verify before using.",
         "label": "EV/EBITDA source outlier",
         "tone": "warning"
       },
@@ -2694,13 +2693,13 @@
       "name": "NORDIC SEMICONDUCTOR",
       "newswebFetch": {
         "ageSeconds": 64,
-        "attemptedAt": "2026-09-21T20:28:55+00:00",
-        "attemptedAtEpoch": 1790022535,
+        "attemptedAt": "2026-09-22T10:13:44+00:00",
+        "attemptedAtEpoch": 1790072024,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:55+00:00",
-        "fetchedAtEpoch": 1790022535,
+        "fetchedAt": "2026-09-22T10:13:44+00:00",
+        "fetchedAtEpoch": 1790072024,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -2723,20 +2722,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 6,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 182.0,
+      "price": 185.4,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:55+00:00",
+      "priceObservedAt": "2026-09-22T09:57:17+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:54+00:00",
-        "price": 182.0,
+        "fetchedAt": "2026-09-22T10:13:43+00:00",
+        "price": 185.4,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:55+00:00",
+        "priceObservedAt": "2026-09-22T09:57:17+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:54+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:43+00:00"
       },
       "screenerSignal": null,
       "sector": "Technology",
@@ -2745,7 +2744,7 @@
           "category": "financing-private-placement",
           "categoryLabel": "Financing/private placement",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:55+00:00",
+          "created_at": "2026-09-22T10:13:44+00:00",
           "created_at_epoch": 1787658831,
           "id": "newsweb-680695",
           "importance": "medium",
@@ -2770,7 +2769,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:55+00:00",
+          "created_at": "2026-09-22T10:13:44+00:00",
           "created_at_epoch": 1787638200,
           "id": "newsweb-680660",
           "importance": "medium",
@@ -2795,7 +2794,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:55+00:00",
+          "created_at": "2026-09-22T10:13:44+00:00",
           "created_at_epoch": 1787136300,
           "id": "newsweb-680179",
           "importance": "medium",
@@ -2817,11 +2816,11 @@
           "url": "https://newsweb.oslobors.no/message/680179"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:54+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:43+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "NOD.OL",
-      "targetUpsidePct": 7.227989010989022,
+      "targetUpsidePct": 5.261564185544776,
       "technicalSignal": {
         "adx14": 11.17,
         "close": 182.0,
@@ -2891,8 +2890,8 @@
         {
           "analyst_count": 4.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:56+00:00",
-          "collected_at_epoch": 1790022536,
+          "collected_at": "2026-09-22T10:13:44+00:00",
+          "collected_at_epoch": 1790072024,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -2931,7 +2930,7 @@
         "target": 224.75,
         "targetHigh": 245.0,
         "targetLow": 204.0,
-        "targetUpsidePct": 40.64455569461827
+        "targetUpsidePct": 37.503823799327016
       },
       "eventAlert": {
         "category": "insider",
@@ -2942,7 +2941,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:57+00:00",
+          "created_at": "2026-09-22T10:13:45+00:00",
           "created_at_epoch": 1789126404,
           "id": "newsweb-682153",
           "importance": "medium",
@@ -2966,9 +2965,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:56+00:00",
+      "fetchedAt": "2026-09-22T10:13:44+00:00",
       "fundamentalHighlight": {
-        "detail": "22.7x TTM / 16.5x forward.",
+        "detail": "23.2x TTM / 16.8x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -2980,14 +2979,14 @@
       },
       "name": "NORBIT",
       "newswebFetch": {
-        "ageSeconds": 62,
-        "attemptedAt": "2026-09-21T20:28:57+00:00",
-        "attemptedAtEpoch": 1790022537,
+        "ageSeconds": 63,
+        "attemptedAt": "2026-09-22T10:13:45+00:00",
+        "attemptedAtEpoch": 1790072025,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:57+00:00",
-        "fetchedAtEpoch": 1790022537,
+        "fetchedAt": "2026-09-22T10:13:45+00:00",
+        "fetchedAtEpoch": 1790072025,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -2996,10 +2995,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "2th percentile of 250 daily closes; range position 4%.",
+        "detail": "7th percentile of 251 daily closes; range position 8%.",
         "label": "Near 52-week low",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 47.6,
+        "magnitude": 42.82868525896414,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -3010,18 +3009,18 @@
         "label": "No peer group",
         "status": "missing"
       },
-      "price": 159.8,
+      "price": 163.45,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:27:43+00:00",
+      "priceObservedAt": "2026-09-22T09:57:05+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:56+00:00",
-        "price": 159.8,
+        "fetchedAt": "2026-09-22T10:13:44+00:00",
+        "price": 163.45,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:27:43+00:00",
+        "priceObservedAt": "2026-09-22T09:57:05+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:56+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:44+00:00"
       },
       "screenerSignal": null,
       "sector": "Technology",
@@ -3030,7 +3029,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:57+00:00",
+          "created_at": "2026-09-22T10:13:45+00:00",
           "created_at_epoch": 1789126404,
           "id": "newsweb-682153",
           "importance": "medium",
@@ -3055,7 +3054,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:57+00:00",
+          "created_at": "2026-09-22T10:13:45+00:00",
           "created_at_epoch": 1788514052,
           "id": "newsweb-681654",
           "importance": "medium",
@@ -3080,7 +3079,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:57+00:00",
+          "created_at": "2026-09-22T10:13:45+00:00",
           "created_at_epoch": 1787662106,
           "id": "newsweb-680723",
           "importance": "medium",
@@ -3102,11 +3101,11 @@
           "url": "https://newsweb.oslobors.no/message/680723"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:56+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:44+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "NORBT.OL",
-      "targetUpsidePct": 40.64455569461827,
+      "targetUpsidePct": 37.503823799327016,
       "technicalSignal": {
         "adx14": 17.86,
         "close": 159.8,
@@ -3174,8 +3173,8 @@
         {
           "analyst_count": 4.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:57+00:00",
-          "collected_at_epoch": 1790022537,
+          "collected_at": "2026-09-22T10:13:46+00:00",
+          "collected_at_epoch": 1790072026,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -3192,14 +3191,14 @@
           "staleStatus": "fresh",
           "symbol": "ODL.OL",
           "target_currency": "NOK",
-          "target_high": 122.15528,
-          "target_low": 106.38995,
-          "target_mean": 114.213585
+          "target_high": 122.1752,
+          "target_low": 106.407295,
+          "target_mean": 114.23221
         }
       ],
       "consensusStatus": "single-provider-row",
-      "consensusTarget": 114.213585,
-      "consensusTargetAcrossSources": 114.213585,
+      "consensusTarget": 114.23221,
+      "consensusTargetAcrossSources": 114.23221,
       "consensusTargetMethod": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
       "consensusTargetSource": "Yahoo Finance via yfinance",
       "consensusTargetSummary": {
@@ -3211,10 +3210,10 @@
         "sourceLinkedRows": 1,
         "sourceRows": 1,
         "status": "single-provider-row",
-        "target": 114.213585,
-        "targetHigh": 122.15528,
-        "targetLow": 106.38995,
-        "targetUpsidePct": 11.10270914396887
+        "target": 114.23221,
+        "targetHigh": 122.1752,
+        "targetLow": 106.407295,
+        "targetUpsidePct": 13.101198019801984
       },
       "eventAlert": {
         "category": "contract-order",
@@ -3225,7 +3224,7 @@
           "category": "contract-order",
           "categoryLabel": "Contract/order",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:58+00:00",
+          "created_at": "2026-09-22T10:13:46+00:00",
           "created_at_epoch": 1789016400,
           "id": "newsweb-681933",
           "importance": "high",
@@ -3249,9 +3248,9 @@
         "level": "high",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:57+00:00",
+      "fetchedAt": "2026-09-22T10:13:46+00:00",
       "fundamentalHighlight": {
-        "detail": "11.7x TTM / 9.2x forward.",
+        "detail": "11.8x TTM / 9.0x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -3263,14 +3262,14 @@
       },
       "name": "ODFJELL DRILLING",
       "newswebFetch": {
-        "ageSeconds": 61,
-        "attemptedAt": "2026-09-21T20:28:58+00:00",
-        "attemptedAtEpoch": 1790022538,
+        "ageSeconds": 62,
+        "attemptedAt": "2026-09-22T10:13:46+00:00",
+        "attemptedAtEpoch": 1790072026,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:28:58+00:00",
-        "fetchedAtEpoch": 1790022538,
+        "fetchedAt": "2026-09-22T10:13:46+00:00",
+        "fetchedAtEpoch": 1790072026,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -3279,10 +3278,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "92th percentile of 250 daily closes; range position 76%.",
-        "label": "Near 52-week high",
+        "detail": "88th percentile of 251 daily closes; range position 71%.",
+        "label": "High 52-week price percentile",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 42.0,
+        "magnitude": 38.04780876494024,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -3296,20 +3295,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 7,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 102.8,
+      "price": 101.0,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:27:04+00:00",
+      "priceObservedAt": "2026-09-22T09:58:33+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:57+00:00",
-        "price": 102.8,
+        "fetchedAt": "2026-09-22T10:13:46+00:00",
+        "price": 101.0,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:27:04+00:00",
+        "priceObservedAt": "2026-09-22T09:58:33+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:57+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:46+00:00"
       },
       "screenerSignal": null,
       "sector": "Energy",
@@ -3318,7 +3317,7 @@
           "category": "contract-order",
           "categoryLabel": "Contract/order",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:58+00:00",
+          "created_at": "2026-09-22T10:13:46+00:00",
           "created_at_epoch": 1789016400,
           "id": "newsweb-681933",
           "importance": "high",
@@ -3343,7 +3342,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:58+00:00",
+          "created_at": "2026-09-22T10:13:46+00:00",
           "created_at_epoch": 1788417862,
           "id": "newsweb-681517",
           "importance": "medium",
@@ -3368,7 +3367,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:28:58+00:00",
+          "created_at": "2026-09-22T10:13:46+00:00",
           "created_at_epoch": 1788352687,
           "id": "newsweb-681480",
           "importance": "normal",
@@ -3390,11 +3389,11 @@
           "url": "https://newsweb.oslobors.no/message/681480"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:57+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:46+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "ODL.OL",
-      "targetUpsidePct": 11.10270914396887,
+      "targetUpsidePct": 13.101198019801984,
       "technicalSignal": {
         "adx14": 44.4,
         "close": 102.8,
@@ -3464,8 +3463,8 @@
         {
           "analyst_count": null,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:28:59+00:00",
-          "collected_at_epoch": 1790022539,
+          "collected_at": "2026-09-22T10:13:47+00:00",
+          "collected_at_epoch": 1790072027,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -3515,7 +3514,7 @@
           "category": "contract-order",
           "categoryLabel": "Contract/order",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:00+00:00",
+          "created_at": "2026-09-22T10:13:48+00:00",
           "created_at_epoch": 1789976823,
           "id": "newsweb-682771",
           "importance": "medium",
@@ -3539,9 +3538,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:28:59+00:00",
+      "fetchedAt": "2026-09-22T10:13:47+00:00",
       "fundamentalHighlight": {
-        "detail": "36.8x TTM / 10.3x forward.",
+        "detail": "36.4x TTM / 10.2x forward.",
         "label": "Forward P/E below TTM",
         "tone": "info"
       },
@@ -3553,14 +3552,14 @@
       },
       "name": "PPI PUBLIC PROPERTY INVEST AB (",
       "newswebFetch": {
-        "ageSeconds": 59,
-        "attemptedAt": "2026-09-21T20:29:00+00:00",
-        "attemptedAtEpoch": 1790022540,
+        "ageSeconds": 60,
+        "attemptedAt": "2026-09-22T10:13:48+00:00",
+        "attemptedAtEpoch": 1790072028,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:29:00+00:00",
-        "fetchedAtEpoch": 1790022540,
+        "fetchedAt": "2026-09-22T10:13:48+00:00",
+        "fetchedAtEpoch": 1790072028,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -3569,10 +3568,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "7th percentile of 250 daily closes; range position 8%.",
+        "detail": "5th percentile of 251 daily closes; range position 6%.",
         "label": "Near 52-week low",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 42.8,
+        "magnitude": 45.21912350597609,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -3586,20 +3585,20 @@
         "note": "Reviewed peer group; metrics remain screening context, not a valuation verdict.",
         "peerCount": 4,
         "status": "reviewed",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 18.03,
+      "price": 17.84,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:21+00:00",
+      "priceObservedAt": "2026-09-22T09:58:00+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:28:59+00:00",
-        "price": 18.03,
+        "fetchedAt": "2026-09-22T10:13:47+00:00",
+        "price": 17.84,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:21+00:00",
+        "priceObservedAt": "2026-09-22T09:58:00+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:28:59+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:47+00:00"
       },
       "screenerSignal": null,
       "sector": "Real Estate",
@@ -3608,7 +3607,7 @@
           "category": "contract-order",
           "categoryLabel": "Contract/order",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:00+00:00",
+          "created_at": "2026-09-22T10:13:48+00:00",
           "created_at_epoch": 1789976823,
           "id": "newsweb-682771",
           "importance": "medium",
@@ -3633,7 +3632,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:00+00:00",
+          "created_at": "2026-09-22T10:13:48+00:00",
           "created_at_epoch": 1789966810,
           "id": "newsweb-682745",
           "importance": "medium",
@@ -3658,7 +3657,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:00+00:00",
+          "created_at": "2026-09-22T10:13:48+00:00",
           "created_at_epoch": 1789452015,
           "id": "newsweb-682310",
           "importance": "medium",
@@ -3680,7 +3679,7 @@
           "url": "https://newsweb.oslobors.no/message/682310"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:28:59+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:47+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "PUBLI.OL",
@@ -3752,8 +3751,8 @@
         {
           "analyst_count": 20.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:29:00+00:00",
-          "collected_at_epoch": 1790022540,
+          "collected_at": "2026-09-22T10:13:48+00:00",
+          "collected_at_epoch": 1790072028,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -3792,7 +3791,7 @@
         "target": 156.2,
         "targetHigh": 191.0,
         "targetLow": 135.0,
-        "targetUpsidePct": 18.243754731264183
+        "targetUpsidePct": 17.88679245283018
       },
       "eventAlert": {
         "category": "dividend",
@@ -3803,7 +3802,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:01+00:00",
+          "created_at": "2026-09-22T10:13:49+00:00",
           "created_at_epoch": 1789966800,
           "id": "newsweb-682743",
           "importance": "medium",
@@ -3827,7 +3826,7 @@
         "level": "high",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:29:00+00:00",
+      "fetchedAt": "2026-09-22T10:13:48+00:00",
       "fundamentalHighlight": {
         "detail": "7.3%; check payout durability.",
         "label": "Dividend yield stands out",
@@ -3841,14 +3840,14 @@
       },
       "name": "TELENOR",
       "newswebFetch": {
-        "ageSeconds": 58,
-        "attemptedAt": "2026-09-21T20:29:01+00:00",
-        "attemptedAtEpoch": 1790022541,
+        "ageSeconds": 59,
+        "attemptedAt": "2026-09-22T10:13:49+00:00",
+        "attemptedAtEpoch": 1790072029,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:29:01+00:00",
-        "fetchedAtEpoch": 1790022541,
+        "fetchedAt": "2026-09-22T10:13:49+00:00",
+        "fetchedAtEpoch": 1790072029,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -3857,10 +3856,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "1th percentile of 250 daily closes; range position 8%.",
+        "detail": "3th percentile of 251 daily closes; range position 9%.",
         "label": "Near 52-week low",
         "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 48.8,
+        "magnitude": 46.81274900398407,
         "metricKey": "price",
         "source": "Yahoo Finance via yfinance",
         "status": "available"
@@ -3874,20 +3873,20 @@
         "note": "Draft peer group. Review peers company-by-company before relying on this context.",
         "peerCount": 1,
         "status": "draft",
-        "updatedAt": "2026-09-21T20:28:40+00:00"
+        "updatedAt": "2026-09-22T10:13:30+00:00"
       },
-      "price": 132.1,
+      "price": 132.5,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:28+00:00",
+      "priceObservedAt": "2026-09-22T09:58:46+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:29:00+00:00",
-        "price": 132.1,
+        "fetchedAt": "2026-09-22T10:13:48+00:00",
+        "price": 132.5,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:28+00:00",
+        "priceObservedAt": "2026-09-22T09:58:46+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:29:00+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:48+00:00"
       },
       "screenerSignal": null,
       "sector": "Communication Services",
@@ -3896,7 +3895,7 @@
           "category": "dividend",
           "categoryLabel": "Dividend",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:01+00:00",
+          "created_at": "2026-09-22T10:13:49+00:00",
           "created_at_epoch": 1789966800,
           "id": "newsweb-682743",
           "importance": "medium",
@@ -3921,7 +3920,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:01+00:00",
+          "created_at": "2026-09-22T10:13:49+00:00",
           "created_at_epoch": 1789966800,
           "id": "newsweb-682742",
           "importance": "medium",
@@ -3946,7 +3945,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:01+00:00",
+          "created_at": "2026-09-22T10:13:49+00:00",
           "created_at_epoch": 1789459096,
           "id": "newsweb-682326",
           "importance": "high",
@@ -3968,11 +3967,11 @@
           "url": "https://newsweb.oslobors.no/message/682326"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:29:00+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:48+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "TEL.OL",
-      "targetUpsidePct": 18.243754731264183,
+      "targetUpsidePct": 17.88679245283018,
       "technicalSignal": {
         "adx14": 19.11,
         "close": 132.1,
@@ -4040,8 +4039,8 @@
         {
           "analyst_count": 15.0,
           "as_of_date": "",
-          "collected_at": "2026-09-21T20:29:02+00:00",
-          "collected_at_epoch": 1790022542,
+          "collected_at": "2026-09-22T10:13:50+00:00",
+          "collected_at_epoch": 1790072030,
           "confidence": "single-provider",
           "isReviewed": false,
           "isSourceLinked": true,
@@ -4080,7 +4079,7 @@
         "target": 290.46667,
         "targetHigh": 370.0,
         "targetLow": 207.0,
-        "targetUpsidePct": 24.556891080617515
+        "targetUpsidePct": 21.63595896147403
       },
       "eventAlert": {
         "category": "m-a",
@@ -4091,7 +4090,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:03+00:00",
+          "created_at": "2026-09-22T10:13:50+00:00",
           "created_at_epoch": 1789984209,
           "id": "newsweb-682783",
           "importance": "medium",
@@ -4115,9 +4114,9 @@
         "level": "normal",
         "source": "NewsWeb on-demand plus manual significant-events table"
       },
-      "fetchedAt": "2026-09-21T20:29:02+00:00",
+      "fetchedAt": "2026-09-22T10:13:50+00:00",
       "fundamentalHighlight": {
-        "detail": "fwd 23.3x; yield 1.1%",
+        "detail": "fwd 23.8x; yield 1.0%",
         "label": "Core multiples",
         "tone": "neutral"
       },
@@ -4129,14 +4128,14 @@
       },
       "name": "VEND MARKETPLACES ASA",
       "newswebFetch": {
-        "ageSeconds": 56,
-        "attemptedAt": "2026-09-21T20:29:03+00:00",
-        "attemptedAtEpoch": 1790022543,
+        "ageSeconds": 59,
+        "attemptedAt": "2026-09-22T10:13:50+00:00",
+        "attemptedAtEpoch": 1790072030,
         "cacheTtlSeconds": 900,
         "confidence": "official-source metadata when fetched; stale/error rows require direct source verification",
         "error": "",
-        "fetchedAt": "2026-09-21T20:29:03+00:00",
-        "fetchedAtEpoch": 1790022543,
+        "fetchedAt": "2026-09-22T10:13:50+00:00",
+        "fetchedAtEpoch": 1790072030,
         "label": "fresh",
         "limitation": "NewsWeb rows are fetched on demand and cached locally. Fetch errors, stale cache, or missing rows do not prove there were no issuer announcements.",
         "status": "fresh",
@@ -4145,13 +4144,10 @@
       "note": "",
       "ownHistorySignal": {
         "confidence": "screening-grade",
-        "detail": "6th percentile of 246 daily closes; range position 7%.",
-        "label": "Near 52-week low",
-        "limitations": "Open/free historical prices are delayed and may include gaps or adjustments; verify against exchange or primary data.",
-        "magnitude": 43.90243902439025,
-        "metricKey": "price",
-        "source": "Yahoo Finance via yfinance",
-        "status": "available"
+        "detail": "Enough history for context, but no price or multiple gap crossed the Watchlist signal threshold.",
+        "label": "No large own-history gap",
+        "source": "Yahoo/yfinance and local fundamentals snapshots",
+        "status": "no watchlist signal"
       },
       "peerContext": {
         "detail": "No relative valuation context configured.",
@@ -4159,18 +4155,18 @@
         "label": "No peer group",
         "status": "missing"
       },
-      "price": 233.2,
+      "price": 238.8,
       "priceObservationStatus": "provider quote timestamp",
-      "priceObservedAt": "2026-09-21T14:25:29+00:00",
+      "priceObservedAt": "2026-09-22T09:57:33+00:00",
       "priceSummary": {
         "cacheStatus": "cached",
         "currency": "NOK",
-        "fetchedAt": "2026-09-21T20:29:02+00:00",
-        "price": 233.2,
+        "fetchedAt": "2026-09-22T10:13:50+00:00",
+        "price": 238.8,
         "priceObservationStatus": "provider quote timestamp",
-        "priceObservedAt": "2026-09-21T14:25:29+00:00",
+        "priceObservedAt": "2026-09-22T09:57:33+00:00",
         "source": "Yahoo Finance via yfinance",
-        "sourceFetchedAt": "2026-09-21T20:29:02+00:00"
+        "sourceFetchedAt": "2026-09-22T10:13:50+00:00"
       },
       "screenerSignal": null,
       "sector": "Communication Services",
@@ -4179,7 +4175,7 @@
           "category": "m-a",
           "categoryLabel": "M&A",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:03+00:00",
+          "created_at": "2026-09-22T10:13:50+00:00",
           "created_at_epoch": 1789984209,
           "id": "newsweb-682783",
           "importance": "medium",
@@ -4204,7 +4200,7 @@
           "category": "insider",
           "categoryLabel": "Insider",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:03+00:00",
+          "created_at": "2026-09-22T10:13:50+00:00",
           "created_at_epoch": 1789735635,
           "id": "newsweb-682718",
           "importance": "medium",
@@ -4229,7 +4225,7 @@
           "category": "corporate-action",
           "categoryLabel": "Corporate action",
           "confidence": "official-source",
-          "created_at": "2026-09-21T20:29:03+00:00",
+          "created_at": "2026-09-22T10:13:50+00:00",
           "created_at_epoch": 1789621226,
           "id": "newsweb-682514",
           "importance": "normal",
@@ -4251,11 +4247,11 @@
           "url": "https://newsweb.oslobors.no/message/682514"
         }
       ],
-      "sourceFetchedAt": "2026-09-21T20:29:02+00:00",
+      "sourceFetchedAt": "2026-09-22T10:13:50+00:00",
       "sourceRefreshAttemptedAt": null,
       "sourceRefreshError": null,
       "symbol": "VEND.OL",
-      "targetUpsidePct": 24.556891080617515,
+      "targetUpsidePct": 21.63595896147403,
       "technicalSignal": {
         "adx14": 16.35,
         "close": 233.2,
@@ -4290,7 +4286,7 @@
     }
   ],
   "screenerError": null,
-  "snapshotId": "c3c798e849874573b9387c52b303f5f5",
+  "snapshotId": "dfa2cb008622491cb9e1d921980167bf",
   "sourceNotes": {
     "consensus": "Target and rating-label fields are stored by data-provider row. Analyst counts are provider-reported references and may overlap across sources.",
     "events": "News/events are watchlist-first NewsWeb on-demand rows plus manual/source-reviewed rows. The daily digest is generated on demand from the same NewsWeb path with visible fetch status and duplicate/correction grouping.",
