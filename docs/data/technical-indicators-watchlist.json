@@ -27,14 +27,30 @@
   ],
   "count": 201,
   "coverage": {
-    "coveredCount": 0,
-    "coveredSymbols": [],
+    "coveredCount": 15,
+    "coveredSymbols": [
+      "BRG.OL",
+      "DOFG.OL",
+      "ELK.OL",
+      "FRO.OL",
+      "HAFNI.OL",
+      "KMAR.OL",
+      "KOG.OL",
+      "LINK.OL",
+      "MOWI.OL",
+      "NOD.OL",
+      "NORBT.OL",
+      "ODL.OL",
+      "PUBLI.OL",
+      "TEL.OL",
+      "VEND.OL"
+    ],
     "missingCount": 0,
     "missingDataPolicy": "Symbols absent from the current oslo-screener latest.csv/report output are shown as missing coverage rows. No fallback technical calculation is mixed into source labels.",
     "missingSymbols": [],
     "receivedCount": 15,
     "sourceRowCount": 201,
-    "status": "partial",
+    "status": "complete",
     "watchlistSymbols": [
       "BRG.OL",
       "DOFG.OL",
@@ -52,1727 +68,720 @@
       "TEL.OL",
       "VEND.OL"
     ],
-    "withheldCount": 15,
-    "withheldSymbols": [
-      "BRG.OL",
-      "DOFG.OL",
-      "ELK.OL",
-      "FRO.OL",
-      "HAFNI.OL",
-      "KMAR.OL",
-      "KOG.OL",
-      "LINK.OL",
-      "MOWI.OL",
-      "NOD.OL",
-      "NORBT.OL",
-      "ODL.OL",
-      "PUBLI.OL",
-      "TEL.OL",
-      "VEND.OL"
-    ]
+    "withheldCount": 0,
+    "withheldSymbols": []
   },
-  "fetchedAt": "2026-10-07T11:55:47+00:00",
+  "fetchedAt": "2026-10-07T21:23:42+00:00",
   "rows": [
     {
-      "adx14": 17.04,
+      "adx14": 36.55,
       "close": 188.5,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": 0.577,
-      "mfi14": 77.56,
-      "pctAboveSma50": 10.52,
-      "positionPct": null,
+      "macdHistogram": -2.6284,
+      "mfi14": 31.3,
+      "pctAboveSma50": -20.3,
+      "positionPct": 3.0,
       "primaryCount": 2.0,
-      "risk": null,
-      "rsi14": 65.15,
-      "rsi6": 71.33,
-      "rsiDirection": -0.73,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 170.55,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "HIGH",
+      "rsi14": 21.96,
+      "rsi6": 15.17,
+      "rsiDirection": 0.78,
+      "signal": "BUY",
+      "signalTone": "bullish",
+      "sma50": 236.52,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "NOD.OL",
-      "ticker": "NOD",
-      "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
-    },
-    {
-      "adx14": 31.26,
-      "close": 202.2,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
-      "dashboardSignal": null,
-      "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
-      "inDashboardScreener": false,
-      "macdHistogram": -1.7634,
-      "mfi14": 37.87,
-      "pctAboveSma50": -15.25,
-      "positionPct": null,
-      "primaryCount": 1.0,
-      "risk": null,
-      "rsi14": 27.17,
-      "rsi6": 22.93,
-      "rsiDirection": -3.49,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 238.584,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 5.0,
       "symbol": "VEND.OL",
       "ticker": "VEND",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 24.67,
-      "close": 15.2,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 28.18,
+      "close": 15.52,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.1818,
-      "mfi14": 15.2,
-      "pctAboveSma50": -14.59,
-      "positionPct": null,
-      "primaryCount": 1.0,
-      "risk": null,
-      "rsi14": 28.32,
-      "rsi6": 23.72,
-      "rsiDirection": -3.85,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 17.7971,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "macdHistogram": -0.1107,
+      "mfi14": 12.7,
+      "pctAboveSma50": -12.12,
+      "positionPct": 3.0,
+      "primaryCount": 2.0,
+      "risk": "MODERATE",
+      "rsi14": 33.61,
+      "rsi6": 35.66,
+      "rsiDirection": 0.33,
+      "signal": "BUY",
+      "signalTone": "bullish",
+      "sma50": 17.661,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 3.0,
       "symbol": "PUBLI.OL",
       "ticker": "PUBLI",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 27.01,
-      "close": 96.7,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 28.66,
+      "close": 98.5,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": 0.4007,
-      "mfi14": 26.27,
-      "pctAboveSma50": 20.3,
-      "positionPct": null,
+      "macdHistogram": 0.4834,
+      "mfi14": 23.26,
+      "pctAboveSma50": 20.99,
+      "positionPct": 1.5,
       "primaryCount": 1.0,
-      "risk": null,
-      "rsi14": 66.08,
-      "rsi6": 70.84,
-      "rsiDirection": 1.11,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 80.3844,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "MODERATE",
+      "rsi14": 68.17,
+      "rsi6": 75.35,
+      "rsiDirection": 1.74,
+      "signal": "SELL-watch",
+      "signalTone": "bearish",
+      "sma50": 81.4105,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 3.0,
       "symbol": "HAFNI.OL",
       "ticker": "HAFNI",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 35.41,
-      "close": 503.2,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 37.64,
+      "close": 512.0,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": 0.4842,
-      "mfi14": 68.17,
-      "pctAboveSma50": 19.21,
-      "positionPct": null,
+      "macdHistogram": 1.656,
+      "mfi14": 70.3,
+      "pctAboveSma50": 19.77,
+      "positionPct": 1.5,
       "primaryCount": 1.0,
-      "risk": null,
-      "rsi14": 67.32,
-      "rsi6": 76.38,
-      "rsiDirection": 3.35,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 422.1118,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "HIGH",
+      "rsi14": 68.92,
+      "rsi6": 78.6,
+      "rsiDirection": 2.67,
+      "signal": "SELL-watch",
+      "signalTone": "bearish",
+      "sma50": 427.4769,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 5.0,
       "symbol": "FRO.OL",
       "ticker": "FRO",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 30.48,
-      "close": 127.9,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 13.63,
+      "close": 295.6,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.3478,
-      "mfi14": 28.73,
-      "pctAboveSma50": -4.09,
-      "positionPct": null,
+      "macdHistogram": -2.2362,
+      "mfi14": 21.64,
+      "pctAboveSma50": -5.47,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 38.09,
-      "rsi6": 37.31,
-      "rsiDirection": 0.39,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 133.35,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "LOW",
+      "rsi14": 39.01,
+      "rsi6": 28.4,
+      "rsiDirection": -1.91,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 312.702,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "TEL.OL",
-      "ticker": "TEL",
-      "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
-    },
-    {
-      "adx14": 12.58,
-      "close": 309.1,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
-      "dashboardSignal": null,
-      "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.9839,
-      "mfi14": 33.67,
-      "pctAboveSma50": -1.12,
-      "positionPct": null,
-      "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 47.29,
-      "rsi6": 43.39,
-      "rsiDirection": 0.84,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 312.61,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 1.75,
       "symbol": "KOG.OL",
       "ticker": "KOG",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 17.15,
-      "close": 33.78,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 33.26,
+      "close": 127.3,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.2543,
-      "mfi14": 38.57,
-      "pctAboveSma50": -0.1,
-      "positionPct": null,
+      "macdHistogram": -0.3156,
+      "mfi14": 28.82,
+      "pctAboveSma50": -4.28,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 47.38,
-      "rsi6": 47.15,
-      "rsiDirection": -0.97,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 33.8132,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "HIGH",
+      "rsi14": 40.08,
+      "rsi6": 43.05,
+      "rsiDirection": 8.02,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 132.994,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "ELK.OL",
-      "ticker": "ELK",
+      "stopLossPct": 5.0,
+      "symbol": "TEL.OL",
+      "ticker": "TEL",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 21.03,
-      "close": 150.8,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 16.62,
+      "close": 156.8,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": 0.5529,
-      "mfi14": 56.36,
-      "pctAboveSma50": -2.35,
-      "positionPct": null,
+      "macdHistogram": 0.1504,
+      "mfi14": 36.97,
+      "pctAboveSma50": -5.62,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 47.7,
-      "rsi6": 48.12,
-      "rsiDirection": -5.53,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 154.432,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "LOW",
+      "rsi14": 40.98,
+      "rsi6": 33.91,
+      "rsiDirection": -2.74,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 166.132,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "BRG.OL",
-      "ticker": "BRG",
-      "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
-    },
-    {
-      "adx14": 16.31,
-      "close": 129.6,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
-      "dashboardSignal": null,
-      "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
-      "inDashboardScreener": false,
-      "macdHistogram": -0.7858,
-      "mfi14": 60.6,
-      "pctAboveSma50": 0.61,
-      "positionPct": null,
-      "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 48.46,
-      "rsi6": 48.82,
-      "rsiDirection": 5.12,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 128.8189,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "DOFG.OL",
-      "ticker": "DOFG",
-      "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
-    },
-    {
-      "adx14": 15.77,
-      "close": 161.7,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
-      "dashboardSignal": null,
-      "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
-      "inDashboardScreener": false,
-      "macdHistogram": 0.5509,
-      "mfi14": 51.71,
-      "pctAboveSma50": -3.0,
-      "positionPct": null,
-      "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 48.96,
-      "rsi6": 55.59,
-      "rsiDirection": -1.82,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 166.702,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
-      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 1.75,
       "symbol": "NORBT.OL",
       "ticker": "NORBT",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 14.66,
-      "close": 201.4,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 14.86,
+      "close": 127.2,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.1381,
-      "mfi14": 57.58,
-      "pctAboveSma50": -0.12,
-      "positionPct": null,
+      "macdHistogram": -0.6298,
+      "mfi14": 53.82,
+      "pctAboveSma50": -1.54,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 49.07,
-      "rsi6": 45.61,
-      "rsiDirection": 0.0,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 201.6476,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "LOW",
+      "rsi14": 42.84,
+      "rsi6": 35.72,
+      "rsiDirection": -7.25,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 129.1875,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "MOWI.OL",
-      "ticker": "MOWI",
+      "stopLossPct": 1.75,
+      "symbol": "DOFG.OL",
+      "ticker": "DOFG",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 26.96,
-      "close": 99.0,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 24.27,
+      "close": 97.2,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.9433,
-      "mfi14": 42.53,
-      "pctAboveSma50": 4.53,
-      "positionPct": null,
+      "macdHistogram": -1.038,
+      "mfi14": 22.49,
+      "pctAboveSma50": 2.23,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 50.64,
-      "rsi6": 37.3,
-      "rsiDirection": 2.82,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 94.7089,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "MODERATE",
+      "rsi14": 45.22,
+      "rsi6": 27.27,
+      "rsiDirection": -2.06,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 95.0768,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 3.0,
       "symbol": "ODL.OL",
       "ticker": "ODL",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 13.57,
-      "close": 24.26,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 16.41,
+      "close": 33.62,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": 0.1157,
-      "mfi14": 72.21,
-      "pctAboveSma50": -2.26,
-      "positionPct": null,
+      "macdHistogram": -0.1701,
+      "mfi14": 33.91,
+      "pctAboveSma50": -0.87,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 51.02,
-      "rsi6": 57.05,
-      "rsiDirection": 4.15,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 24.82,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "LOW",
+      "rsi14": 46.53,
+      "rsi6": 44.92,
+      "rsiDirection": -2.56,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 33.9152,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
-      "symbol": "LINK.OL",
-      "ticker": "LINK",
+      "stopLossPct": 1.75,
+      "symbol": "ELK.OL",
+      "ticker": "ELK",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
     },
     {
-      "adx14": 26.34,
-      "close": 62.36,
-      "coverageDetail": "missing_expected_completed_session",
-      "coverageStatus": "withheld",
+      "adx14": 14.77,
+      "close": 200.6,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
       "dashboardSignal": null,
       "dataStatus": "current",
-      "date": "2026-10-05",
-      "expectedSession": "2026-10-06",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
       "inDashboardScreener": false,
-      "macdHistogram": -0.025,
-      "mfi14": 70.86,
-      "pctAboveSma50": 8.09,
-      "positionPct": null,
+      "macdHistogram": -0.1784,
+      "mfi14": 56.44,
+      "pctAboveSma50": -0.54,
+      "positionPct": 0.0,
       "primaryCount": 0.0,
-      "risk": null,
-      "rsi14": 63.99,
-      "rsi6": 66.07,
-      "rsiDirection": 1.84,
-      "signal": "WITHHELD",
-      "signalTone": "missing",
-      "sma50": 57.6908,
-      "snapshotId": "505fed4fda2c469592b2f42594f1288b",
+      "risk": "LOW",
+      "rsi14": 47.72,
+      "rsi6": 42.26,
+      "rsiDirection": -3.96,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 201.6813,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
       "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
-      "stopLossPct": null,
+      "stopLossPct": 1.75,
+      "symbol": "MOWI.OL",
+      "ticker": "MOWI",
+      "watchlistMember": true,
+      "withheldReason": null
+    },
+    {
+      "adx14": 18.86,
+      "close": 152.0,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
+      "dashboardSignal": null,
+      "dataStatus": "current",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
+      "inDashboardScreener": false,
+      "macdHistogram": 0.3908,
+      "mfi14": 48.0,
+      "pctAboveSma50": -1.4,
+      "positionPct": 0.0,
+      "primaryCount": 0.0,
+      "risk": "LOW",
+      "rsi14": 50.84,
+      "rsi6": 54.76,
+      "rsiDirection": 6.83,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 154.16,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": 1.75,
+      "symbol": "BRG.OL",
+      "ticker": "BRG",
+      "watchlistMember": true,
+      "withheldReason": null
+    },
+    {
+      "adx14": 25.86,
+      "close": 60.5,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
+      "dashboardSignal": null,
+      "dataStatus": "current",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
+      "inDashboardScreener": false,
+      "macdHistogram": -0.1676,
+      "mfi14": 61.81,
+      "pctAboveSma50": 4.34,
+      "positionPct": 0.0,
+      "primaryCount": 0.0,
+      "risk": "MODERATE",
+      "rsi14": 52.6,
+      "rsi6": 39.23,
+      "rsiDirection": -10.02,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 57.9816,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": 3.0,
       "symbol": "KMAR.OL",
       "ticker": "KMAR",
       "watchlistMember": true,
-      "withheldReason": "missing_expected_completed_session"
+      "withheldReason": null
+    },
+    {
+      "adx14": 14.4,
+      "close": 24.58,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
+      "dashboardSignal": null,
+      "dataStatus": "current",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
+      "inDashboardScreener": false,
+      "macdHistogram": 0.1631,
+      "mfi14": 76.36,
+      "pctAboveSma50": -0.82,
+      "positionPct": 0.0,
+      "primaryCount": 0.0,
+      "risk": "LOW",
+      "rsi14": 53.65,
+      "rsi6": 61.96,
+      "rsiDirection": 0.5,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 24.7828,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": 1.75,
+      "symbol": "LINK.OL",
+      "ticker": "LINK",
+      "watchlistMember": true,
+      "withheldReason": null
+    },
+    {
+      "adx14": 17.25,
+      "close": 186.3,
+      "coverageDetail": "Symbol has a current completed-session observation in the verified source snapshot.",
+      "coverageStatus": "covered",
+      "dashboardSignal": null,
+      "dataStatus": "current",
+      "date": "2026-10-07",
+      "expectedSession": "2026-10-07",
+      "inDashboardScreener": false,
+      "macdHistogram": 0.1528,
+      "mfi14": 64.78,
+      "pctAboveSma50": 8.41,
+      "positionPct": 0.0,
+      "primaryCount": 0.0,
+      "risk": "LOW",
+      "rsi14": 61.06,
+      "rsi6": 58.49,
+      "rsiDirection": -0.94,
+      "signal": "NEUTRAL",
+      "signalTone": "neutral",
+      "sma50": 171.846,
+      "snapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
+      "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
+      "stopLossPct": 1.75,
+      "symbol": "NOD.OL",
+      "ticker": "NOD",
+      "watchlistMember": true,
+      "withheldReason": null
     }
   ],
   "screenerError": null,
-  "snapshotId": "5dca0cbde4894d7ba39ca4080c952cbf",
-  "sourceDataFetchCompleted": "2026-10-06T13:15:17Z",
-  "sourceDataFetchStarted": "2026-10-06T13:14:35Z",
-  "sourceDate": "2026-10-05",
+  "snapshotId": "fe92e9329e004d2a813587d8c935a250",
+  "sourceDataFetchCompleted": "2026-10-07T21:19:08Z",
+  "sourceDataFetchStarted": "2026-10-07T21:18:10Z",
+  "sourceDate": "2026-10-07",
   "sourceErrors": [],
-  "sourceGeneratedAt": "2026-10-06T13:15:17Z",
+  "sourceGeneratedAt": "2026-10-07T21:19:08Z",
   "sourceHealth": {
-    "actionable": false,
+    "actionable": true,
     "calendar_verified_through": 2026,
     "coverage": {
-      "actionable_count": 0,
-      "current": 0,
-      "current_ratio": 0.0,
+      "actionable_count": 198,
+      "current": 198,
+      "current_ratio": 0.9850746268656716,
       "invalid": 0,
       "min_current_ratio": 0.004975124378109453,
       "missing": 0,
       "received_count": 201,
-      "stale": 201,
+      "stale": 3,
       "universe_count": 201
     },
-    "eligible_tickers": [],
-    "evaluated_at": "2026-10-07T11:55:47.767485+00:00",
+    "eligible_tickers": [
+      "VEND.OL",
+      "SATS.OL",
+      "HPUR.OL",
+      "PUBLI.OL",
+      "OTOVO.OL",
+      "YAR.OL",
+      "IWS.OL",
+      "MEDI.OL",
+      "ENTRA.OL",
+      "PARB.OL",
+      "ACR.OL",
+      "GJF.OL",
+      "NOL.OL",
+      "PROT.OL",
+      "MULTI.OL",
+      "COSH.OL",
+      "NHY.OL",
+      "GSF.OL",
+      "NSKOG.OL",
+      "CLOUD.OL",
+      "NOM.OL",
+      "NAVA.OL",
+      "STB.OL",
+      "NAS.OL",
+      "SOGN.OL",
+      "ONCIN.OL",
+      "CADLR.OL",
+      "SBO.OL",
+      "EQVA.OL",
+      "CMBTO.OL",
+      "BWE.OL",
+      "SKUE.OL",
+      "GOD.OL",
+      "BWLPG.OL",
+      "HAFNI.OL",
+      "FRO.OL",
+      "OTEC.OL",
+      "HUNT.OL",
+      "AKVA.OL",
+      "OET.OL",
+      "B2I.OL",
+      "SPOL.OL",
+      "ENH.OL",
+      "AGLX.OL",
+      "SALME.OL",
+      "TRMED.OL",
+      "DELIA.OL",
+      "SBNOR.OL",
+      "ARCH.OL",
+      "WAWI.OL",
+      "ARR.OL",
+      "ATEA.OL",
+      "CAVEN.OL",
+      "STECH.OL",
+      "KOG.OL",
+      "PRS.OL",
+      "NEL.OL",
+      "ELO.OL",
+      "NORCO.OL",
+      "AUSS.OL",
+      "VISTN.OL",
+      "VOIM.OL",
+      "MORG.OL",
+      "SWON.OL",
+      "DNB.OL",
+      "REACH.OL",
+      "TEL.OL",
+      "KOA.OL",
+      "DFENS.OL",
+      "BINT.OL",
+      "PLSV.OL",
+      "WSTEP.OL",
+      "AFK.OL",
+      "APR.OL",
+      "MING.OL",
+      "NORBT.OL",
+      "NYKD.OL",
+      "AKRBP.OL",
+      "HYPRO.OL",
+      "HSPG.OL",
+      "PHO.OL",
+      "EPR.OL",
+      "SAGA.OL",
+      "SDSD.OL",
+      "LSG.OL",
+      "AKER.OL",
+      "PSE.OL",
+      "AKSO.OL",
+      "DOFG.OL",
+      "BEWI.OL",
+      "AFG.OL",
+      "CAPSL.OL",
+      "HAUTO.OL",
+      "BWO.OL",
+      "SB1NO.OL",
+      "ORK.OL",
+      "POL.OL",
+      "VVL.OL",
+      "TOM.OL",
+      "NEXT.OL",
+      "NONG.OL",
+      "BAKKA.OL",
+      "AZT.OL",
+      "SNTIA.OL",
+      "HEX.OL",
+      "IOX.OL",
+      "GENO.OL",
+      "SPOG.OL",
+      "OTL.OL",
+      "ODL.OL",
+      "KOMPL.OL",
+      "ZLNA.OL",
+      "PNOR.OL",
+      "SOMA.OL",
+      "ROGS.OL",
+      "ENSU.OL",
+      "PEXIP.OL",
+      "HAVI.OL",
+      "IDEX.OL",
+      "HERMA.OL",
+      "ELK.OL",
+      "BOUV.OL",
+      "SOFF.OL",
+      "BOHUS.OL",
+      "MORLD.OL",
+      "AKAST.OL",
+      "SALM.OL",
+      "TEKNA.OL",
+      "MOWI.OL",
+      "SUBC.OL",
+      "TGS.OL",
+      "GYL.OL",
+      "SNI.OL",
+      "PEN.OL",
+      "AQUA.OL",
+      "BNOR.OL",
+      "ODF.OL",
+      "ASA.OL",
+      "TECH.OL",
+      "HELG.OL",
+      "SNOR.OL",
+      "EQNR.OL",
+      "BOR.OL",
+      "GENT.OL",
+      "SCANA.OL",
+      "KID.OL",
+      "ELABS.OL",
+      "BRG.OL",
+      "CRNA.OL",
+      "NRC.OL",
+      "QEC.OL",
+      "HGSB.OL",
+      "DNO.OL",
+      "STRO.OL",
+      "WWIB.OL",
+      "HBC.OL",
+      "VAR.OL",
+      "VEI.OL",
+      "ODFB.OL",
+      "2020.OL",
+      "BIEN.OL",
+      "KMAR.OL",
+      "SCATC.OL",
+      "ABG.OL",
+      "JIN.OL",
+      "ITERA.OL",
+      "WWI.OL",
+      "LINK.OL",
+      "ELMRA.OL",
+      "HSHP.OL",
+      "MGN.OL",
+      "BORR.OL",
+      "AUTO.OL",
+      "MELG.OL",
+      "KCC.OL",
+      "EIOF.OL",
+      "MPCC.OL",
+      "SMOP.OL",
+      "RING.OL",
+      "CONTX.OL",
+      "SOAG.OL",
+      "ININ.OL",
+      "NAPA.OL",
+      "JAREN.OL",
+      "ENVIP.OL",
+      "ZAP.OL",
+      "LIFE.OL",
+      "BONHR.OL",
+      "PLT.OL",
+      "OKEA.OL",
+      "AURG.OL",
+      "BMA.OL",
+      "ENDUR.OL",
+      "NKR.OL",
+      "ZAL.OL",
+      "NOD.OL",
+      "VOW.OL",
+      "KIT.OL"
+    ],
+    "evaluated_at": "2026-10-07T21:23:42.827162+00:00",
     "excluded": [
       {
         "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ACR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HPUR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NHY.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HAUTO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NOD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GOD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ZAP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "WWIB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "WWI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ENTRA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GSF.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NOL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SATS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VEND.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PARB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GJF.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PUBLI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SALME.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "COSH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "EPR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NOM.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SOGN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PROT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PHO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "IDEX.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ARCH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CLOUD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NAVA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "OTOVO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ELO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "APR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ENH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CADLR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TRMED.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CAPSL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ARR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HAFNI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "OTEC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MPCC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "FRO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ODF.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VOW.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ODFB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HUNT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "IWS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KIT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "OET.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AKVA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ZAL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AURG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "YAR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AGLX.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NAS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "DFENS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NEXT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NSKOG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ONCIN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SBO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "STB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "DELIA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TEL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MULTI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TOM.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VOIM.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HYPRO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MORLD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "B2I.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AKER.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VISTN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KID.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ORK.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "EQVA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "DNB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KOA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ZLNA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AKSO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "WSTEP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PRS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NKR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HSPG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CAVEN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PYRUM.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ATEA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SNTIA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BINT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PLSV.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "STRO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BIEN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BOR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NEL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AKRBP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ENSU.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NORCO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "STECH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MORG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "LSG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NYKD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AUSS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BORR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SWON.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BAKKA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TGS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "OTL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SOAG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BWO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SBNOR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ASA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AKAST.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SCANA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BOUV.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "IOX.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SPOG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VVL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AFG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ITERA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PNOR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PEN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KOG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GENT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ELK.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SPOL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ROGS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BRG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ELABS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SAGA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HGSB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "DOFG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SOMA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SOFF.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KOMPL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NRC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SNOR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "JIN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "REACH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NORBT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AFK.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MOWI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TEKNA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
+        "market_data_as_of": "2026-10-06",
         "reason": "missing_expected_completed_session",
         "ticker": "INIFY.OL"
       },
       {
         "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
+        "market_data_as_of": "2026-10-06",
         "reason": "missing_expected_completed_session",
-        "ticker": "HBC.OL"
+        "ticker": "PYRUM.OL"
       },
       {
         "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MING.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NONG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BMA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VAR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ODL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SMOP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AQUA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SB1NO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "EQNR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "LINK.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CRNA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MELG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BEWI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AZT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HEX.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SDSD.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BNOR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BOHUS.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SKUE.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "POL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HSHP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SALM.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SUBC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ABG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ELMRA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PSE.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "TECH.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "DNO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "VEI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PEXIP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
+        "market_data_as_of": "2026-10-06",
         "reason": "missing_expected_completed_session",
         "ticker": "TRSB.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "PLT.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HERMA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HELG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "OKEA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GENO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BONHR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "AUTO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "2020.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "QEC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "HAVI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "EIOF.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MGN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ENVIP.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SCATC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ININ.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "NAPA.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "ENDUR.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "JAREN.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "SNI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BWE.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "BWLPG.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "GYL.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CMBTO.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KCC.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "LIFE.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "RING.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "MEDI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "CONTX.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "WAWI.OL"
-      },
-      {
-        "data_status": "stale",
-        "market_data_as_of": "2026-10-05",
-        "reason": "missing_expected_completed_session",
-        "ticker": "KMAR.OL"
       }
     ],
-    "expected_session": "2026-10-06",
-    "generated_at": "2026-10-06T13:15:17Z",
-    "market_data_as_of": "2026-10-05",
+    "expected_session": "2026-10-07",
+    "generated_at": "2026-10-07T21:19:08Z",
+    "market_data_as_of": "2026-10-07",
     "observation_dates": {
-      "2026-10-05": 201
+      "2026-10-06": 3,
+      "2026-10-07": 198
     },
-    "reasons": [
-      "current_coverage_below_minimum",
-      "snapshot_session_is_not_current"
-    ],
+    "reasons": [],
     "schema": "oslo_screener.health.v1",
     "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
-    "snapshot_id": "505fed4fda2c469592b2f42594f1288b",
-    "status": "blocked",
-    "valid_until": "2026-10-07T16:45:00+02:00"
+    "snapshot_id": "2ca1f67513904e6bb5ac47aa8582fa11",
+    "status": "degraded",
+    "valid_until": "2026-10-08T16:45:00+02:00"
   },
   "sourceReliability": "Parsed from the current oslo-screener latest.csv/report output. Open/free technical data is screening context only and does not create buy/sell advice.",
-  "sourceSnapshotId": "505fed4fda2c469592b2f42594f1288b",
+  "sourceSnapshotId": "2ca1f67513904e6bb5ac47aa8582fa11",
   "sourceUrl": "https://keresell-coder.github.io/oslo-screener/latest.csv",
   "sourceUrls": [
     "https://keresell-coder.github.io/oslo-screener/latest.csv",
