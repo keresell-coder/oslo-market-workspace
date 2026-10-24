@@ -21,8 +21,10 @@ from pathlib import Path
 from statistics import median
 try:
     from app.market_health import evaluate_snapshot, parse_utc
+    from app.financial_contracts import filing_coverage, ev_currency_contract
 except ModuleNotFoundError:  # direct python app/server.py invocation
     from market_health import evaluate_snapshot, parse_utc
+    from financial_contracts import filing_coverage, ev_currency_contract
 
 try:
     import yfinance as yf
@@ -1490,6 +1492,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "price": current_price,
         "marketCap": pick_number(info, "marketCap"),
         "enterpriseValue": pick_number(info, "enterpriseValue"),
+        "financialInputEvidence": {key: info.get(key) for key in ("currency", "financialCurrency", "enterpriseValue", "marketCap", "totalDebt", "totalCash", "mostRecentQuarter")},
         "trailingPE": multiple_summaries["trailingPE"].get("value"),
         "providerTrailingPE": multiple_summaries["trailingPE"].get("providerValue"),
         "forwardPE": multiple_summaries["forwardPE"].get("value"),
@@ -1546,7 +1549,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
-    return payload
+    return apply_financial_contracts(payload)
 
 
 def finite_float(value) -> float | None:
@@ -2529,6 +2532,44 @@ def fundamental_multiple_summaries(ticker, info: dict, current_price: float | No
     return summaries
 
 
+def apply_financial_contracts(payload: dict) -> dict:
+    periods = [p.get("periodEnd") for p in (payload.get("quarterlyStatements") or {}).get("periods", [])]
+    coverage = filing_coverage(payload.get("symbol"), periods)
+    payload["financialFilingCoverage"] = coverage
+    evidence = payload.get("financialInputEvidence") or {}
+    inputs = payload.get("enterpriseToEbitdaInputs") or {}
+    fx = {"rate": inputs.get("fxRate"), "pair": inputs.get("fxPair"),
+          "source": inputs.get("fxSource"), "fetched_at": inputs.get("fxFetchedAt")}
+    contract = ev_currency_contract(evidence, payload.get("ttmEbitdaPeriodEnd"), fx)
+    contract["source_fetched_at"] = payload.get("sourceFetchedAt")
+    payload["enterpriseValueCurrencyContract"] = contract
+    metadata = payload.setdefault("multipleSourceMetadata", {})
+    for field in ("enterpriseToEbitda", "enterpriseToRevenue"):
+        metadata.setdefault(field, {"value": payload.get(field)})
+    for field, meta in metadata.items():
+        reason = None
+        if field == "enterpriseToRevenue" and (meta.get("inputs") or {}).get("denominatorPeriodEnd") != payload.get("ttmEbitdaPeriodEnd"):
+            reason = "gated-incompatible-input-periods"
+        if coverage["status"] in {"behind-known-release", "invalid-period"} and field not in {"dividendYield", "targetUpsidePct"}:
+            reason = "gated-" + coverage["status"]
+        required = (coverage.get("issuer_release") or {}).get("period_end")
+        metric_end = (payload.get("ttmEbitdaPeriodEnd") if field == "enterpriseToEbitda" else (meta.get("inputs") or {}).get("denominatorPeriodEnd"))
+        if required and field in {"enterpriseToEbitda", "enterpriseToRevenue", "priceToSalesTrailing12Months"} and (not metric_end or metric_end < required):
+            reason = "gated-behind-known-release"
+        if field in {"enterpriseToEbitda", "enterpriseToRevenue"} and contract["status"] != "screening-currency-consistent":
+            reason = contract["status"]
+        if reason:
+            # Retain original values as audit evidence, never as an output or peer input.
+            meta.setdefault("withheldValue", meta.get("value"))
+            meta.update(value=None, status=reason, classification="unavailable", confidence="gated",
+                        limitation=contract["limitation"] if field.startswith("enterprise") else coverage["limitation"])
+            payload[field] = None
+            if field == "enterpriseToEbitda":
+                payload.update(enterpriseToEbitdaStatus=reason, enterpriseToEbitdaLimitation=meta["limitation"], enterpriseToEbitdaConfidence="gated")
+                inputs.update(value=None, status=reason, confidence="gated", limitation=meta["limitation"])
+    return payload
+
+
 def normalize_enterprise_to_ebitda_fields(payload: dict) -> dict:
     if "enterpriseToEbitdaStatus" in payload:
         return payload
@@ -2719,7 +2760,7 @@ def normalize_fundamental_multiple_fields(payload: dict) -> dict:
     }
     metadata["targetUpsidePct"] = target_derived_summary(payload, fetched_at)
     payload["multipleSourceMetadata"] = metadata
-    return payload
+    return apply_financial_contracts(payload)
 
 
 def pick_body_number(body: dict, key: str) -> float | None:
@@ -4176,7 +4217,7 @@ def cached_payload_if_present(symbol: str) -> dict | None:
             "select payload from fundamentals_cache where symbol = ?",
             (symbol.strip().upper(),),
         ).fetchone()
-    return json.loads(row["payload"]) if row else None
+    return apply_financial_contracts(json.loads(row["payload"])) if row else None
 
 
 def stock_price_summary(fundamental: dict) -> dict:
@@ -4564,7 +4605,7 @@ def peer_metric_coverage(focus: dict, peers: list[dict]) -> dict:
 
 
 def own_history_observation(row) -> dict:
-    return {"payload": json.loads(row["payload"]), "fetched_at": row["fetched_at"]}
+    return {"payload": apply_financial_contracts(json.loads(row["payload"])), "fetched_at": row["fetched_at"]}
 
 
 def own_history_chart(metric: dict, observations: list[dict]) -> dict:

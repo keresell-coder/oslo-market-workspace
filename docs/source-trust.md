@@ -44,3 +44,5 @@ Live staged collection on 2026-09-09 retrieved all 15 watchlist companies and
 matched the expected completed session. The legacy technical feed was correctly
 withheld. Five empty configured peers require source/ticker review; none were
 silently substituted.
+
+Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.

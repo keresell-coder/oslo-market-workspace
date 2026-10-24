@@ -6,6 +6,7 @@ in staging and the prior published bundle remains intact.
 """
 from __future__ import annotations
 
+import copy
 import json
 import math
 import os
@@ -143,6 +144,15 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
             observations.append(quote.date().isoformat())
             if expected_session and quote.date().isoformat() < expected_session:
                 stale_quotes += 1
+        guarded = copy.deepcopy(row)
+        from app.server import apply_financial_contracts
+        apply_financial_contracts(guarded)
+        for field in ("enterpriseToEbitda", "enterpriseToRevenue", "trailingPE", "priceToSalesTrailing12Months"):
+            if guarded.get(field) is None and row.get(field) is not None:
+                errors.append(f"{symbol}: financial input contract leaked {field}")
+        coverage = guarded.get("financialFilingCoverage") or {}
+        if coverage.get("status") == "behind-known-release":
+            issues.append(f"{symbol}: provider statements behind known issuer release {coverage['issuer_release']['published_on']}")
         statements = row.get("quarterlyStatements") or {}
         periods = statements.get("periods") or []
         dates = []

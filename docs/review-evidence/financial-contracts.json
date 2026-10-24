@@ -1,0 +1,112 @@
+{
+  "baseline": "d9692a02e3f53f767abce521d3fc00c1bd37f1a5",
+  "snapshot": "e221619ea13a49b0a12bc9a6d76b4779",
+  "cases": [
+    {
+      "before": {
+        "symbol": "DOFG.OL",
+        "sourceFetchedAt": "2026-10-24T11:52:35+00:00",
+        "priceObservedAt": "2026-10-23T14:25:57+00:00",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "enterpriseToEbitda": 3.840257208660725,
+        "enterpriseToRevenue": 1.641758871511741,
+        "financialFilingCoverage": null,
+        "enterpriseValueCurrencyContract": null,
+        "enterpriseToEbitdaStatus": "computed"
+      },
+      "after": {
+        "symbol": "DOFG.OL",
+        "sourceFetchedAt": "2026-10-24T11:52:35+00:00",
+        "priceObservedAt": "2026-10-23T14:25:57+00:00",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "financialFilingCoverage": {
+          "status": "unverified",
+          "latest_period_end": "2026-06-30",
+          "issuer_release": null,
+          "limitation": "Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified."
+        },
+        "enterpriseValueCurrencyContract": {
+          "status": "gated-unverified-ev-currency",
+          "quote_currency": null,
+          "financial_currency": null,
+          "unit": "currency units (not millions)",
+          "period_end": "2026-06-30",
+          "provider": "Yahoo Finance via yfinance",
+          "tolerance_fraction": 0.01,
+          "limitation": "EV currency/component bridge is unverified. No corrected valuation is substituted; passing arithmetic does not reconcile leases, minorities, restricted cash or EBITDA definitions.",
+          "enterprise_value": null,
+          "market_cap": null,
+          "debt": null,
+          "cash": null,
+          "debt_cash_currency": null,
+          "fx": {
+            "rate": 9.316200256347656,
+            "pair": "USDNOK=X",
+            "source": "Yahoo Finance via yfinance FX",
+            "fetched_at": "2026-10-24T11:52:35+00:00"
+          },
+          "source_fetched_at": "2026-10-24T11:52:35+00:00"
+        },
+        "enterpriseToEbitdaStatus": "gated-unverified-ev-currency"
+      }
+    },
+    {
+      "before": {
+        "symbol": "NOD.OL",
+        "sourceFetchedAt": "2026-10-24T11:52:48+00:00",
+        "priceObservedAt": "2026-10-23T14:29:05+00:00",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "enterpriseToEbitda": 38.58000679569309,
+        "enterpriseToRevenue": 4.662812279097362,
+        "financialFilingCoverage": null,
+        "enterpriseValueCurrencyContract": null,
+        "enterpriseToEbitdaStatus": "computed"
+      },
+      "after": {
+        "symbol": "NOD.OL",
+        "sourceFetchedAt": "2026-10-24T11:52:48+00:00",
+        "priceObservedAt": "2026-10-23T14:29:05+00:00",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "financialFilingCoverage": {
+          "status": "behind-known-release",
+          "latest_period_end": "2026-06-30",
+          "issuer_release": {
+            "period_end": "2026-09-30",
+            "published_on": "2026-10-22",
+            "observed_at": "2026-10-24T20:54:00+00:00",
+            "source_url": "https://www.nordicsemi.com/Investor-Relations/Reports/Quarterly",
+            "scope": "Issuer release availability only; values and accounting definitions unverified"
+          },
+          "limitation": "Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified."
+        },
+        "enterpriseValueCurrencyContract": {
+          "status": "gated-unverified-ev-currency",
+          "quote_currency": null,
+          "financial_currency": null,
+          "unit": "currency units (not millions)",
+          "period_end": "2026-06-30",
+          "provider": "Yahoo Finance via yfinance",
+          "tolerance_fraction": 0.01,
+          "limitation": "EV currency/component bridge is unverified. No corrected valuation is substituted; passing arithmetic does not reconcile leases, minorities, restricted cash or EBITDA definitions.",
+          "enterprise_value": null,
+          "market_cap": null,
+          "debt": null,
+          "cash": null,
+          "debt_cash_currency": null,
+          "fx": {
+            "rate": 9.316200256347656,
+            "pair": "USDNOK=X",
+            "source": "Yahoo Finance via yfinance FX",
+            "fetched_at": "2026-10-24T11:52:35+00:00"
+          },
+          "source_fetched_at": "2026-10-24T11:52:48+00:00"
+        },
+        "enterpriseToEbitdaStatus": "gated-unverified-ev-currency"
+      }
+    }
+  ]
+}

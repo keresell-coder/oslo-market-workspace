@@ -657,3 +657,5 @@ Guardrails:
 10. Regenerate static JSON and verify `docs/data/*.json` stays valid.
 11. Run README verification commands.
 12. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.
+
+Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.

@@ -2549,6 +2549,7 @@ function renderFundamentalSource(row) {
         <p class="muted">${escapeHtml(row.enterpriseToEbitdaMethod || "EV/EBITDA is shown only when source inputs pass the app's calculation gate.")}</p>
         <p class="muted">${escapeHtml(row.enterpriseToEbitdaLimitation || "")}</p>
         <p class="muted">Inputs: EV ${escapeHtml(value(evInputs.enterpriseValue))} ${escapeHtml(evInputs.enterpriseValueCurrency || row.currency || "")}; TTM EBITDA ${escapeHtml(value(evInputs.ttmEbitda))} ${escapeHtml(evInputs.ttmEbitdaCurrency || "")}; FX ${escapeHtml(value(evInputs.fxRate))} ${escapeHtml(evInputs.fxPair || "")}.</p>
+        <p class="muted">Filing coverage: ${escapeHtml(row.financialFilingCoverage?.status || "unverified")}; provider statement period: ${escapeHtml(row.financialFilingCoverage?.latest_period_end || "unknown")}; issuer publication: ${escapeHtml(row.financialFilingCoverage?.issuer_release?.published_on || "unverified")}; retrieved: ${escapeHtml(row.sourceFetchedAt || "unknown")}. Coverage does not reconcile accounting definitions.</p>
         ${renderMultipleMetadataDetails(row.multipleSourceMetadata || {})}
       </details>
     </div>
