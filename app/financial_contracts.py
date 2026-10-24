@@ -33,8 +33,9 @@ def filing_coverage(symbol, periods, now=None):
             "limitation": "Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified."}
 
 
-def ev_currency_contract(info, period_end, fx):
+def ev_currency_contract(info, period_end, fx, now=None):
     """Check provider EV against separately labelled net-debt components; never replace EV."""
+    evaluated = now or datetime.now(timezone.utc)
     quote, financial = info.get("currency"), info.get("financialCurrency")
     result = {"status": "gated-unverified-ev-currency", "quote_currency": quote,
               "financial_currency": financial, "unit": "currency units (not millions)",
@@ -49,6 +50,12 @@ def ev_currency_contract(info, period_end, fx):
                   debt_cash_currency=financial, fx=dict(fx))
     if not all(isinstance(c, str) and re.fullmatch(r"[A-Z]{3}", c) for c in (quote, financial)) or any(v is None for v in (ev, cap, debt, cash)):
         return result
+    expected_currencies = {"enterpriseValue": quote, "marketCap": quote,
+                           "totalDebt": financial, "totalCash": financial}
+    result["component_currencies"] = info.get("componentCurrencies")
+    if info.get("componentCurrencies") != expected_currencies:
+        result["status"] = "gated-incompatible-component-currencies"
+        return result
     if ev <= 0 or cap <= 0 or debt < 0 or cash < 0:
         return result
     try:
@@ -56,7 +63,7 @@ def ev_currency_contract(info, period_end, fx):
     except (KeyError, ValueError, TypeError, OverflowError, OSError):
         return result
     result["balance_period_end"] = balance_end
-    if not period_end or balance_end != period_end:
+    if not period_end or balance_end != period_end or balance_end > evaluated.date().isoformat():
         result["status"] = "gated-incompatible-input-periods"
         return result
     rate = 1.0 if quote == financial else fx.get("rate")
@@ -64,9 +71,15 @@ def ev_currency_contract(info, period_end, fx):
         result["status"] = "gated-missing-fx-rate"
         return result
     if quote != financial:
+        direct = {f"{financial}/{quote}", f"{financial}{quote}=X"}
+        reverse = {f"{quote}/{financial}", f"{quote}{financial}=X"}
+        inverted = fx.get("inverted", False)
+        if not isinstance(inverted, bool) or fx.get("pair") not in (reverse if inverted else direct):
+            result["status"] = "gated-incompatible-fx-direction"
+            return result
         try:
             fetched = datetime.fromisoformat(str(fx.get("fetched_at")).replace("Z", "+00:00"))
-            age = (datetime.now(timezone.utc) - fetched).total_seconds() if fetched.tzinfo else -1
+            age = (evaluated - fetched).total_seconds() if fetched.tzinfo else -1
             if not 0 <= age <= 86400 or not fx.get("source") or not fx.get("pair"):
                 return result
         except (ValueError, TypeError):

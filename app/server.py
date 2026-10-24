@@ -1549,6 +1549,10 @@ def fetch_yfinance(symbol: str) -> dict:
         "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
+    payload["financialInputEvidence"]["componentCurrencies"] = {
+        "enterpriseValue": info.get("currency"), "marketCap": info.get("currency"),
+        "totalDebt": info.get("financialCurrency"), "totalCash": info.get("financialCurrency")}
+    payload["financialInputEvidence"]["currencyBasis"] = "Provider field currency contract; component accounting definitions unverified"
     return apply_financial_contracts(payload)
 
 
@@ -2378,6 +2382,7 @@ def enterprise_to_ebitda_summary(ticker, info: dict, fetched_at: str) -> dict:
         "fxStatus": fx.get("status"),
         "fxFetchedAt": fx.get("fetchedAt"),
         "fxError": fx.get("error"),
+        "fxInverted": fx.get("inverted", False),
         "ebitdaInEnterpriseValueCurrency": ebitda_in_quote_currency,
         "providerEnterpriseToEbitda": provider_ratio,
         "providerDifferencePct": provider_difference_pct,
@@ -2532,15 +2537,26 @@ def fundamental_multiple_summaries(ticker, info: dict, current_price: float | No
     return summaries
 
 
-def apply_financial_contracts(payload: dict) -> dict:
+def apply_financial_contracts(payload: dict, evaluation_at=None) -> dict:
     periods = [p.get("periodEnd") for p in (payload.get("quarterlyStatements") or {}).get("periods", [])]
-    coverage = filing_coverage(payload.get("symbol"), periods)
+    coverage = filing_coverage(payload.get("symbol"), periods, evaluation_at)
+    tables = {}
+    for statement in ("income", "balance", "cashflow"):
+        fields = [f["key"] for f in QUARTERLY_STATEMENT_FIELDS if f["statement"] == statement]
+        dates = [p.get("periodEnd") for p in (payload.get("quarterlyStatements") or {}).get("periods", [])
+                 if any(finite_float((p.get("values") or {}).get(key)) is not None for key in fields)]
+        tables[statement] = filing_coverage(payload.get("symbol"), dates, evaluation_at)
+    coverage["tables"] = tables
+    if coverage.get("issuer_release") and any(t["status"] in {"behind-known-release", "invalid-period"} for t in tables.values()):
+        coverage["status"] = "behind-known-release"
+        coverage["limitation"] = "Known issuer release is not covered by every quarterly statement table. A partial newer period cannot qualify full filing coverage; figures and accounting definitions remain unverified."
     payload["financialFilingCoverage"] = coverage
     evidence = payload.get("financialInputEvidence") or {}
     inputs = payload.get("enterpriseToEbitdaInputs") or {}
     fx = {"rate": inputs.get("fxRate"), "pair": inputs.get("fxPair"),
-          "source": inputs.get("fxSource"), "fetched_at": inputs.get("fxFetchedAt")}
-    contract = ev_currency_contract(evidence, payload.get("ttmEbitdaPeriodEnd"), fx)
+          "source": inputs.get("fxSource"), "fetched_at": inputs.get("fxFetchedAt"),
+          "inverted": inputs.get("fxInverted", False)}
+    contract = ev_currency_contract(evidence, payload.get("ttmEbitdaPeriodEnd"), fx, evaluation_at)
     contract["source_fetched_at"] = payload.get("sourceFetchedAt")
     payload["enterpriseValueCurrencyContract"] = contract
     metadata = payload.setdefault("multipleSourceMetadata", {})
@@ -4605,7 +4621,7 @@ def peer_metric_coverage(focus: dict, peers: list[dict]) -> dict:
 
 
 def own_history_observation(row) -> dict:
-    return {"payload": apply_financial_contracts(json.loads(row["payload"])), "fetched_at": row["fetched_at"]}
+    return {"payload": apply_financial_contracts(json.loads(row["payload"]), parse_utc(row["fetched_at"])), "fetched_at": row["fetched_at"]}
 
 
 def own_history_chart(metric: dict, observations: list[dict]) -> dict:
