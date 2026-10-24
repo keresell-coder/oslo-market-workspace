@@ -22,9 +22,11 @@ from statistics import median
 try:
     from app.market_health import evaluate_snapshot, parse_utc
     from app.financial_contracts import filing_coverage, ev_currency_contract
+    from app.primary_financials import load_primary
 except ModuleNotFoundError:  # direct python app/server.py invocation
     from market_health import evaluate_snapshot, parse_utc
     from financial_contracts import filing_coverage, ev_currency_contract
+    from primary_financials import load_primary
 
 try:
     import yfinance as yf
@@ -1549,6 +1551,22 @@ def fetch_yfinance(symbol: str) -> dict:
         "newswebUrl": f"{NEWSWEB_SEARCH_URL}?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
         "tradingViewSearchUrl": f"https://www.tradingview.com/search/?query={urllib.parse.quote(symbol.replace('.OL', ''))}",
     }
+    payload["primaryFinancials"] = load_primary(symbol, ROOT.parent / "data" / "primary")
+    reconciliation_path = ROOT.parent / "data" / "reconciliation" / f"{symbol.split('.')[0]}_definition_component_mapping.json"
+    if reconciliation_path.exists():
+        payload["financialReconciliation"] = json.loads(reconciliation_path.read_text())
+    primary = payload["primaryFinancials"]
+    provider_periods = {p["periodEnd"]:p for p in payload["quarterlyStatements"].get("periods", [])}
+    primary["provider_comparisons"] = []
+    for fact in primary.get("records", []):
+        key = fact.get("input_key")
+        comparable = fact["scope"] in {"quarter", "instant"}
+        provider_value = ((provider_periods.get(fact["period_end"]) or {}).get("values") or {}).get(key) if comparable else None
+        primary["provider_comparisons"].append({"primary_record_id":fact["id"],"primary_value":fact["value_units"],
+            "provider_value":provider_value,"difference":provider_value-fact["value_units"] if provider_value is not None else None,
+            "provider_period":fact["period_end"] if provider_value is not None else None,
+            "reason":"Primary source view is separate; no provider financial value is overwritten",
+            "scope_verification":"Primary mapping reviewed; provider definition not independently confirmed"})
     payload["financialInputEvidence"]["componentCurrencies"] = {
         "enterpriseValue": info.get("currency"), "marketCap": info.get("currency"),
         "totalDebt": info.get("financialCurrency"), "totalCash": info.get("financialCurrency")}

@@ -2550,10 +2550,39 @@ function renderFundamentalSource(row) {
         <p class="muted">${escapeHtml(row.enterpriseToEbitdaLimitation || "")}</p>
         <p class="muted">Inputs: EV ${escapeHtml(value(evInputs.enterpriseValue))} ${escapeHtml(evInputs.enterpriseValueCurrency || row.currency || "")}; TTM EBITDA ${escapeHtml(value(evInputs.ttmEbitda))} ${escapeHtml(evInputs.ttmEbitdaCurrency || "")}; FX ${escapeHtml(value(evInputs.fxRate))} ${escapeHtml(evInputs.fxPair || "")}.</p>
         <p class="muted">Filing coverage: ${escapeHtml(row.financialFilingCoverage?.status || "unverified")}; provider statement period: ${escapeHtml(row.financialFilingCoverage?.latest_period_end || "unknown")}; issuer publication: ${escapeHtml(row.financialFilingCoverage?.issuer_release?.published_on || "unverified")}; retrieved: ${escapeHtml(row.sourceFetchedAt || "unknown")}. Coverage does not reconcile accounting definitions.</p>
+        ${renderFinancialReconciliation(row.financialReconciliation)}
+        ${renderPrimaryFinancials(row.primaryFinancials)}
         ${renderMultipleMetadataDetails(row.multipleSourceMetadata || {})}
       </details>
     </div>
   `;
+}
+
+function renderFinancialReconciliation(note) {
+  if (!note) return "";
+  const definitions = note.definitions || {};
+  const issuer = definitions.ifrs_ebitda || {};
+  const provider = definitions.provider_ebitda_reconstruction || {};
+  const management = definitions.management_ebitda || {};
+  return `<details class="compact-details"><summary>Separate definition reconciliation: unresolved</summary>
+    <p>Issuer IFRS quarterly EBITDA ${escapeHtml(value(issuer.quarter))} ${escapeHtml(note.currency)} ${escapeHtml(note.source_unit)}; management EBITDA ${escapeHtml(value(management.quarter))} on ${escapeHtml(management.scope)}.</p>
+    <p>Provider quarterly EBITDA ${escapeHtml(value(provider.reported_provider_value))} is numerically consistent with ${escapeHtml(provider.expression)}. This is not confirmation of provider methodology.</p>
+    <p>${escapeHtml(provider.limitation || "")}</p><p>${escapeHtml(note.application_policy || "Audit only; no replacements")}</p>
+    <p>Source SHA-256 ${escapeHtml(note.source?.sha256 || "unknown")}; pages ${escapeHtml((note.source?.printed_page || []).join(", "))}.</p></details>`;
+}
+
+function renderPrimaryFinancials(primary) {
+  if (!primary || primary.status === "not-configured") return "";
+  const records = primary.records || [];
+  const source = records[0]?.source || {};
+  const current = records.filter((r) => r.period_end === primary.current_period_end && ["quarter", "instant"].includes(r.scope));
+  const lines = [...current, ...(primary.derived || [])].map((r) => `<tr><td>${escapeHtml(r.row)}</td><td>${escapeHtml(value(r.value_units))} ${escapeHtml(r.currency)}</td><td>${escapeHtml(r.period_end)} ${escapeHtml(r.scope)}</td></tr>`).join("");
+  return `<details class="compact-details"><summary>Separate primary statement inputs: ${escapeHtml(primary.status)}</summary>
+    <p>${escapeHtml(primary.limitation || "Primary validation failed; no primary values selected.")}</p>
+    <p>Issuer publication ${escapeHtml(source.published_on || "unknown")}; primary artifact received ${escapeHtml(source.retrieved_at || "unknown")}. Provider retrieval remains separate. Primary figures do not release EPS or EV gates.</p>
+    <p>Source <a href="${escapeHtml(source.url || "#")}" target="_blank" rel="noopener">${escapeHtml(source.title || "issuer report")}</a>; SHA-256 ${escapeHtml(source.sha256 || "unknown")}; ${records.length} selected field/period records with page/table/row mappings.</p>
+    <table><thead><tr><th>Primary definition</th><th>Amount in currency units</th><th>Period</th></tr></thead><tbody>${lines}</tbody></table>
+    <p>${escapeHtml((primary.issues || []).join(" "))}</p></details>`;
 }
 
 function renderMultipleMetadataDetails(metadata) {

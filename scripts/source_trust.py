@@ -42,7 +42,7 @@ def history_rows(server, rows, now=None):
         "symbol", "price", "currency", "financialCurrency", "source", "fetchedAt",
         "sourceFetchedAt", "priceObservedAt", "priceObservationStatus", "priceSourceField",
         "financialInputEvidence", "enterpriseToEbitdaInputs", "ttmEbitdaPeriodEnd",
-        "multipleSourceMetadata", "quarterlyStatements",
+        "multipleSourceMetadata", "quarterlyStatements", "primaryFinancials",
     }
     by_day = {}
     for row in sorted(rows, key=lambda r: r.get("fetched_at") or ""):
@@ -157,6 +157,9 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
         coverage = guarded.get("financialFilingCoverage") or {}
         if coverage.get("status") == "behind-known-release":
             issues.append(f"{symbol}: provider statements behind known issuer release {coverage['issuer_release']['published_on']}")
+        primary = row.get("primaryFinancials") or {}
+        if primary.get("status") == "blocked":
+            errors.append(f"{symbol}: configured primary ingestion failed: {primary.get('issues')}")
         statements = row.get("quarterlyStatements") or {}
         periods = statements.get("periods") or []
         dates = []
