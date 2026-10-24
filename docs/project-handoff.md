@@ -659,3 +659,5 @@ Guardrails:
 12. Run `scripts/open_in_safari.sh` and confirm Safari opens `http://127.0.0.1:8765`.
 
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
+
+Next bounded review: [primary financial ingestion](primary-financial-ingestion.md) adds separately sourced Nordic records and audit-only DOFG definitions; no scoring or production-data changes.

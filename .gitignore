@@ -3,3 +3,6 @@ __pycache__/
 .DS_Store
 app/data/*.sqlite3
 backups/
+
+# Immutable report downloads are cached locally, never committed
+data/primary/cache/

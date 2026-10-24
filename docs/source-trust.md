@@ -46,3 +46,5 @@ withheld. Five empty configured peers require source/ticker review; none were
 silently substituted.
 
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
+
+Next bounded review: [primary financial ingestion](primary-financial-ingestion.md) adds separately sourced Nordic records and audit-only DOFG definitions; no scoring or production-data changes.

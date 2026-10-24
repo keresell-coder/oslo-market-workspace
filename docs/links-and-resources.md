@@ -271,3 +271,5 @@ not establish actual coverage. Earlier dated coverage notes below are historical
 The current digest is on-demand. Any scheduled automation should reuse the same conservative source path, keep deduplication/source links/error/freshness reporting visible, and preserve overlapping analyst-count caveats for consensus data.
 
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
+
+Next bounded review: [primary financial ingestion](primary-financial-ingestion.md) adds separately sourced Nordic records and audit-only DOFG definitions; no scoring or production-data changes.

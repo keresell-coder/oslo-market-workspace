@@ -567,3 +567,5 @@ the scheduled GitHub Actions refreshes, and only then decide how far to expand
 static all-universe output beyond the watchlist-focused beta.
 
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](docs/financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
+
+Primary-input ingestion review batch (2026-10-24): [selected issuer facts, provenance and remaining gates](docs/primary-financial-ingestion.md). This branch is prepared for review; production data is unchanged.
