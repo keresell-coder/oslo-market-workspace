@@ -6,6 +6,7 @@ in staging and the prior published bundle remains intact.
 """
 from __future__ import annotations
 
+import copy
 import json
 import math
 import os
@@ -40,6 +41,8 @@ def history_rows(server, rows, now=None):
     keys = {m["key"] for m in server.BENCHMARK_METRICS} | {
         "symbol", "price", "currency", "financialCurrency", "source", "fetchedAt",
         "sourceFetchedAt", "priceObservedAt", "priceObservationStatus", "priceSourceField",
+        "financialInputEvidence", "enterpriseToEbitdaInputs", "ttmEbitdaPeriodEnd",
+        "multipleSourceMetadata", "quarterlyStatements",
     }
     by_day = {}
     for row in sorted(rows, key=lambda r: r.get("fetched_at") or ""):
@@ -52,6 +55,8 @@ def history_rows(server, rows, now=None):
             payload = json.loads(payload)
         if payload.get("symbol") != symbol or timestamp(payload.get("fetchedAt")) != observed:
             raise ValueError("History row identity/timestamp differs from its payload")
+        from app.server import apply_financial_contracts
+        payload = apply_financial_contracts(copy.deepcopy(payload), observed)
         day = observed.date().isoformat()
         if row.get("date", day) != day:
             raise ValueError("History date key differs from retrieval date")
@@ -143,6 +148,15 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
             observations.append(quote.date().isoformat())
             if expected_session and quote.date().isoformat() < expected_session:
                 stale_quotes += 1
+        guarded = copy.deepcopy(row)
+        from app.server import apply_financial_contracts
+        apply_financial_contracts(guarded, now)
+        for field in ("enterpriseToEbitda", "enterpriseToRevenue", "trailingPE", "priceToSalesTrailing12Months"):
+            if guarded.get(field) is None and row.get(field) is not None:
+                errors.append(f"{symbol}: financial input contract leaked {field}")
+        coverage = guarded.get("financialFilingCoverage") or {}
+        if coverage.get("status") == "behind-known-release":
+            issues.append(f"{symbol}: provider statements behind known issuer release {coverage['issuer_release']['published_on']}")
         statements = row.get("quarterlyStatements") or {}
         periods = statements.get("periods") or []
         dates = []

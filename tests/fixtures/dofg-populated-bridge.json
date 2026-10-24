@@ -1,0 +1,28 @@
+{
+  "fixture_kind": "Deterministic regression; NOT a frozen provider response",
+  "provenance": "EV, market cap and issuer Q2 debt/unrestricted cash transcribed from delegated audit findings. FX=10, observation timestamps, component labels and period epoch are synthetic controls, not claimed live observations. Does not reconcile other EV components or EBITDA definitions.",
+  "info": {
+    "currency": "NOK",
+    "financialCurrency": "USD",
+    "enterpriseValue": 33021806592,
+    "marketCap": 31646808064,
+    "totalDebt": 1718000000,
+    "totalCash": 343000000,
+    "mostRecentQuarter": 1782777600,
+    "componentCurrencies": {
+      "enterpriseValue": "NOK",
+      "marketCap": "NOK",
+      "totalDebt": "USD",
+      "totalCash": "USD"
+    }
+  },
+  "period_end": "2026-06-30",
+  "evaluated_at": "2026-10-24T12:00:00Z",
+  "fx": {
+    "rate": 10,
+    "pair": "USDNOK=X",
+    "inverted": false,
+    "source": "Synthetic deterministic control; not observed market FX",
+    "fetched_at": "2026-10-24T11:00:00Z"
+  }
+}

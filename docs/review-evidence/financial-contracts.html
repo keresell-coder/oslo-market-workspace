@@ -1,0 +1,159 @@
+<meta charset="utf-8"><title>Financial contract regression review</title><h1>Saved-input guard: before and after</h1><p>Offline fixture; figures have not been refreshed or reconciled.</p><h2>DOFG.OL</h2><table border="1"><tr><th>Before</th><th>After</th></tr><tr><td><pre>{
+  &quot;symbol&quot;: &quot;DOFG.OL&quot;,
+  &quot;sourceFetchedAt&quot;: &quot;2026-10-24T11:52:35+00:00&quot;,
+  &quot;priceObservedAt&quot;: &quot;2026-10-23T14:25:57+00:00&quot;,
+  &quot;ttmEbitdaPeriodEnd&quot;: &quot;2026-06-30&quot;,
+  &quot;enterpriseToEbitda&quot;: 3.840257208660725,
+  &quot;enterpriseToRevenue&quot;: 1.641758871511741,
+  &quot;financialFilingCoverage&quot;: null,
+  &quot;enterpriseValueCurrencyContract&quot;: null,
+  &quot;enterpriseToEbitdaStatus&quot;: &quot;computed&quot;
+}</pre></td><td><pre>{
+  &quot;symbol&quot;: &quot;DOFG.OL&quot;,
+  &quot;sourceFetchedAt&quot;: &quot;2026-10-24T11:52:35+00:00&quot;,
+  &quot;priceObservedAt&quot;: &quot;2026-10-23T14:25:57+00:00&quot;,
+  &quot;ttmEbitdaPeriodEnd&quot;: &quot;2026-06-30&quot;,
+  &quot;enterpriseToEbitda&quot;: null,
+  &quot;enterpriseToRevenue&quot;: null,
+  &quot;financialFilingCoverage&quot;: {
+    &quot;status&quot;: &quot;unverified&quot;,
+    &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+    &quot;issuer_release&quot;: null,
+    &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;,
+    &quot;tables&quot;: {
+      &quot;income&quot;: {
+        &quot;status&quot;: &quot;unverified&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: null,
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      },
+      &quot;balance&quot;: {
+        &quot;status&quot;: &quot;unverified&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: null,
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      },
+      &quot;cashflow&quot;: {
+        &quot;status&quot;: &quot;unverified&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: null,
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      }
+    }
+  },
+  &quot;enterpriseValueCurrencyContract&quot;: {
+    &quot;status&quot;: &quot;gated-unverified-ev-currency&quot;,
+    &quot;quote_currency&quot;: null,
+    &quot;financial_currency&quot;: null,
+    &quot;unit&quot;: &quot;currency units (not millions)&quot;,
+    &quot;period_end&quot;: &quot;2026-06-30&quot;,
+    &quot;provider&quot;: &quot;Yahoo Finance via yfinance&quot;,
+    &quot;tolerance_fraction&quot;: 0.01,
+    &quot;limitation&quot;: &quot;EV currency/component bridge is unverified. No corrected valuation is substituted; passing arithmetic does not reconcile leases, minorities, restricted cash or EBITDA definitions.&quot;,
+    &quot;enterprise_value&quot;: null,
+    &quot;market_cap&quot;: null,
+    &quot;debt&quot;: null,
+    &quot;cash&quot;: null,
+    &quot;debt_cash_currency&quot;: null,
+    &quot;fx&quot;: {
+      &quot;rate&quot;: 9.316200256347656,
+      &quot;pair&quot;: &quot;USDNOK=X&quot;,
+      &quot;source&quot;: &quot;Yahoo Finance via yfinance FX&quot;,
+      &quot;fetched_at&quot;: &quot;2026-10-24T11:52:35+00:00&quot;,
+      &quot;inverted&quot;: false
+    },
+    &quot;source_fetched_at&quot;: &quot;2026-10-24T11:52:35+00:00&quot;
+  },
+  &quot;enterpriseToEbitdaStatus&quot;: &quot;gated-unverified-ev-currency&quot;
+}</pre></td></tr></table><h2>NOD.OL</h2><table border="1"><tr><th>Before</th><th>After</th></tr><tr><td><pre>{
+  &quot;symbol&quot;: &quot;NOD.OL&quot;,
+  &quot;sourceFetchedAt&quot;: &quot;2026-10-24T11:52:48+00:00&quot;,
+  &quot;priceObservedAt&quot;: &quot;2026-10-23T14:29:05+00:00&quot;,
+  &quot;ttmEbitdaPeriodEnd&quot;: &quot;2026-06-30&quot;,
+  &quot;enterpriseToEbitda&quot;: 38.58000679569309,
+  &quot;enterpriseToRevenue&quot;: 4.662812279097362,
+  &quot;financialFilingCoverage&quot;: null,
+  &quot;enterpriseValueCurrencyContract&quot;: null,
+  &quot;enterpriseToEbitdaStatus&quot;: &quot;computed&quot;
+}</pre></td><td><pre>{
+  &quot;symbol&quot;: &quot;NOD.OL&quot;,
+  &quot;sourceFetchedAt&quot;: &quot;2026-10-24T11:52:48+00:00&quot;,
+  &quot;priceObservedAt&quot;: &quot;2026-10-23T14:29:05+00:00&quot;,
+  &quot;ttmEbitdaPeriodEnd&quot;: &quot;2026-06-30&quot;,
+  &quot;enterpriseToEbitda&quot;: null,
+  &quot;enterpriseToRevenue&quot;: null,
+  &quot;financialFilingCoverage&quot;: {
+    &quot;status&quot;: &quot;behind-known-release&quot;,
+    &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+    &quot;issuer_release&quot;: {
+      &quot;period_end&quot;: &quot;2026-09-30&quot;,
+      &quot;published_on&quot;: &quot;2026-10-22&quot;,
+      &quot;observed_at&quot;: &quot;2026-10-24T20:54:00+00:00&quot;,
+      &quot;source_url&quot;: &quot;https://www.nordicsemi.com/Investor-Relations/Reports/Quarterly&quot;,
+      &quot;scope&quot;: &quot;Issuer release availability only; values and accounting definitions unverified&quot;
+    },
+    &quot;limitation&quot;: &quot;Known issuer release is not covered by every quarterly statement table. A partial newer period cannot qualify full filing coverage; figures and accounting definitions remain unverified.&quot;,
+    &quot;tables&quot;: {
+      &quot;income&quot;: {
+        &quot;status&quot;: &quot;behind-known-release&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: {
+          &quot;period_end&quot;: &quot;2026-09-30&quot;,
+          &quot;published_on&quot;: &quot;2026-10-22&quot;,
+          &quot;observed_at&quot;: &quot;2026-10-24T20:54:00+00:00&quot;,
+          &quot;source_url&quot;: &quot;https://www.nordicsemi.com/Investor-Relations/Reports/Quarterly&quot;,
+          &quot;scope&quot;: &quot;Issuer release availability only; values and accounting definitions unverified&quot;
+        },
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      },
+      &quot;balance&quot;: {
+        &quot;status&quot;: &quot;behind-known-release&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: {
+          &quot;period_end&quot;: &quot;2026-09-30&quot;,
+          &quot;published_on&quot;: &quot;2026-10-22&quot;,
+          &quot;observed_at&quot;: &quot;2026-10-24T20:54:00+00:00&quot;,
+          &quot;source_url&quot;: &quot;https://www.nordicsemi.com/Investor-Relations/Reports/Quarterly&quot;,
+          &quot;scope&quot;: &quot;Issuer release availability only; values and accounting definitions unverified&quot;
+        },
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      },
+      &quot;cashflow&quot;: {
+        &quot;status&quot;: &quot;behind-known-release&quot;,
+        &quot;latest_period_end&quot;: &quot;2026-06-30&quot;,
+        &quot;issuer_release&quot;: {
+          &quot;period_end&quot;: &quot;2026-09-30&quot;,
+          &quot;published_on&quot;: &quot;2026-10-22&quot;,
+          &quot;observed_at&quot;: &quot;2026-10-24T20:54:00+00:00&quot;,
+          &quot;source_url&quot;: &quot;https://www.nordicsemi.com/Investor-Relations/Reports/Quarterly&quot;,
+          &quot;scope&quot;: &quot;Issuer release availability only; values and accounting definitions unverified&quot;
+        },
+        &quot;limitation&quot;: &quot;Retrieval time is separate from filing coverage. Coverage does not verify values or definitions; unknown issuer dates remain unverified.&quot;
+      }
+    }
+  },
+  &quot;enterpriseValueCurrencyContract&quot;: {
+    &quot;status&quot;: &quot;gated-unverified-ev-currency&quot;,
+    &quot;quote_currency&quot;: null,
+    &quot;financial_currency&quot;: null,
+    &quot;unit&quot;: &quot;currency units (not millions)&quot;,
+    &quot;period_end&quot;: &quot;2026-06-30&quot;,
+    &quot;provider&quot;: &quot;Yahoo Finance via yfinance&quot;,
+    &quot;tolerance_fraction&quot;: 0.01,
+    &quot;limitation&quot;: &quot;EV currency/component bridge is unverified. No corrected valuation is substituted; passing arithmetic does not reconcile leases, minorities, restricted cash or EBITDA definitions.&quot;,
+    &quot;enterprise_value&quot;: null,
+    &quot;market_cap&quot;: null,
+    &quot;debt&quot;: null,
+    &quot;cash&quot;: null,
+    &quot;debt_cash_currency&quot;: null,
+    &quot;fx&quot;: {
+      &quot;rate&quot;: 9.316200256347656,
+      &quot;pair&quot;: &quot;USDNOK=X&quot;,
+      &quot;source&quot;: &quot;Yahoo Finance via yfinance FX&quot;,
+      &quot;fetched_at&quot;: &quot;2026-10-24T11:52:35+00:00&quot;,
+      &quot;inverted&quot;: false
+    },
+    &quot;source_fetched_at&quot;: &quot;2026-10-24T11:52:48+00:00&quot;
+  },
+  &quot;enterpriseToEbitdaStatus&quot;: &quot;gated-unverified-ev-currency&quot;
+}</pre></td></tr></table>

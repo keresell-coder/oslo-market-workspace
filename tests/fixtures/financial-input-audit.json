@@ -1,0 +1,1793 @@
+{
+  "source_commit": "d9692a02e3f53f767abce521d3fc00c1bd37f1a5",
+  "snapshot_id": "e221619ea13a49b0a12bc9a6d76b4779",
+  "captured_at": "2026-10-24T20:58:09+00:00",
+  "rows": [
+    {
+      "currency": "NOK",
+      "enterpriseToEbitda": 3.840257208660725,
+      "enterpriseToEbitdaInputs": {
+        "classification": "source-gated computed",
+        "confidence": "screening-grade computed",
+        "ebitdaInEnterpriseValueCurrency": 8598852836.608887,
+        "enterpriseValue": 33021806592.0,
+        "enterpriseValueCurrency": "NOK",
+        "fetchedAt": "2026-10-24T11:52:35+00:00",
+        "field": "enterpriseToEbitda",
+        "fxError": null,
+        "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+        "fxPair": "USDNOK=X",
+        "fxRate": 9.316200256347656,
+        "fxSource": "Yahoo Finance via yfinance FX",
+        "fxStatus": "fresh",
+        "label": "EV/EBITDA",
+        "limitation": "",
+        "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
+        "providerDifferencePct": 968.1836598727697,
+        "providerEnterpriseToEbitda": 41.021,
+        "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+        "status": "computed",
+        "ttmEbitda": 923000000.0,
+        "ttmEbitdaCurrency": "USD",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "ttmEbitdaSourceRow": "EBITDA",
+        "unit": "x",
+        "value": 3.840257208660725
+      },
+      "enterpriseToEbitdaStatus": "computed",
+      "enterpriseToRevenue": 1.641758871511741,
+      "enterpriseValue": 33021806592.0,
+      "fetchedAt": "2026-10-24T11:52:35+00:00",
+      "financialCurrency": "USD",
+      "marketCap": 31646808064.0,
+      "multipleSourceMetadata": {
+        "dividendYield": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "dividendYield",
+          "inputs": {
+            "annualDividendRate": 13.86,
+            "currency": "NOK",
+            "price": 128.5
+          },
+          "label": "Dividend yield",
+          "limitation": "Dividend yield uses yfinance annual dividend rate divided by the cached price when both inputs are available.",
+          "method": "Computed as annual dividend rate divided by cached price, shown as percent.",
+          "providerDifferencePct": 0.037157287157296714,
+          "providerField": "dividendYield",
+          "providerValue": 10.79,
+          "source": "Yahoo Finance via yfinance dividendRate and cached price",
+          "status": "computed",
+          "unit": "%",
+          "value": 10.785992217898832
+        },
+        "enterpriseToEbitda": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "ebitdaInEnterpriseValueCurrency": 8598852836.608887,
+          "enterpriseValue": 33021806592.0,
+          "enterpriseValueCurrency": "NOK",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "enterpriseToEbitda",
+          "fxError": null,
+          "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+          "fxPair": "USDNOK=X",
+          "fxRate": 9.316200256347656,
+          "fxSource": "Yahoo Finance via yfinance FX",
+          "fxStatus": "fresh",
+          "label": "EV/EBITDA",
+          "limitation": "",
+          "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
+          "providerDifferencePct": 968.1836598727697,
+          "providerEnterpriseToEbitda": 41.021,
+          "providerField": "enterpriseToEbitda",
+          "providerValue": 41.021,
+          "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "ttmEbitda": 923000000.0,
+          "ttmEbitdaCurrency": "USD",
+          "ttmEbitdaPeriodEnd": "2026-06-30",
+          "ttmEbitdaSourceRow": "EBITDA",
+          "unit": "x",
+          "value": 3.840257208660725
+        },
+        "enterpriseToRevenue": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "enterpriseToRevenue",
+          "inputs": {
+            "denominator": 20113676353.45459,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "revenue",
+            "denominatorPeriodEnd": "2026-06-30",
+            "denominatorSourceRow": "Total Revenue",
+            "fxError": null,
+            "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+            "fxPair": "USDNOK=X",
+            "fxRate": 9.316200256347656,
+            "fxSource": "Yahoo Finance via yfinance FX",
+            "fxStatus": "fresh",
+            "numerator": 33021806592.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "enterprise value",
+            "rawTtmCurrency": "USD",
+            "rawTtmValue": 2159000000.0
+          },
+          "label": "EV/revenue",
+          "limitation": "EV/revenue is margin-sensitive and sector-specific.",
+          "method": "Computed as enterprise value divided by yfinance TTM revenue converted to the quote currency.",
+          "providerDifferencePct": 831.6228019475403,
+          "providerField": "enterpriseToRevenue",
+          "providerValue": 15.295,
+          "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "unit": "x",
+          "value": 1.641758871511741
+        },
+        "evToEbit": {
+          "classification": "intentionally not implemented",
+          "confidence": "missing",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "evToEbit",
+          "inputs": {},
+          "label": "EV/EBIT",
+          "limitation": "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+          "method": "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+          "providerField": null,
+          "providerValue": null,
+          "source": "not implemented",
+          "status": "intentionally-not-implemented",
+          "unit": "x",
+          "value": null
+        },
+        "forwardPE": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "forwardPE",
+          "inputs": {
+            "denominator": 16.916441,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "forward EPS estimate",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 128.5,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "Forward P/E",
+          "limitation": "Forward EPS is an estimate field with unverified methodology and contributor coverage.",
+          "method": "Computed as cached share price divided by yfinance forward EPS estimate.",
+          "providerDifferencePct": -5.967810245977034e-07,
+          "providerField": "forwardPE",
+          "providerValue": 7.5961604,
+          "source": "Yahoo Finance via yfinance price and forward EPS estimate fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 7.596160445332444
+        },
+        "pnAv": {
+          "classification": "intentionally not implemented",
+          "confidence": "missing",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "pnAv",
+          "inputs": {},
+          "label": "P/NAV",
+          "limitation": "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+          "method": "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+          "providerField": null,
+          "providerValue": null,
+          "source": "not implemented",
+          "status": "intentionally-not-implemented",
+          "unit": "x",
+          "value": null
+        },
+        "priceToBook": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "priceToBook",
+          "inputs": {
+            "denominator": 79.6437,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "book value per share",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 128.5,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "P/B",
+          "limitation": "Book value is not NAV, replacement value, fleet value, or reviewed accounting equity.",
+          "method": "Computed as cached share price divided by yfinance book value per share.",
+          "providerDifferencePct": 3.7267159580522957e-06,
+          "providerField": "priceToBook",
+          "providerValue": 1.6134359,
+          "source": "Yahoo Finance via yfinance price and bookValue fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 1.6134358398718291
+        },
+        "priceToSalesTrailing12Months": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "priceToSalesTrailing12Months",
+          "inputs": {
+            "denominator": 20113676353.45459,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "revenue",
+            "denominatorPeriodEnd": "2026-06-30",
+            "denominatorSourceRow": "Total Revenue",
+            "fxError": null,
+            "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+            "fxPair": "USDNOK=X",
+            "fxRate": 9.316200256347656,
+            "fxSource": "Yahoo Finance via yfinance FX",
+            "fxStatus": "fresh",
+            "numerator": 31646808064.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "market cap",
+            "rawTtmCurrency": "USD",
+            "rawTtmValue": 2159000000.0
+          },
+          "label": "P/S",
+          "limitation": "Revenue multiples need margin, growth, sector, and accounting context.",
+          "method": "Computed as market cap divided by yfinance TTM revenue converted to the quote currency.",
+          "providerDifferencePct": 831.6200141539298,
+          "providerField": "priceToSalesTrailing12Months",
+          "providerValue": 14.658086,
+          "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "unit": "x",
+          "value": 1.5733974986907133
+        },
+        "targetUpsidePct": {
+          "classification": "provider-derived",
+          "confidence": "low to screening-grade provider row",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "targetUpsidePct",
+          "inputs": {
+            "currency": "NOK",
+            "price": 128.5,
+            "targetHighPrice": 154.84457,
+            "targetLowPrice": 133.6409,
+            "targetMeanPrice": 146.90091
+          },
+          "label": "Target-derived fields",
+          "limitation": "Target rows are provider/manual source rows. Reported analyst references may overlap and are not deduplicated.",
+          "method": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
+          "providerField": "targetMeanPrice",
+          "providerValue": 146.90091,
+          "source": "Yahoo Finance via yfinance",
+          "status": "provider-row",
+          "unit": "%",
+          "value": 14.319774319066148
+        },
+        "trailingPE": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:35+00:00",
+          "field": "trailingPE",
+          "inputs": {
+            "denominator": 18.71,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "TTM EPS",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 128.5,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "TTM P/E",
+          "limitation": "Trailing EPS can differ from company adjusted EPS and may include one-offs.",
+          "method": "Computed as cached share price divided by yfinance trailing EPS.",
+          "providerDifferencePct": 2.406225685369634e-06,
+          "providerField": "trailingPE",
+          "providerValue": 6.8679852,
+          "source": "Yahoo Finance via yfinance price and EPS fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 6.86798503474078
+        }
+      },
+      "priceObservedAt": "2026-10-23T14:25:57+00:00",
+      "providerEnterpriseToEbitda": 41.021,
+      "providerEnterpriseToRevenue": 15.295,
+      "quarterlyStatements": {
+        "confidence": "screening-grade",
+        "coverageByField": {
+          "capitalExpenditure": 5,
+          "cash": 5,
+          "commonEquity": 5,
+          "dilutedEps": 5,
+          "ebit": 5,
+          "ebitda": 5,
+          "freeCashFlow": 5,
+          "grossProfit": 0,
+          "netDebt": 5,
+          "netIncome": 5,
+          "operatingCashFlow": 5,
+          "operatingIncome": 5,
+          "totalAssets": 5,
+          "totalDebt": 5,
+          "totalRevenue": 5
+        },
+        "currency": "USD",
+        "currencySource": "yfinance financialCurrency",
+        "errors": [],
+        "fetchedAt": "2026-10-24T11:52:35+00:00",
+        "fields": [
+          {
+            "key": "totalRevenue",
+            "label": "Revenue",
+            "sourceRows": [
+              "Total Revenue",
+              "Operating Revenue"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "grossProfit",
+            "label": "Gross profit",
+            "sourceRows": [
+              "Gross Profit"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "ebitda",
+            "label": "EBITDA",
+            "sourceRows": [
+              "EBITDA",
+              "Normalized EBITDA"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "ebit",
+            "label": "EBIT",
+            "sourceRows": [
+              "EBIT"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "operatingIncome",
+            "label": "Operating income",
+            "sourceRows": [
+              "Operating Income"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "netIncome",
+            "label": "Net income",
+            "sourceRows": [
+              "Net Income",
+              "Net Income Common Stockholders"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "dilutedEps",
+            "label": "Diluted EPS",
+            "sourceRows": [
+              "Diluted EPS",
+              "Diluted EPS Other Gains Losses"
+            ],
+            "statement": "income",
+            "unit": "per share"
+          },
+          {
+            "key": "totalAssets",
+            "label": "Total assets",
+            "sourceRows": [
+              "Total Assets"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "totalDebt",
+            "label": "Total debt",
+            "sourceRows": [
+              "Total Debt"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "netDebt",
+            "label": "Net debt",
+            "sourceRows": [
+              "Net Debt"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "commonEquity",
+            "label": "Common equity",
+            "sourceRows": [
+              "Common Stock Equity",
+              "Stockholders Equity"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "cash",
+            "label": "Cash",
+            "sourceRows": [
+              "Cash And Cash Equivalents",
+              "Cash Cash Equivalents And Short Term Investments"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "operatingCashFlow",
+            "label": "Operating cash flow",
+            "sourceRows": [
+              "Operating Cash Flow",
+              "Cash Flow From Continuing Operating Activities"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          },
+          {
+            "key": "capitalExpenditure",
+            "label": "Capital expenditure",
+            "sourceRows": [
+              "Capital Expenditure"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          },
+          {
+            "key": "freeCashFlow",
+            "label": "Free cash flow",
+            "sourceRows": [
+              "Free Cash Flow"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          }
+        ],
+        "latestPeriodEnd": "2026-06-30",
+        "limitations": "Open/free yfinance quarterly statement tables are screening-grade, rate-limited, and may lag or omit line items. Values are shown only when a dated quarterly statement row is returned; no statement history is inferred from current yfinance summary fields. Currency is shown only when yfinance provides financialCurrency. Primary company-report review is tracked separately; unreviewed periods remain screening-grade yfinance rows.",
+        "maximumPeriods": 6,
+        "periodCount": 5,
+        "periodType": "quarter",
+        "periods": [
+          {
+            "label": "2026 Q2",
+            "periodEnd": "2026-06-30",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "netDebt": "Net Debt",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -136000000.0,
+              "cash": 343000000.0,
+              "commonEquity": 2094000000.0,
+              "dilutedEps": 0.59,
+              "ebit": 235000000.0,
+              "ebitda": 347000000.0,
+              "freeCashFlow": 31000000.0,
+              "grossProfit": null,
+              "netDebt": 1213000000.0,
+              "netIncome": 146000000.0,
+              "operatingCashFlow": 167000000.0,
+              "operatingIncome": 242000000.0,
+              "totalAssets": 4266000000.0,
+              "totalDebt": 1718000000.0,
+              "totalRevenue": 678000000.0
+            }
+          },
+          {
+            "label": "2026 Q1",
+            "periodEnd": "2026-03-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "netDebt": "Net Debt",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -72000000.0,
+              "cash": 328000000.0,
+              "commonEquity": 2049000000.0,
+              "dilutedEps": 0.28,
+              "ebit": 125000000.0,
+              "ebitda": 184000000.0,
+              "freeCashFlow": -62000000.0,
+              "grossProfit": null,
+              "netDebt": 1250000000.0,
+              "netIncome": 69000000.0,
+              "operatingCashFlow": 10000000.0,
+              "operatingIncome": 90000000.0,
+              "totalAssets": 4212000000.0,
+              "totalDebt": 1754000000.0,
+              "totalRevenue": 475000000.0
+            }
+          },
+          {
+            "label": "2025 Q4",
+            "periodEnd": "2025-12-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "netDebt": "Net Debt",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -107000000.0,
+              "cash": 485000000.0,
+              "commonEquity": 2043000000.0,
+              "dilutedEps": 0.6,
+              "ebit": 154000000.0,
+              "ebitda": 203000000.0,
+              "freeCashFlow": 98000000.0,
+              "grossProfit": null,
+              "netDebt": 1103000000.0,
+              "netIncome": 148000000.0,
+              "operatingCashFlow": 205000000.0,
+              "operatingIncome": 134000000.0,
+              "totalAssets": 4150000000.0,
+              "totalDebt": 1698000000.0,
+              "totalRevenue": 540000000.0
+            }
+          },
+          {
+            "label": "2025 Q2",
+            "periodEnd": "2025-06-30",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "netDebt": "Net Debt",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -66000000.0,
+              "cash": 337000000.0,
+              "commonEquity": 1944000000.0,
+              "dilutedEps": 0.55,
+              "ebit": 188000000.0,
+              "ebitda": 239000000.0,
+              "freeCashFlow": 98000000.0,
+              "grossProfit": null,
+              "netDebt": 1151000000.0,
+              "netIncome": 136000000.0,
+              "operatingCashFlow": 164000000.0,
+              "operatingIncome": 136000000.0,
+              "totalAssets": 3901000000.0,
+              "totalDebt": 1589000000.0,
+              "totalRevenue": 474000000.0
+            }
+          },
+          {
+            "label": "2025 Q1",
+            "periodEnd": "2025-03-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "netDebt": "Net Debt",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -53000000.0,
+              "cash": 345000000.0,
+              "commonEquity": 1862000000.0,
+              "dilutedEps": 0.31,
+              "ebit": 141000000.0,
+              "ebitda": 189000000.0,
+              "freeCashFlow": -23000000.0,
+              "grossProfit": null,
+              "netDebt": 1167000000.0,
+              "netIncome": 75000000.0,
+              "operatingCashFlow": 30000000.0,
+              "operatingIncome": 78000000.0,
+              "totalAssets": 3761000000.0,
+              "totalDebt": 1556000000.0,
+              "totalRevenue": 393000000.0
+            }
+          }
+        ],
+        "presentFields": [
+          "totalRevenue",
+          "ebitda",
+          "ebit",
+          "operatingIncome",
+          "netIncome",
+          "dilutedEps",
+          "totalAssets",
+          "totalDebt",
+          "netDebt",
+          "commonEquity",
+          "cash",
+          "operatingCashFlow",
+          "capitalExpenditure",
+          "freeCashFlow"
+        ],
+        "primaryReportConfidence": "not primary verified",
+        "primaryReportVerification": {
+          "differenceCount": 0,
+          "label": "Not primary verified",
+          "periodCount": 5,
+          "policy": {
+            "limitations": "This is a review tracker, not automated filing extraction. Differences between provider-normalized rows and company-reported rows must be documented manually before the row is treated as source-reviewed.",
+            "policy": "Primary-report review supports source quality only. It does not create valuation verdicts, recommendations, or standalone multiple labels.",
+            "requirement": "Each yfinance quarterly period stays unverified until a reviewer records a matching primary report source URL and review status. Missing yfinance fields stay missing; primary reviews do not backfill or infer values.",
+            "sourcePath": "Manual/source-linked review against company quarterly or annual reports, stock-exchange report PDFs, or company investor-relations report tables.",
+            "statuses": [
+              {
+                "key": "unverified",
+                "label": "Not primary verified"
+              },
+              {
+                "key": "needs-review",
+                "label": "Source located; review needed"
+              },
+              {
+                "key": "reviewed-match",
+                "label": "Primary report matched"
+              },
+              {
+                "key": "reviewed-difference",
+                "label": "Primary report differs"
+              },
+              {
+                "key": "not-found",
+                "label": "Primary source not found"
+              }
+            ]
+          },
+          "reviewedMatchCount": 0,
+          "reviews": [
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2026 Q2",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2026-06-30",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2026 Q1",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2026-03-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q4",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-12-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q2",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-06-30",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q1",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-03-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            }
+          ],
+          "sourceLinkedCount": 0,
+          "status": "not-started"
+        },
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "sourceRowsByField": {
+          "capitalExpenditure": "Capital Expenditure",
+          "cash": "Cash And Cash Equivalents",
+          "commonEquity": "Common Stock Equity",
+          "dilutedEps": "Diluted EPS",
+          "ebit": "EBIT",
+          "ebitda": "EBITDA",
+          "freeCashFlow": "Free Cash Flow",
+          "netDebt": "Net Debt",
+          "netIncome": "Net Income",
+          "operatingCashFlow": "Operating Cash Flow",
+          "operatingIncome": "Operating Income",
+          "totalAssets": "Total Assets",
+          "totalDebt": "Total Debt",
+          "totalRevenue": "Total Revenue"
+        },
+        "statementCoverage": {
+          "balance": {
+            "periodCount": 5,
+            "rowCount": 68,
+            "sourcePath": "quarterly_balance_sheet",
+            "status": "available"
+          },
+          "cashflow": {
+            "periodCount": 5,
+            "rowCount": 44,
+            "sourcePath": "quarterly_cashflow",
+            "status": "available"
+          },
+          "income": {
+            "periodCount": 5,
+            "rowCount": 42,
+            "sourcePath": "quarterly_income_stmt",
+            "status": "available"
+          }
+        },
+        "status": "available"
+      },
+      "sourceFetchedAt": "2026-10-24T11:52:35+00:00",
+      "symbol": "DOFG.OL",
+      "ttmEbitda": 923000000.0,
+      "ttmEbitdaCurrency": "USD",
+      "ttmEbitdaPeriodEnd": "2026-06-30"
+    },
+    {
+      "currency": "NOK",
+      "enterpriseToEbitda": 38.58000679569309,
+      "enterpriseToEbitdaInputs": {
+        "classification": "source-gated computed",
+        "confidence": "screening-grade computed",
+        "ebitdaInEnterpriseValueCurrency": 855152653.9306641,
+        "enterpriseValue": 32991795200.0,
+        "enterpriseValueCurrency": "NOK",
+        "fetchedAt": "2026-10-24T11:52:48+00:00",
+        "field": "enterpriseToEbitda",
+        "fxError": null,
+        "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+        "fxPair": "USDNOK=X",
+        "fxRate": 9.316200256347656,
+        "fxSource": "Yahoo Finance via yfinance FX",
+        "fxStatus": "fresh",
+        "label": "EV/EBITDA",
+        "limitation": "",
+        "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
+        "providerDifferencePct": 988.4109021123265,
+        "providerEnterpriseToEbitda": 419.909,
+        "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+        "status": "computed",
+        "ttmEbitda": 91792000.0,
+        "ttmEbitdaCurrency": "USD",
+        "ttmEbitdaPeriodEnd": "2026-06-30",
+        "ttmEbitdaSourceRow": "EBITDA",
+        "unit": "x",
+        "value": 38.58000679569309
+      },
+      "enterpriseToEbitdaStatus": "computed",
+      "enterpriseToRevenue": 4.662812279097362,
+      "enterpriseValue": 32991795200.0,
+      "fetchedAt": "2026-10-24T11:52:48+00:00",
+      "financialCurrency": "USD",
+      "marketCap": 33031792640.0,
+      "multipleSourceMetadata": {
+        "dividendYield": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "dividendYield",
+          "inputs": {
+            "annualDividendRate": 0.0,
+            "currency": "NOK",
+            "price": 167.0
+          },
+          "label": "Dividend yield",
+          "limitation": "Dividend yield uses yfinance annual dividend rate divided by the cached price when both inputs are available.",
+          "method": "Computed as annual dividend rate divided by cached price, shown as percent.",
+          "providerDifferencePct": null,
+          "providerField": "dividendYield",
+          "providerValue": 0.0,
+          "source": "Yahoo Finance via yfinance dividendRate and cached price",
+          "status": "computed",
+          "unit": "%",
+          "value": 0.0
+        },
+        "enterpriseToEbitda": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "ebitdaInEnterpriseValueCurrency": 855152653.9306641,
+          "enterpriseValue": 32991795200.0,
+          "enterpriseValueCurrency": "NOK",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "enterpriseToEbitda",
+          "fxError": null,
+          "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+          "fxPair": "USDNOK=X",
+          "fxRate": 9.316200256347656,
+          "fxSource": "Yahoo Finance via yfinance FX",
+          "fxStatus": "fresh",
+          "label": "EV/EBITDA",
+          "limitation": "",
+          "method": "Computed as enterprise value divided by yfinance TTM EBITDA converted to the quote currency. The raw Yahoo/yfinance enterpriseToEbitda provider field is retained separately and is not displayed when this gate fails.",
+          "providerDifferencePct": 988.4109021123265,
+          "providerEnterpriseToEbitda": 419.909,
+          "providerField": "enterpriseToEbitda",
+          "providerValue": 419.909,
+          "source": "Yahoo Finance via yfinance enterpriseValue, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "ttmEbitda": 91792000.0,
+          "ttmEbitdaCurrency": "USD",
+          "ttmEbitdaPeriodEnd": "2026-06-30",
+          "ttmEbitdaSourceRow": "EBITDA",
+          "unit": "x",
+          "value": 38.58000679569309
+        },
+        "enterpriseToRevenue": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "enterpriseToRevenue",
+          "inputs": {
+            "denominator": 7075514351.6922,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "revenue",
+            "denominatorPeriodEnd": "2026-06-30",
+            "denominatorSourceRow": "Total Revenue",
+            "fxError": null,
+            "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+            "fxPair": "USDNOK=X",
+            "fxRate": 9.316200256347656,
+            "fxSource": "Yahoo Finance via yfinance FX",
+            "fxStatus": "fresh",
+            "numerator": 32991795200.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "enterprise value",
+            "rawTtmCurrency": "USD",
+            "rawTtmValue": 759485000.0
+          },
+          "label": "EV/revenue",
+          "limitation": "EV/revenue is margin-sensitive and sector-specific.",
+          "method": "Computed as enterprise value divided by yfinance TTM revenue converted to the quote currency.",
+          "providerDifferencePct": 767.1161861104758,
+          "providerField": "enterpriseToRevenue",
+          "providerValue": 40.432,
+          "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "unit": "x",
+          "value": 4.662812279097362
+        },
+        "evToEbit": {
+          "classification": "intentionally not implemented",
+          "confidence": "missing",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "evToEbit",
+          "inputs": {},
+          "label": "EV/EBIT",
+          "limitation": "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+          "method": "EV/EBIT is intentionally unavailable until EBIT can be computed from an explicit, reviewed source path.",
+          "providerField": null,
+          "providerValue": null,
+          "source": "not implemented",
+          "status": "intentionally-not-implemented",
+          "unit": "x",
+          "value": null
+        },
+        "forwardPE": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "forwardPE",
+          "inputs": {
+            "denominator": 4.6615,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "forward EPS estimate",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 167.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "Forward P/E",
+          "limitation": "Forward EPS is an estimate field with unverified methodology and contributor coverage.",
+          "method": "Computed as cached share price divided by yfinance forward EPS estimate.",
+          "providerDifferencePct": 5.311377249128668e-06,
+          "providerField": "forwardPE",
+          "providerValue": 35.82538,
+          "source": "Yahoo Finance via yfinance price and forward EPS estimate fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 35.82537809717902
+        },
+        "pnAv": {
+          "classification": "intentionally not implemented",
+          "confidence": "missing",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "pnAv",
+          "inputs": {},
+          "label": "P/NAV",
+          "limitation": "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+          "method": "NAV requires explicit source-linked fleet/assets, debt, cash, currency, and timestamp inputs. It is not inferred from sector labels or P/B.",
+          "providerField": null,
+          "providerValue": null,
+          "source": "not implemented",
+          "status": "intentionally-not-implemented",
+          "unit": "x",
+          "value": null
+        },
+        "priceToBook": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "priceToBook",
+          "inputs": {
+            "denominator": 34.69367,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "book value per share",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 167.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "P/B",
+          "limitation": "Book value is not NAV, replacement value, fleet value, or reviewed accounting equity.",
+          "method": "Computed as cached share price divided by yfinance book value per share.",
+          "providerDifferencePct": 8.140156881886185e-06,
+          "providerField": "priceToBook",
+          "providerValue": 4.8135586,
+          "source": "Yahoo Finance via yfinance price and bookValue fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 4.813558208168811
+        },
+        "priceToSalesTrailing12Months": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "priceToSalesTrailing12Months",
+          "inputs": {
+            "denominator": 7075514351.6922,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "revenue",
+            "denominatorPeriodEnd": "2026-06-30",
+            "denominatorSourceRow": "Total Revenue",
+            "fxError": null,
+            "fxFetchedAt": "2026-10-24T11:52:35+00:00",
+            "fxPair": "USDNOK=X",
+            "fxRate": 9.316200256347656,
+            "fxSource": "Yahoo Finance via yfinance FX",
+            "fxStatus": "fresh",
+            "numerator": 33031792640.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "market cap",
+            "rawTtmCurrency": "USD",
+            "rawTtmValue": 759485000.0
+          },
+          "label": "P/S",
+          "limitation": "Revenue multiples need margin, growth, sector, and accounting context.",
+          "method": "Computed as market cap divided by yfinance TTM revenue converted to the quote currency.",
+          "providerDifferencePct": 767.1110980239387,
+          "providerField": "priceToSalesTrailing12Months",
+          "providerValue": 40.48078,
+          "source": "Yahoo Finance via yfinance quote fields, ttm_income_stmt, and FX where needed",
+          "status": "computed",
+          "unit": "x",
+          "value": 4.668465216539349
+        },
+        "targetUpsidePct": {
+          "classification": "provider-derived",
+          "confidence": "low to screening-grade provider row",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "targetUpsidePct",
+          "inputs": {
+            "currency": "NOK",
+            "price": 167.0,
+            "targetHighPrice": 250.0,
+            "targetLowPrice": 134.0,
+            "targetMeanPrice": 194.5
+          },
+          "label": "Target-derived fields",
+          "limitation": "Target rows are provider/manual source rows. Reported analyst references may overlap and are not deduplicated.",
+          "method": "Unknown from Yahoo/yfinance response. Treat as a third-party consensus field and verify against other sources.",
+          "providerField": "targetMeanPrice",
+          "providerValue": 194.5,
+          "source": "Yahoo Finance via yfinance",
+          "status": "provider-row",
+          "unit": "%",
+          "value": 16.467065868263475
+        },
+        "trailingPE": {
+          "classification": "source-gated computed",
+          "confidence": "screening-grade computed",
+          "fetchedAt": "2026-10-24T11:52:48+00:00",
+          "field": "trailingPE",
+          "inputs": {
+            "denominator": 2.8,
+            "denominatorCurrency": "NOK",
+            "denominatorLabel": "TTM EPS",
+            "denominatorPeriodEnd": null,
+            "denominatorSourceRow": null,
+            "numerator": 167.0,
+            "numeratorCurrency": "NOK",
+            "numeratorLabel": "cached share price"
+          },
+          "label": "TTM P/E",
+          "limitation": "Trailing EPS can differ from company adjusted EPS and may include one-offs.",
+          "method": "Computed as cached share price divided by yfinance trailing EPS.",
+          "providerDifferencePct": -2.3952096972479353e-07,
+          "providerField": "trailingPE",
+          "providerValue": 59.642857,
+          "source": "Yahoo Finance via yfinance price and EPS fields",
+          "status": "computed",
+          "unit": "x",
+          "value": 59.642857142857146
+        }
+      },
+      "priceObservedAt": "2026-10-23T14:29:05+00:00",
+      "providerEnterpriseToEbitda": 419.909,
+      "providerEnterpriseToRevenue": 40.432,
+      "quarterlyStatements": {
+        "confidence": "screening-grade",
+        "coverageByField": {
+          "capitalExpenditure": 5,
+          "cash": 5,
+          "commonEquity": 5,
+          "dilutedEps": 5,
+          "ebit": 5,
+          "ebitda": 5,
+          "freeCashFlow": 5,
+          "grossProfit": 5,
+          "netDebt": 0,
+          "netIncome": 5,
+          "operatingCashFlow": 5,
+          "operatingIncome": 5,
+          "totalAssets": 5,
+          "totalDebt": 5,
+          "totalRevenue": 5
+        },
+        "currency": "USD",
+        "currencySource": "yfinance financialCurrency",
+        "errors": [],
+        "fetchedAt": "2026-10-24T11:52:48+00:00",
+        "fields": [
+          {
+            "key": "totalRevenue",
+            "label": "Revenue",
+            "sourceRows": [
+              "Total Revenue",
+              "Operating Revenue"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "grossProfit",
+            "label": "Gross profit",
+            "sourceRows": [
+              "Gross Profit"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "ebitda",
+            "label": "EBITDA",
+            "sourceRows": [
+              "EBITDA",
+              "Normalized EBITDA"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "ebit",
+            "label": "EBIT",
+            "sourceRows": [
+              "EBIT"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "operatingIncome",
+            "label": "Operating income",
+            "sourceRows": [
+              "Operating Income"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "netIncome",
+            "label": "Net income",
+            "sourceRows": [
+              "Net Income",
+              "Net Income Common Stockholders"
+            ],
+            "statement": "income",
+            "unit": "currency"
+          },
+          {
+            "key": "dilutedEps",
+            "label": "Diluted EPS",
+            "sourceRows": [
+              "Diluted EPS",
+              "Diluted EPS Other Gains Losses"
+            ],
+            "statement": "income",
+            "unit": "per share"
+          },
+          {
+            "key": "totalAssets",
+            "label": "Total assets",
+            "sourceRows": [
+              "Total Assets"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "totalDebt",
+            "label": "Total debt",
+            "sourceRows": [
+              "Total Debt"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "netDebt",
+            "label": "Net debt",
+            "sourceRows": [
+              "Net Debt"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "commonEquity",
+            "label": "Common equity",
+            "sourceRows": [
+              "Common Stock Equity",
+              "Stockholders Equity"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "cash",
+            "label": "Cash",
+            "sourceRows": [
+              "Cash And Cash Equivalents",
+              "Cash Cash Equivalents And Short Term Investments"
+            ],
+            "statement": "balance",
+            "unit": "currency"
+          },
+          {
+            "key": "operatingCashFlow",
+            "label": "Operating cash flow",
+            "sourceRows": [
+              "Operating Cash Flow",
+              "Cash Flow From Continuing Operating Activities"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          },
+          {
+            "key": "capitalExpenditure",
+            "label": "Capital expenditure",
+            "sourceRows": [
+              "Capital Expenditure"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          },
+          {
+            "key": "freeCashFlow",
+            "label": "Free cash flow",
+            "sourceRows": [
+              "Free Cash Flow"
+            ],
+            "statement": "cashflow",
+            "unit": "currency"
+          }
+        ],
+        "latestPeriodEnd": "2026-06-30",
+        "limitations": "Open/free yfinance quarterly statement tables are screening-grade, rate-limited, and may lag or omit line items. Values are shown only when a dated quarterly statement row is returned; no statement history is inferred from current yfinance summary fields. Currency is shown only when yfinance provides financialCurrency. Primary company-report review is tracked separately; unreviewed periods remain screening-grade yfinance rows.",
+        "maximumPeriods": 6,
+        "periodCount": 5,
+        "periodType": "quarter",
+        "periods": [
+          {
+            "label": "2026 Q2",
+            "periodEnd": "2026-06-30",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "grossProfit": "Gross Profit",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -11009000.0,
+              "cash": 276106000.0,
+              "commonEquity": 702979000.0,
+              "dilutedEps": 0.082,
+              "ebit": 22285000.0,
+              "ebitda": 33645000.0,
+              "freeCashFlow": 4301000.0,
+              "grossProfit": 116082000.0,
+              "netDebt": null,
+              "netIncome": 16433000.0,
+              "operatingCashFlow": 15310000.0,
+              "operatingIncome": 22306000.0,
+              "totalAssets": 1041349000.0,
+              "totalDebt": 161534000.0,
+              "totalRevenue": 218566000.0
+            }
+          },
+          {
+            "label": "2026 Q1",
+            "periodEnd": "2026-03-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "grossProfit": "Gross Profit",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -12607000.0,
+              "cash": 279665000.0,
+              "commonEquity": 680231000.0,
+              "dilutedEps": 0.053,
+              "ebit": 10773000.0,
+              "ebitda": 21943000.0,
+              "freeCashFlow": -11709000.0,
+              "grossProfit": 100288000.0,
+              "netDebt": null,
+              "netIncome": 10633000.0,
+              "operatingCashFlow": 898000.0,
+              "operatingIncome": 10093000.0,
+              "totalAssets": 1008543000.0,
+              "totalDebt": 166549000.0,
+              "totalRevenue": 192443000.0
+            }
+          },
+          {
+            "label": "2025 Q4",
+            "periodEnd": "2025-12-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "grossProfit": "Gross Profit",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -10985000.0,
+              "cash": 304752000.0,
+              "commonEquity": 679590000.0,
+              "dilutedEps": 0.021,
+              "ebit": 488000.0,
+              "ebitda": 11925000.0,
+              "freeCashFlow": 2649000.0,
+              "grossProfit": 93127000.0,
+              "netDebt": null,
+              "netIncome": 4247000.0,
+              "operatingCashFlow": 13634000.0,
+              "operatingIncome": 3608000.0,
+              "totalAssets": 983361000.0,
+              "totalDebt": 161598000.0,
+              "totalRevenue": 169508000.0
+            }
+          },
+          {
+            "label": "2025 Q2",
+            "periodEnd": "2025-06-30",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "grossProfit": "Gross Profit",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -13205000.0,
+              "cash": 335473000.0,
+              "commonEquity": 575452000.0,
+              "dilutedEps": 0.052,
+              "ebit": 10378000.0,
+              "ebitda": 19740000.0,
+              "freeCashFlow": 33653000.0,
+              "grossProfit": 83184000.0,
+              "netDebt": null,
+              "netIncome": 10137000.0,
+              "operatingCashFlow": 46858000.0,
+              "operatingIncome": 11431000.0,
+              "totalAssets": 829501000.0,
+              "totalDebt": 163017000.0,
+              "totalRevenue": 164077000.0
+            }
+          },
+          {
+            "label": "2025 Q1",
+            "periodEnd": "2025-03-31",
+            "primaryReportReview": {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "limitationNote": "No primary company-report review stored for this period.",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            "sourceRows": {
+              "capitalExpenditure": "Capital Expenditure",
+              "cash": "Cash And Cash Equivalents",
+              "commonEquity": "Common Stock Equity",
+              "dilutedEps": "Diluted EPS",
+              "ebit": "EBIT",
+              "ebitda": "EBITDA",
+              "freeCashFlow": "Free Cash Flow",
+              "grossProfit": "Gross Profit",
+              "netIncome": "Net Income",
+              "operatingCashFlow": "Operating Cash Flow",
+              "operatingIncome": "Operating Income",
+              "totalAssets": "Total Assets",
+              "totalDebt": "Total Debt",
+              "totalRevenue": "Total Revenue"
+            },
+            "values": {
+              "capitalExpenditure": -4105000.0,
+              "cash": 307454000.0,
+              "commonEquity": 559154000.0,
+              "dilutedEps": 0.006,
+              "ebit": 2560000.0,
+              "ebitda": 11590000.0,
+              "freeCashFlow": 30851000.0,
+              "grossProfit": 76834000.0,
+              "netDebt": null,
+              "netIncome": 1149000.0,
+              "operatingCashFlow": 34956000.0,
+              "operatingIncome": 5712000.0,
+              "totalAssets": 804341000.0,
+              "totalDebt": 154300000.0,
+              "totalRevenue": 155067000.0
+            }
+          }
+        ],
+        "presentFields": [
+          "totalRevenue",
+          "grossProfit",
+          "ebitda",
+          "ebit",
+          "operatingIncome",
+          "netIncome",
+          "dilutedEps",
+          "totalAssets",
+          "totalDebt",
+          "commonEquity",
+          "cash",
+          "operatingCashFlow",
+          "capitalExpenditure",
+          "freeCashFlow"
+        ],
+        "primaryReportConfidence": "not primary verified",
+        "primaryReportVerification": {
+          "differenceCount": 0,
+          "label": "Not primary verified",
+          "periodCount": 5,
+          "policy": {
+            "limitations": "This is a review tracker, not automated filing extraction. Differences between provider-normalized rows and company-reported rows must be documented manually before the row is treated as source-reviewed.",
+            "policy": "Primary-report review supports source quality only. It does not create valuation verdicts, recommendations, or standalone multiple labels.",
+            "requirement": "Each yfinance quarterly period stays unverified until a reviewer records a matching primary report source URL and review status. Missing yfinance fields stay missing; primary reviews do not backfill or infer values.",
+            "sourcePath": "Manual/source-linked review against company quarterly or annual reports, stock-exchange report PDFs, or company investor-relations report tables.",
+            "statuses": [
+              {
+                "key": "unverified",
+                "label": "Not primary verified"
+              },
+              {
+                "key": "needs-review",
+                "label": "Source located; review needed"
+              },
+              {
+                "key": "reviewed-match",
+                "label": "Primary report matched"
+              },
+              {
+                "key": "reviewed-difference",
+                "label": "Primary report differs"
+              },
+              {
+                "key": "not-found",
+                "label": "Primary source not found"
+              }
+            ]
+          },
+          "reviewedMatchCount": 0,
+          "reviews": [
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2026 Q2",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2026-06-30",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2026 Q1",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2026-03-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q4",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-12-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q2",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-06-30",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            },
+            {
+              "isPrimaryReviewed": false,
+              "isSourceLinked": false,
+              "label": "2025 Q1",
+              "limitationNote": "No primary company-report review stored for this period.",
+              "periodEnd": "2025-03-31",
+              "reportPeriod": "",
+              "reviewStatus": "unverified",
+              "reviewStatusLabel": "Not primary verified",
+              "reviewedAt": "",
+              "reviewerNote": "",
+              "sourceName": "",
+              "sourceUrl": "",
+              "updatedAt": ""
+            }
+          ],
+          "sourceLinkedCount": 0,
+          "status": "not-started"
+        },
+        "source": "Yahoo Finance via yfinance quarterly statement tables",
+        "sourcePath": "ticker.quarterly_income_stmt, ticker.quarterly_balance_sheet, and ticker.quarterly_cashflow",
+        "sourceRowsByField": {
+          "capitalExpenditure": "Capital Expenditure",
+          "cash": "Cash And Cash Equivalents",
+          "commonEquity": "Common Stock Equity",
+          "dilutedEps": "Diluted EPS",
+          "ebit": "EBIT",
+          "ebitda": "EBITDA",
+          "freeCashFlow": "Free Cash Flow",
+          "grossProfit": "Gross Profit",
+          "netIncome": "Net Income",
+          "operatingCashFlow": "Operating Cash Flow",
+          "operatingIncome": "Operating Income",
+          "totalAssets": "Total Assets",
+          "totalDebt": "Total Debt",
+          "totalRevenue": "Total Revenue"
+        },
+        "statementCoverage": {
+          "balance": {
+            "periodCount": 6,
+            "rowCount": 71,
+            "sourcePath": "quarterly_balance_sheet",
+            "status": "available"
+          },
+          "cashflow": {
+            "periodCount": 6,
+            "rowCount": 36,
+            "sourcePath": "quarterly_cashflow",
+            "status": "available"
+          },
+          "income": {
+            "periodCount": 6,
+            "rowCount": 42,
+            "sourcePath": "quarterly_income_stmt",
+            "status": "available"
+          }
+        },
+        "status": "available"
+      },
+      "sourceFetchedAt": "2026-10-24T11:52:48+00:00",
+      "symbol": "NOD.OL",
+      "ttmEbitda": 91792000.0,
+      "ttmEbitdaCurrency": "USD",
+      "ttmEbitdaPeriodEnd": "2026-06-30"
+    }
+  ]
+}
