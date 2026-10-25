@@ -134,6 +134,8 @@ def validate_manual_consensus(data: dict[str, Any]) -> list[dict[str, Any]]:
         "recommendation_score",
         "target_currency",
         "as_of_date",
+        "target_horizon_date",
+        "valid_until",
         "source_url",
         "confidence",
         "method_note",
@@ -164,6 +166,8 @@ def validate_manual_consensus(data: dict[str, Any]) -> list[dict[str, Any]]:
                 "recommendation_score": validate_number(f"manual_consensus.yml:rows[{index}].recommendation_score", row.get("recommendation_score")),
                 "target_currency": validate_str(f"manual_consensus.yml:rows[{index}].target_currency", row.get("target_currency", ""), required=False),
                 "as_of_date": validate_str(f"manual_consensus.yml:rows[{index}].as_of_date", row.get("as_of_date", ""), required=False),
+                "target_horizon_date": validate_str(f"manual_consensus.yml:rows[{index}].target_horizon_date", row.get("target_horizon_date", ""), required=False),
+                "valid_until": validate_str(f"manual_consensus.yml:rows[{index}].valid_until", row.get("valid_until", ""), required=False),
                 "source_url": validate_str(f"manual_consensus.yml:rows[{index}].source_url", row.get("source_url", ""), required=False),
                 "confidence": validate_str(f"manual_consensus.yml:rows[{index}].confidence", row.get("confidence", "manual"), required=False) or "manual",
                 "method_note": validate_str(f"manual_consensus.yml:rows[{index}].method_note", row.get("method_note", ""), required=False),
@@ -371,6 +375,8 @@ def copy_cache_tables(source_db: Path, target_db: Path) -> None:
             row["name"]
             for row in target.execute("pragma table_info(consensus_sources)").fetchall()
         ]
+        source_columns = {row["name"] for row in source.execute("pragma table_info(consensus_sources)").fetchall()}
+        consensus_columns = [col for col in consensus_columns if col in source_columns]
         if consensus_columns:
             column_sql = ", ".join(consensus_columns)
             placeholders = ", ".join("?" for _ in consensus_columns)
@@ -517,6 +523,9 @@ def install_inputs(server, inputs: dict[str, Any]) -> None:
                 ),
             )
 
+            con.execute("update consensus_sources set target_horizon_date = ?, valid_until = ? where symbol = ? and source = ?",
+                        (row.get("target_horizon_date", ""), row.get("valid_until", ""), row["symbol"], row["source"]))
+
         for row in inputs["sector_kpis"]:
             con.execute(
                 """
@@ -656,7 +665,8 @@ def consensus_payload(server) -> dict[str, Any]:
     with server.connect() as con:
         rows = server.rows_to_dicts(con.execute("select * from consensus_sources order by symbol, source").fetchall())
     for row in rows:
-        row["staleStatus"] = server.stale_status(row.get("collected_at_epoch"))
+        row["collectionStatus"] = server.stale_status(row.get("collected_at_epoch"))
+        row["staleStatus"] = server.estimate_status(row)
         row["sourceType"] = server.consensus_source_type(row)
         row["reviewStatus"] = server.consensus_review_status(row)
         row["isReviewed"] = server.is_reviewed_consensus_row(row)

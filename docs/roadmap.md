@@ -931,3 +931,9 @@ generated source-quality data from GitHub Pages.
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
 
 Next bounded review: [primary financial ingestion](primary-financial-ingestion.md) adds separately sourced Nordic records and audit-only DOFG definitions; no scoring or production-data changes.
+
+## Bounded interpretation repair — 25 October 2026
+Draft source and renderer safeguards implemented; independent review precedes
+publication. Next: verify exact deployment and observed-date/withholding display.
+Peer contract ingestion remains explicitly absent; do not promote unannotated
+provider ratios into comparable evidence. See `comparison-contracts.md`.

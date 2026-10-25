@@ -23,10 +23,12 @@ try:
     from app.market_health import evaluate_snapshot, parse_utc
     from app.financial_contracts import filing_coverage, ev_currency_contract
     from app.primary_financials import load_primary
+    from app.comparison_contracts import estimate_status, target_comparison, peer_compatible
 except ModuleNotFoundError:  # direct python app/server.py invocation
     from market_health import evaluate_snapshot, parse_utc
     from financial_contracts import filing_coverage, ev_currency_contract
     from primary_financials import load_primary
+    from comparison_contracts import estimate_status, target_comparison, peer_compatible
 
 try:
     import yfinance as yf
@@ -1225,6 +1227,8 @@ def ensure_consensus_schema(con: sqlite3.Connection) -> None:
     ensure_column(con, "consensus_sources", "review_status", "text default 'draft'")
     ensure_column(con, "consensus_sources", "target_currency", "text default ''")
     ensure_column(con, "consensus_sources", "as_of_date", "text default ''")
+    ensure_column(con, "consensus_sources", "target_horizon_date", "text default ''")
+    ensure_column(con, "consensus_sources", "valid_until", "text default ''")
     ensure_column(con, "consensus_sources", "limitation_note", "text default ''")
     con.execute(
         """
@@ -1479,8 +1483,8 @@ def fetch_yfinance(symbol: str) -> dict:
     quote_observed_at = utc_from_epoch(pick_number(info, "regularMarketTime")) if quote_field == "regularMarketPrice" else None
     target = pick_number(info, "targetMeanPrice")
     upside = None
-    if current_price and target:
-        upside = (target / current_price - 1) * 100
+    # Provider response has no authenticated estimate vintage/horizon.
+    # Preserve raw targets, but do not derive an investment comparison.
 
     ev_ebitda = enterprise_to_ebitda_summary(ticker, info, now)
     multiple_summaries = fundamental_multiple_summaries(ticker, info, current_price, ev_ebitda, now)
@@ -1489,7 +1493,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "name": info.get("shortName") or info.get("longName") or symbol,
         "sector": info.get("sector"),
         "industry": info.get("industry"),
-        "currency": info.get("currency") or "NOK",
+        "currency": info.get("currency"),
         "financialCurrency": info.get("financialCurrency"),
         "price": current_price,
         "marketCap": pick_number(info, "marketCap"),
@@ -2333,7 +2337,7 @@ def dividend_yield_summary(info: dict, current_price: float | None, fetched_at: 
         "inputs": {
             "annualDividendRate": annual_dividend,
             "price": current_price,
-            "currency": info.get("currency") or "NOK",
+            "currency": info.get("currency"),
         },
         "confidence": "screening-grade computed" if value is not None else "gated",
     }
@@ -2434,9 +2438,9 @@ def target_derived_summary(payload: dict, fetched_at: str) -> dict:
         "unit": "%",
         "value": payload.get("targetUpsidePct"),
         "classification": "provider-derived",
-        "status": "provider-row" if payload.get("targetMeanPrice") is not None else "missing-provider-target",
+        "status": "target-comparison-withheld" if payload.get("targetMeanPrice") is not None else "missing-provider-target",
         "source": payload.get("targetPriceSource") or "Yahoo Finance via yfinance",
-        "method": payload.get("targetPriceMethod") or "Provider target divided by cached price; source rows are not verified consensus.",
+        "method": "Target/price comparison withheld unless source-reviewed currency, estimate date, review window and horizon are compatible.",
         "fetchedAt": fetched_at,
         "limitation": "Target rows are provider/manual source rows. Reported analyst references may overlap and are not deduplicated.",
         "providerField": "targetMeanPrice",
@@ -2792,6 +2796,7 @@ def normalize_fundamental_multiple_fields(payload: dict) -> dict:
         "providerField": "enterpriseToEbitda",
         "providerValue": payload.get("providerEnterpriseToEbitda"),
     }
+    payload["targetUpsidePct"] = None  # Unknown provider estimate contract, including old caches.
     metadata["targetUpsidePct"] = target_derived_summary(payload, fetched_at)
     payload["multipleSourceMetadata"] = metadata
     return apply_financial_contracts(payload)
@@ -2926,7 +2931,8 @@ def consensus_for_symbol(symbol: str) -> dict:
             ).fetchall()
     )
     for row in rows:
-        row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+        row["collectionStatus"] = stale_status(row.get("collected_at_epoch"))
+        row["staleStatus"] = estimate_status(row)
         row["sourceType"] = consensus_source_type(row)
         row["reviewStatus"] = consensus_review_status(row)
         row["isReviewed"] = is_reviewed_consensus_row(row)
@@ -2946,7 +2952,8 @@ def consensus_for_symbol(symbol: str) -> dict:
         "sourceLinkedRows": len(source_linked_rows),
         "targetRows": len(numeric_targets),
         "ratingRows": len(rating_rows),
-        "targetMeanAcrossSources": median(numeric_targets) if numeric_targets else None,
+        "targetMeanAcrossSources": None,  # Aggregation requires the quote comparison contract.
+        "targetAggregationStatus": "withheld-until-price-and-source-contract-checked",
         "analystCountKnown": sum(analyst_counts) if analyst_counts else None,
         "reportedAnalystRefs": sum(analyst_counts) if analyst_counts else None,
         "recommendationSummary": consensus_recommendation_summary(rows),
@@ -2969,12 +2976,9 @@ def consensus_status(rows: list[dict]) -> str:
 def consensus_confidence(rows: list[dict]) -> str:
     if not rows:
         return "missing"
-    fresh_rows = [row for row in rows if row.get("staleStatus") == "fresh"]
     reviewed_rows = [row for row in rows if is_reviewed_consensus_row(row)]
-    if len(reviewed_rows) >= 2:
-        return "higher"
-    if len(fresh_rows) >= 2:
-        return "medium"
+    if len(reviewed_rows) >= 2 and all(estimate_status(row) == "within-source-review-window" for row in reviewed_rows):
+        return "source-reviewed; not calibrated confidence"
     return "low"
 
 
@@ -3643,7 +3647,11 @@ def enrich_fundamental_payload(payload: dict) -> dict:
     payload["consensus"] = consensus
     payload["targetSourceCount"] = consensus["sourceCount"]
     payload["targetConfidence"] = consensus["confidence"]
-    payload["targetStatus"] = consensus["status"]
+    comparison = consensus_target_summary(payload, consensus)
+    payload["targetComparison"] = comparison
+    payload["targetUpsidePct"] = comparison["targetUpsidePct"]
+    payload["targetStatus"] = comparison["status"]
+    payload["multipleSourceMetadata"]["targetUpsidePct"].update(value=comparison["targetUpsidePct"], status=comparison["status"], method=comparison["method"])
     payload["historicalContext"] = historical_pricing_context(payload["symbol"], payload)
     payload["ownHistorySignal"] = payload["historicalContext"].get("watchlistSignal")
     return payload
@@ -4232,7 +4240,7 @@ def needs_historical_context_refresh(payload: dict) -> bool:
 
 def numeric_metric(row: dict, key: str, positive_only: bool = False) -> float | None:
     value = row.get(key)
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
         return None
     if positive_only and value <= 0:
         return None
@@ -4257,7 +4265,7 @@ def cached_payload_if_present(symbol: str) -> dict | None:
 def stock_price_summary(fundamental: dict) -> dict:
     return {
         "price": fundamental.get("price"),
-        "currency": fundamental.get("currency") or "NOK",
+        "currency": fundamental.get("currency"),
         "fetchedAt": fundamental.get("fetchedAt"),
         "sourceFetchedAt": fundamental.get("sourceFetchedAt"),
         "priceObservedAt": fundamental.get("priceObservedAt"),
@@ -4359,26 +4367,14 @@ def peer_context_summary(symbol: str, focus: dict) -> dict:
 
 
 def consensus_target_summary(fundamental: dict, consensus: dict) -> dict:
-    sources = consensus.get("sources", [])
-    target_values = [source.get("target_mean") for source in sources if isinstance(source.get("target_mean"), (int, float))]
-    target_lows = [source.get("target_low") for source in sources if isinstance(source.get("target_low"), (int, float))]
-    target_highs = [source.get("target_high") for source in sources if isinstance(source.get("target_high"), (int, float))]
-    target = consensus.get("targetMeanAcrossSources") or fundamental.get("targetMeanPrice")
-    price = fundamental.get("price")
-    upside = pct_diff(target, price)
-    return {
-        "target": target,
-        "targetLow": min(target_lows) if target_lows else fundamental.get("targetLowPrice"),
-        "targetHigh": max(target_highs) if target_highs else fundamental.get("targetHighPrice"),
-        "targetUpsidePct": upside,
-        "providerRows": len(target_values),
+    comparison = target_comparison(fundamental, consensus.get("sources", []))
+    return {**comparison,
+        "providerRows": consensus.get("targetRows", 0),
         "sourceRows": consensus.get("sourceCount", 0),
         "sourceLinkedRows": consensus.get("sourceLinkedRows", 0),
         "reviewedRows": consensus.get("reviewedRows", 0),
-        "status": consensus.get("status"),
-        "confidence": consensus.get("confidence"),
+        "confidence": "descriptive comparison only",
         "source": fundamental.get("targetPriceSource"),
-        "method": fundamental.get("targetPriceMethod"),
     }
 
 
@@ -4605,7 +4601,7 @@ def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
     focus_value = numeric_metric(focus, key, metric.get("positiveOnly", False))
     peer_values = [
         value
-        for value in (numeric_metric(peer, key, metric.get("positiveOnly", False)) for peer in peers)
+        for value in (numeric_metric(peer, key, metric.get("positiveOnly", False)) for peer in peers if peer_compatible(focus, peer, key))
         if value is not None
     ]
     all_values = peer_values + ([focus_value] if focus_value is not None else [])
@@ -4615,12 +4611,15 @@ def metric_summary(focus: dict, peers: list[dict], metric: dict) -> dict:
         "label": metric["label"],
         "unit": metric["unit"],
         "focusValue": focus_value,
+        "comparisonStatus": "compatible-reviewed-basis" if peer_values else "withheld-unverified-or-incompatible-basis",
+        "comparisonNote": "Peer comparisons require source-reviewed matching period, trailing/forward basis, accounting scope and economic group. Group review alone is insufficient.",
+        "excludedPeerCount": len(peers) - len(peer_values),
         "peerCount": len(peer_values),
         "peerMedian": peer_median,
         "peerMin": min(peer_values) if peer_values else None,
         "peerMax": max(peer_values) if peer_values else None,
         "vsPeerMedianPct": pct_diff(focus_value, peer_median),
-        "percentileInGroup": percentile_position(focus_value, all_values),
+        "percentileInGroup": percentile_position(focus_value, all_values) if peer_values else None,
         "positionNote": metric["positionNote"],
         "minimumDataMet": focus_value is not None and len(peer_values) >= MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
         "minimumPeerCount": MINIMUM_DATA_REQUIREMENTS["peerMetricMinimumPeers"],
@@ -5168,7 +5167,7 @@ def minimum_data_assessment(
             "key": "peer_metric_coverage",
             "label": "Peer metric coverage",
             "met": metric_coverage["usableMetricCount"] >= 1,
-            "detail": f"{metric_coverage['usableMetricCount']} metric(s) have focus value plus enough peer observations.",
+            "detail": f"{metric_coverage['usableMetricCount']} metric(s) have source-reviewed compatible basis and enough peer observations.",
         },
         {
             "key": "price_history",
@@ -5639,7 +5638,8 @@ class AppHandler(SimpleHTTPRequestHandler):
         with connect() as con:
             rows = rows_to_dicts(con.execute("select * from consensus_sources order by symbol, source").fetchall())
         for row in rows:
-            row["staleStatus"] = stale_status(row.get("collected_at_epoch"))
+            row["collectionStatus"] = stale_status(row.get("collected_at_epoch"))
+            row["staleStatus"] = estimate_status(row)
             row["sourceType"] = consensus_source_type(row)
             row["reviewStatus"] = consensus_review_status(row)
             row["isReviewed"] = is_reviewed_consensus_row(row)
@@ -5702,6 +5702,8 @@ class AppHandler(SimpleHTTPRequestHandler):
                     collected_at,
                 ),
             )
+            con.execute("update consensus_sources set target_horizon_date = ?, valid_until = ? where symbol = ? and source = ?",
+                        (body.get("targetHorizonDate", ""), body.get("validUntil", ""), symbol, source))
         send_json(self, consensus_for_symbol(symbol))
 
     def handle_events_get(self, parsed) -> None:

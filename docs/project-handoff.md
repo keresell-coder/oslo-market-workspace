@@ -661,3 +661,11 @@ Guardrails:
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
 
 Next bounded review: [primary financial ingestion](primary-financial-ingestion.md) adds separately sourced Nordic records and audit-only DOFG definitions; no scoring or production-data changes.
+
+## 25 October 2026 — interpretation/suitability repair draft
+See `comparison-contracts.md`. Explicit price observation date; separate analyst
+collection/estimate clocks; date/currency/horizon target gate and fail-closed
+metric-specific peer basis. Existing provider peer metadata is insufficient, so
+comparisons are withheld while raw values remain. No new source reconciliation,
+production publication or predictive validation is implied. Independent audit and
+live verification are still required before marking this change deployed.
