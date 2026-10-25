@@ -883,8 +883,8 @@ function renderPriceCell(priceSummary) {
   return `
     <div class="number-stack">
       <strong>${value(priceSummary.price)}</strong>
-      <span class="muted">${escapeHtml(priceSummary.currency || "NOK")}</span>
-      <span class="muted">${escapeHtml(shortDate(priceSummary.fetchedAt))}</span>
+      <span class="muted">${escapeHtml(priceSummary.currency || "currency unknown")}</span>
+      <span class="muted">Quote ${escapeHtml(priceSummary.priceObservedAt ? shortDate(priceSummary.priceObservedAt) : "date unknown")}</span>
     </div>
   `;
 }
@@ -1007,15 +1007,30 @@ function renderPeerContext(row) {
   `;
 }
 
+function targetComparisonUsable(target) {
+  const today = new Date().toISOString().slice(0, 10);
+  return target?.status === "source-reviewed-comparable-targets"
+    && Number.isFinite(target.target) && target.target > 0
+    && Number.isFinite(target.targetUpsidePct)
+    && (target.targetLow == null || (Number.isFinite(target.targetLow) && target.targetLow > 0 && target.targetLow <= target.target))
+    && (target.targetHigh == null || (Number.isFinite(target.targetHigh) && target.targetHigh >= target.target))
+    && /^\d{4}-\d{2}-\d{2}$/.test(target.estimateAsOf || "")
+    && /^\d{4}-\d{2}-\d{2}$/.test(target.validUntil || "")
+    && /^\d{4}-\d{2}-\d{2}$/.test(target.horizonDate || "")
+    && target.estimateAsOf <= today && today <= target.validUntil
+    && target.validUntil <= target.horizonDate;
+}
+
 function renderConsensusTargetCell(row) {
-  const target = row.consensusTargetSummary || {};
+  const rawTarget = row.consensusTargetSummary || {};
+  const target = targetComparisonUsable(rawTarget) ? rawTarget : {...rawTarget, target: null, targetLow: null, targetHigh: null, targetUpsidePct: null, status: "target-comparison-withheld"};
   const method = target.method || "Open the Fundamentals tab to inspect target source details.";
   const sourceRows = target.sourceRows ?? target.providerRows ?? 0;
   const status = target.status || "source rows n/a";
   return `
     <div class="consensus-cell">
       <button class="consensus-target" data-open-fundamentals="${escapeHtml(row.symbol)}" title="${escapeHtml(method)}">
-        <span>Provider target</span>
+        <span>Comparable source target</span>
         <strong>${value(target.target)}</strong>
         <em class="${targetUpsideClass(target.targetUpsidePct)}">${signedPctValue(target.targetUpsidePct)}</em>
       </button>
@@ -1024,7 +1039,7 @@ function renderConsensusTargetCell(row) {
         <span class="tag">High ${value(target.targetHigh)}</span>
       </div>
       <span class="muted">${escapeHtml(sourceRows)} source row${sourceRows === 1 ? "" : "s"}; ${escapeHtml(status)}</span>
-      <span class="muted">Provider refs only; overlaps not deduped</span>
+      <span class="muted">${escapeHtml(target.method || "Comparison requires dated, compatible source evidence.")}</span>
     </div>
   `;
 }
@@ -1049,7 +1064,8 @@ function renderConsensusRatingCell(row) {
 }
 
 function renderWatchlistSourceCell(row) {
-  const target = row.consensusTargetSummary || {};
+  const rawTarget = row.consensusTargetSummary || {};
+  const target = targetComparisonUsable(rawTarget) ? rawTarget : {...rawTarget, target: null, targetLow: null, targetHigh: null, targetUpsidePct: null, status: "target-comparison-withheld"};
   const rating = row.consensusRatingSummary || {};
   const newswebStatus = row.newswebFetch?.status || (row.eventAlert?.count ? "available" : "missing");
   return `
@@ -1063,7 +1079,8 @@ function renderWatchlistSourceCell(row) {
 }
 
 function renderWatchlistDetailDrawer(row) {
-  const target = row.consensusTargetSummary || {};
+  const rawTarget = row.consensusTargetSummary || {};
+  const target = targetComparisonUsable(rawTarget) ? rawTarget : {...rawTarget, target: null, targetLow: null, targetHigh: null, targetUpsidePct: null, status: "target-comparison-withheld"};
   const rating = row.consensusRatingSummary || {};
   const alert = row.screenerSignal;
   const technical = row.technicalSignal;
@@ -1136,12 +1153,12 @@ function targetUpsideClass(value) {
 }
 
 function consensusFreshness(sources) {
-  const statuses = sources.map((source) => source.staleStatus).filter(Boolean);
-  if (!statuses.length) return "freshness n/a";
-  if (statuses.every((status) => status === "fresh")) return "fresh";
-  if (statuses.every((status) => status === "stale")) return "stale";
-  if (statuses.includes("fresh")) return "mixed freshness";
-  return "freshness unknown";
+  if (!sources.length) return "no source rows; estimate validity unknown";
+  if (sources.some((source) => !source.as_of_date)) return "estimate date unknown";
+  const statuses = sources.map((source) => source.staleStatus);
+  if (statuses.some((status) => !status || status === "estimate-date-unknown")) return "estimate date unknown";
+  if (statuses.every((status) => status === "within-source-review-window")) return "within source review window; not return confidence";
+  return "estimate validity unverified or expired";
 }
 
 function historySignalClass(signal) {
@@ -1288,7 +1305,7 @@ function renderSnapshotHistoryDetails(snapshot) {
     .map(
       (metric) => `
         <tr>
-          <td>${escapeHtml(metric.label)}</td>
+          <td>${escapeHtml(metric.label)}<br><span class="muted">${escapeHtml(metric.comparisonStatus || "basis unverified")}</span></td>
           <td class="number">${metricValue(metric.current, metric.unit)}</td>
           <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
           <td class="number">${signedPctValue(metric.vsHistoryMedianPct)}</td>
@@ -1301,7 +1318,7 @@ function renderSnapshotHistoryDetails(snapshot) {
     .map(
       (metric) => `
         <tr>
-          <td>${escapeHtml(metric.label)}</td>
+          <td>${escapeHtml(metric.label)}<br><span class="muted">${escapeHtml(metric.comparisonStatus || "basis unverified")}</span></td>
           <td class="number">${metricValue(metric.current, metric.unit)}</td>
           <td class="number">${metricValue(metric.historyMedian, metric.unit)}</td>
           <td class="number">${metricValue(metric.historyMin, metric.unit)}</td>
@@ -1797,8 +1814,8 @@ function renderScreenerAlerts(alerts) {
   if (!alerts.matches?.length) {
     target.innerHTML = `
       <div class="alert-card calm">
-        <strong>No watchlist stocks are currently in the published RSI14 screener output.</strong>
-        <span>Checked ${escapeHtml(alerts.screenerCount ?? 0)} published screener cards. Source: published dashboard, ${escapeHtml(alerts.cacheStatus || "unknown")}.</span>
+        <strong>No watchlist matches were parsed from the dashboard alert cards.</strong>
+        <span>Checked ${escapeHtml(alerts.screenerCount ?? 0)} published screener cards. This is not the CSV technical watchlist coverage or a claim that no technical setups exist. Source: published dashboard, ${escapeHtml(alerts.cacheStatus || "unknown")}.</span>
       </div>
     `;
     return;
@@ -2519,13 +2536,14 @@ function renderFundamentalConsensus(row) {
   const reviewedRows = consensus.reviewedRows ?? 0;
   return `
     <div class="fund-cell">
-      <span class="metric-line"><span>Provider target</span><b>${value(row.targetMeanPrice)}</b></span>
-      <span class="metric-line"><span>Vs price</span><b>${signedPctValue(row.targetUpsidePct)}</b></span>
+      <span class="metric-line"><span>Comparable source target</span><b>${value(targetComparisonUsable(row.targetComparison) ? row.targetComparison.target : null)}</b></span>
+      <span class="metric-line"><span>Vs price</span><b>${signedPctValue(targetComparisonUsable(row.targetComparison) ? row.targetComparison.targetUpsidePct : null)}</b></span>
+      <span class="metric-line"><span>Raw provider target (unqualified)</span><b>${value(row.targetMeanPrice)}</b></span>
       <span class="metric-line"><span>Reported refs</span><b>${value(consensus.reportedAnalystRefs ?? row.numberOfAnalystOpinions)}</b></span>
       <span class="tag">${escapeHtml(row.targetConfidence || "low")}</span>
       <span class="muted">${escapeHtml(status)}; ${escapeHtml(sourceRows)} source row(s); ${escapeHtml(reviewedRows)} reviewed</span>
       <span class="muted">Raw rating label: ${escapeHtml(recommendation)}; ${escapeHtml(freshness)}</span>
-      <span class="muted">Analyst refs may overlap across providers.</span>
+      <span class="muted">Raw provider target is unqualified; comparison requires dated, compatible source evidence. Analyst refs may overlap.</span>
     </div>
   `;
 }
@@ -2697,7 +2715,7 @@ function renderConsensusSourceRows(rows) {
                   <td>
                     <span class="metric-line"><span>Mean</span><b>${value(row.target_mean)} ${escapeHtml(row.target_currency || "")}</b></span>
                     <span class="metric-line"><span>Low/high</span><b>${value(row.target_low)} / ${value(row.target_high)}</b></span>
-                    <span class="muted">As of ${escapeHtml(row.as_of_date || shortDate(row.collected_at) || "date n/a")}</span>
+                    <span class="muted">As of ${escapeHtml(row.as_of_date || "estimate date unknown")}</span>
                   </td>
                   <td>
                     <span class="signal-badge signal-source">${escapeHtml(row.recommendation || "missing")}</span><br>
@@ -2705,7 +2723,7 @@ function renderConsensusSourceRows(rows) {
                   </td>
                   <td>
                     <span class="tag">${escapeHtml(row.reviewStatus || row.review_status || "draft")}</span><br>
-                    <span class="muted">${escapeHtml(row.confidence || "confidence n/a")}; ${escapeHtml(row.staleStatus || "freshness n/a")}</span>
+                    <span class="muted">Estimate: ${escapeHtml(!row.as_of_date ? "estimate date unknown" : (row.staleStatus && row.staleStatus !== "fresh" ? row.staleStatus : "dated estimate; validity unverified"))}</span><br><span class="muted">Collection: ${escapeHtml(row.collectionStatus || "unknown")} ${escapeHtml(shortDate(row.collected_at))}</span>
                   </td>
                   <td>
                     <span class="muted">${escapeHtml(row.method_note || "method note missing")}</span><br>
@@ -2736,6 +2754,8 @@ async function saveConsensusSource(event) {
     recommendation: document.getElementById("consensus-recommendation").value,
     confidence: document.getElementById("consensus-confidence").value,
     asOfDate: document.getElementById("consensus-as-of").value,
+    targetHorizonDate: document.getElementById("consensus-horizon").value,
+    validUntil: document.getElementById("consensus-valid-until").value,
     sourceUrl: document.getElementById("consensus-url").value,
     methodNote: document.getElementById("consensus-note").value,
     limitationNote: document.getElementById("consensus-limitations").value,
@@ -2848,7 +2868,7 @@ function renderBenchmark(data) {
       </div>
     ${renderPeerReviewChecklist()}
     ${renderSectorContext(data.sectorContext)}
-    ${renderMinimumData(data.minimumData)}
+    ${renderMinimumData(data.minimumData, data.groups?.[0]?.metricSummaries || [])}
   `;
 }
   return `
@@ -2857,7 +2877,7 @@ function renderBenchmark(data) {
       <span>${escapeHtml(data.policy || "Descriptive benchmark context only.")}</span>
     </div>
     ${data.groups.map(renderBenchmarkGroup).join("")}
-    ${renderMinimumData(data.minimumData)}
+    ${renderMinimumData(data.minimumData, data.groups?.[0]?.metricSummaries || [])}
     ${renderSectorContext(data.sectorContext)}
     ${renderPeerReviewChecklist()}
   `;
@@ -3001,8 +3021,30 @@ function renderSectorContext(sector) {
   `;
 }
 
-function renderMinimumData(minimumData) {
+function renderMinimumData(minimumData, metricSummaries = []) {
   if (!minimumData) return "";
+  // Old static JSON may claim adequate metric coverage before per-metric
+  // comparison contracts existed. Reconcile this card with the same evidence
+  // gate as the comparison table, without changing unrelated coverage checks.
+  const compatibleCount = metricSummaries.filter((metric) =>
+    metric.comparisonStatus === "compatible-reviewed-basis"
+    && metric.minimumDataMet === true
+    && Number.isFinite(metric.focusValue) && Number.isFinite(metric.peerMedian)
+    && Number.isInteger(metric.minimumPeerCount) && metric.minimumPeerCount > 0
+    && Number.isInteger(metric.peerCount) && metric.peerCount >= metric.minimumPeerCount
+  ).length;
+  const coverageCheck = {
+    key: "peer_metric_coverage", label: "Peer metric coverage", met: compatibleCount > 0,
+    detail: `${compatibleCount} metric(s) have source-reviewed compatible basis and enough peer observations.${compatibleCount ? "" : " Legacy or unverified metric coverage is withheld."}`,
+  };
+  const guardedChecks = (minimumData.checks || []).map((check) =>
+    check.key === "peer_metric_coverage" ? coverageCheck : check
+  );
+  if (!guardedChecks.some((check) => check.key === "peer_metric_coverage")) guardedChecks.push(coverageCheck);
+  const blockers = guardedChecks.filter((check) => !check.met).map((check) => check.label);
+  minimumData = {...minimumData, checks: guardedChecks, blockers,
+    status: blockers.length ? "not considered" : minimumData.status,
+    valuationScoreEnabled: false};
   const checks = (minimumData.checks || [])
     .map(
       (check) => `
@@ -3030,12 +3072,13 @@ function renderMinimumData(minimumData) {
 
 function renderBenchmarkGroup(group) {
   const metricRows = group.metricSummaries
+    .map((metric) => metric.comparisonStatus === "compatible-reviewed-basis" ? metric : {...metric, peerMedian: null, peerMin: null, peerMax: null, vsPeerMedianPct: null, peerCount: 0})
     .map(
       (metric) => `
       <tr>
         <td>
           <strong>${escapeHtml(metric.label)}</strong><br>
-          <span class="muted">${escapeHtml(metric.positionNote)}</span>
+          <span class="muted">${escapeHtml(metric.positionNote)}</span><br><span class="muted">${escapeHtml(metric.comparisonStatus || "comparison basis unverified")}</span>
         </td>
         <td class="number">${metricValue(metric.focusValue, metric.unit)}</td>
         <td class="number">${metricValue(metric.peerMedian, metric.unit)}</td>
@@ -3073,9 +3116,10 @@ function renderBenchmarkGroup(group) {
         </div>
         <span class="signal-badge ${peerStatusClass(group.status)}">${escapeHtml(group.status || "draft")}</span>
       </div>
+      <p class="muted">Comparison requires source-reviewed matching period, trailing/forward definition, accounting scope and economic group. A reviewed group alone is not sufficient. Raw peer data below are not certified comparisons.</p>
       <p class="muted">${escapeHtml(group.confidenceReason)} Source: ${escapeHtml(group.source || "manual")}; updated ${escapeHtml(shortDate(group.updated_at || group.created_at))}.</p>
       ${group.curator_note ? `<p class="muted">${escapeHtml(group.curator_note)}</p>` : ""}
-      ${renderMinimumData(group.minimumData)}
+      ${renderMinimumData(group.minimumData, group.metricSummaries || [])}
       ${group.errors?.length ? `<div class="error-box">${group.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>` : ""}
       <div class="table-wrap benchmark-table">
         <table>

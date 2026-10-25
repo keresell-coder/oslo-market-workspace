@@ -569,3 +569,9 @@ static all-universe output beyond the watchlist-focused beta.
 Financial-input repair (2026-10-24): [contracts, verification and deployment follow-up](docs/financial-input-contracts.md). The guard is implemented and locally tested; primary financial figures and generated publication data have not been refreshed by this change.
 
 Primary-input ingestion review batch (2026-10-24): [selected issuer facts, provenance and remaining gates](docs/primary-financial-ingestion.md). This branch is prepared for review; production data is unchanged.
+
+### Bounded interpretation repair (25 October 2026, review branch)
+Quote dates, target vintage/currency/horizon gates, and peer comparison-basis
+requirements are described in [comparison contracts](docs/comparison-contracts.md).
+Raw source evidence remains visible; unknown or incompatible inputs cannot
+support relative-value/target-gap conclusions. No trading rules or schedules change.
