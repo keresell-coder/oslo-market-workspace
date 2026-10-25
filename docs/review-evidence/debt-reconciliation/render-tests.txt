@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: DOF full TTM/debt limitations and real sources are rendered alongside legacy quarter
+ok 1 - DOF full TTM/debt limitations and real sources are rendered alongside legacy quarter
+  ---
+  duration_ms: 0.680084
+  type: 'test'
+  ...
+# Subtest: PUBLI uses its own schema and exposes translation/revenue/maturity caveats
+ok 2 - PUBLI uses its own schema and exposes translation/revenue/maturity caveats
+  ---
+  duration_ms: 0.064917
+  type: 'test'
+  ...
+# Subtest: legacy schema still renders and unsupported schema stays explicit
+ok 3 - legacy schema still renders and unsupported schema stays explicit
+  ---
+  duration_ms: 0.201667
+  type: 'test'
+  ...
+# Subtest: notes are escaped and source links require HTTPS
+ok 4 - notes are escaped and source links require HTTPS
+  ---
+  duration_ms: 0.216833
+  type: 'test'
+  ...
+# Subtest: frontend copies are byte-identical
+ok 5 - frontend copies are byte-identical
+  ---
+  duration_ms: 0.397709
+  type: 'test'
+  ...
+# Subtest: a recent matching degraded report remains usable with its limitations
+ok 6 - a recent matching degraded report remains usable with its limitations
+  ---
+  duration_ms: 3.801
+  type: 'test'
+  ...
+# Subtest: blocked cannot show current signal status
+ok 7 - blocked cannot show current signal status
+  ---
+  duration_ms: 0.121708
+  type: 'test'
+  ...
+# Subtest: snapshot mismatch cannot show current signal status
+ok 8 - snapshot mismatch cannot show current signal status
+  ---
+  duration_ms: 0.043125
+  type: 'test'
+  ...
+# Subtest: future generation cannot show current signal status
+ok 9 - future generation cannot show current signal status
+  ---
+  duration_ms: 0.042375
+  type: 'test'
+  ...
+# Subtest: stale generation cannot show current signal status
+ok 10 - stale generation cannot show current signal status
+  ---
+  duration_ms: 0.056291
+  type: 'test'
+  ...
+# Subtest: new completed session due cannot show current signal status
+ok 11 - new completed session due cannot show current signal status
+  ---
+  duration_ms: 0.470959
+  type: 'test'
+  ...
+# Subtest: unknown expiry cannot show current signal status
+ok 12 - unknown expiry cannot show current signal status
+  ---
+  duration_ms: 0.038542
+  type: 'test'
+  ...
+# Subtest: mixed endpoint JSON withholds labels and position sizing
+ok 13 - mixed endpoint JSON withholds labels and position sizing
+  ---
+  duration_ms: 0.418667
+  type: 'test'
+  ...
+# Subtest: withheld indicators cannot keep favorable color interpretation
+ok 14 - withheld indicators cannot keep favorable color interpretation
+  ---
+  duration_ms: 0.425792
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 60.470125
