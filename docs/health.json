@@ -17,9 +17,9 @@
     "technical_missing": 0,
     "technical_withheld": 0
   },
-  "evaluated_at": "2026-10-24T21:40:24.526848+00:00",
+  "evaluated_at": "2026-10-25T10:12:13.827298+00:00",
   "expected_session": "2026-10-23",
-  "generated_at": "2026-10-24T21:40:24.526848+00:00",
+  "generated_at": "2026-10-25T10:12:13.827298+00:00",
   "issues": [
     "NOD.OL: provider statements behind known issuer release 2026-10-22",
     "HAFNI.OL: peer source coverage incomplete",
@@ -28,7 +28,7 @@
     "TEL.OL: peer source coverage incomplete",
     "Primary filing verification: 0/78 statement periods reviewed; filing publication dates unverified"
   ],
-  "last_good_snapshot_id": "043771b2841a4c24b28748d22be1d372",
+  "last_good_snapshot_id": "89e3285bba0440839cb137eff8e7a1aa",
   "market_data_as_of": "2026-10-23",
   "missing_peers": [
     "SDRL.OL",
@@ -47,8 +47,8 @@
     "Primary filing verification: 0/78 statement periods reviewed; filing publication dates unverified"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "043771b2841a4c24b28748d22be1d372",
-  "source_fetched_at": "2026-10-24T21:38:58+00:00",
+  "snapshot_id": "89e3285bba0440839cb137eff8e7a1aa",
+  "source_fetched_at": "2026-10-25T10:11:03+00:00",
   "source_observation_end": "2026-10-23",
   "source_observation_start": "2026-10-23",
   "sources": {
@@ -73,14 +73,14 @@
       "actionable": true,
       "calendar_verified_through": 2026,
       "coverage": {
-        "actionable_count": 195,
-        "current": 195,
-        "current_ratio": 0.9701492537313433,
+        "actionable_count": 199,
+        "current": 199,
+        "current_ratio": 0.9900497512437811,
         "invalid": 0,
         "min_current_ratio": 0.004975124378109453,
         "missing": 0,
         "received_count": 201,
-        "stale": 6,
+        "stale": 2,
         "universe_count": 201
       },
       "eligible_tickers": [
@@ -197,6 +197,7 @@
         "NRC.OL",
         "ACR.OL",
         "KOG.OL",
+        "GYL.OL",
         "PRS.OL",
         "AFK.OL",
         "POL.OL",
@@ -244,7 +245,10 @@
         "BMA.OL",
         "PUBLI.OL",
         "QEC.OL",
+        "HSPG.OL",
+        "HERMA.OL",
         "SWON.OL",
+        "VVL.OL",
         "HELG.OL",
         "SDSD.OL",
         "HUNT.OL",
@@ -280,7 +284,7 @@
         "OET.OL",
         "2020.OL"
       ],
-      "evaluated_at": "2026-10-24T21:38:58.281493+00:00",
+      "evaluated_at": "2026-10-25T10:11:02.897638+00:00",
       "excluded": [
         {
           "data_status": "stale",
@@ -292,44 +296,20 @@
           "data_status": "stale",
           "market_data_as_of": "2026-10-22",
           "reason": "missing_expected_completed_session",
-          "ticker": "GYL.OL"
-        },
-        {
-          "data_status": "stale",
-          "market_data_as_of": "2026-10-22",
-          "reason": "missing_expected_completed_session",
-          "ticker": "HERMA.OL"
-        },
-        {
-          "data_status": "stale",
-          "market_data_as_of": "2026-10-22",
-          "reason": "missing_expected_completed_session",
-          "ticker": "HSPG.OL"
-        },
-        {
-          "data_status": "stale",
-          "market_data_as_of": "2026-10-22",
-          "reason": "missing_expected_completed_session",
           "ticker": "NEXT.OL"
-        },
-        {
-          "data_status": "stale",
-          "market_data_as_of": "2026-10-22",
-          "reason": "missing_expected_completed_session",
-          "ticker": "VVL.OL"
         }
       ],
       "expected_session": "2026-10-23",
-      "generated_at": "2026-10-23T19:57:37Z",
+      "generated_at": "2026-10-25T07:40:08Z",
       "market_data_as_of": "2026-10-23",
       "observation_dates": {
-        "2026-10-22": 6,
-        "2026-10-23": 195
+        "2026-10-22": 2,
+        "2026-10-23": 199
       },
       "reasons": [],
       "schema": "oslo_screener.health.v1",
       "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
-      "snapshot_id": "36af7fc30d2643f3b45a35212a5e8ca9",
+      "snapshot_id": "1d44f8a122e64eb7b274a18b9c0542b3",
       "status": "degraded",
       "valid_until": "2026-10-26T16:45:00+01:00"
     }
