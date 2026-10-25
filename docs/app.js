@@ -2868,7 +2868,7 @@ function renderBenchmark(data) {
       </div>
     ${renderPeerReviewChecklist()}
     ${renderSectorContext(data.sectorContext)}
-    ${renderMinimumData(data.minimumData)}
+    ${renderMinimumData(data.minimumData, data.groups?.[0]?.metricSummaries || [])}
   `;
 }
   return `
@@ -2877,7 +2877,7 @@ function renderBenchmark(data) {
       <span>${escapeHtml(data.policy || "Descriptive benchmark context only.")}</span>
     </div>
     ${data.groups.map(renderBenchmarkGroup).join("")}
-    ${renderMinimumData(data.minimumData)}
+    ${renderMinimumData(data.minimumData, data.groups?.[0]?.metricSummaries || [])}
     ${renderSectorContext(data.sectorContext)}
     ${renderPeerReviewChecklist()}
   `;
@@ -3021,8 +3021,30 @@ function renderSectorContext(sector) {
   `;
 }
 
-function renderMinimumData(minimumData) {
+function renderMinimumData(minimumData, metricSummaries = []) {
   if (!minimumData) return "";
+  // Old static JSON may claim adequate metric coverage before per-metric
+  // comparison contracts existed. Reconcile this card with the same evidence
+  // gate as the comparison table, without changing unrelated coverage checks.
+  const compatibleCount = metricSummaries.filter((metric) =>
+    metric.comparisonStatus === "compatible-reviewed-basis"
+    && metric.minimumDataMet === true
+    && Number.isFinite(metric.focusValue) && Number.isFinite(metric.peerMedian)
+    && Number.isInteger(metric.minimumPeerCount) && metric.minimumPeerCount > 0
+    && Number.isInteger(metric.peerCount) && metric.peerCount >= metric.minimumPeerCount
+  ).length;
+  const coverageCheck = {
+    key: "peer_metric_coverage", label: "Peer metric coverage", met: compatibleCount > 0,
+    detail: `${compatibleCount} metric(s) have source-reviewed compatible basis and enough peer observations.${compatibleCount ? "" : " Legacy or unverified metric coverage is withheld."}`,
+  };
+  const guardedChecks = (minimumData.checks || []).map((check) =>
+    check.key === "peer_metric_coverage" ? coverageCheck : check
+  );
+  if (!guardedChecks.some((check) => check.key === "peer_metric_coverage")) guardedChecks.push(coverageCheck);
+  const blockers = guardedChecks.filter((check) => !check.met).map((check) => check.label);
+  minimumData = {...minimumData, checks: guardedChecks, blockers,
+    status: blockers.length ? "not considered" : minimumData.status,
+    valuationScoreEnabled: false};
   const checks = (minimumData.checks || [])
     .map(
       (check) => `
@@ -3097,7 +3119,7 @@ function renderBenchmarkGroup(group) {
       <p class="muted">Comparison requires source-reviewed matching period, trailing/forward definition, accounting scope and economic group. A reviewed group alone is not sufficient. Raw peer data below are not certified comparisons.</p>
       <p class="muted">${escapeHtml(group.confidenceReason)} Source: ${escapeHtml(group.source || "manual")}; updated ${escapeHtml(shortDate(group.updated_at || group.created_at))}.</p>
       ${group.curator_note ? `<p class="muted">${escapeHtml(group.curator_note)}</p>` : ""}
-      ${renderMinimumData(group.minimumData)}
+      ${renderMinimumData(group.minimumData, group.metricSummaries || [])}
       ${group.errors?.length ? `<div class="error-box">${group.errors.map((err) => `${escapeHtml(err.symbol)}: ${escapeHtml(err.error)}`).join("<br>")}</div>` : ""}
       <div class="table-wrap benchmark-table">
         <table>

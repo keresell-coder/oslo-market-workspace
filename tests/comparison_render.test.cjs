@@ -43,3 +43,37 @@ test('cached contradictory intervals and nonfinite target gaps are withheld',()=
  }
  assert.equal(ctx.targetComparisonUsable(base),true);
 });
+Object.assign(ctx, {
+ metricValue:(v)=>v==null?'n/a':String(v), peerStatusClass:()=>'', renderPeerGroupEditor:()=>'',
+ renderPeerReviewChecklist:()=>'', renderSectorContext:()=>'',
+});
+vm.runInContext(['renderMinimumData','renderBenchmarkGroup'].map(fn).join('\n') + '\n' + source.slice(source.indexOf('function renderBenchmark(data)'), source.indexOf('function renderPeerReviewChecklist()')),ctx);
+test('saved MOWI legacy coverage is withheld both inside group and top-level benchmark',()=>{
+ const saved=JSON.parse(fs.readFileSync('docs/data/benchmarks/MOWI.OL.json','utf8'));
+ assert.ok(saved.minimumData.checks.some(c=>c.key==='peer_metric_coverage' && c.met));
+ const original=JSON.stringify(saved);
+ for(const html of [ctx.renderBenchmarkGroup(saved.groups[0]),ctx.renderBenchmark(saved)]) {
+  assert.ok(!html.includes('6 metric(s) have focus value plus enough peer observations.'));
+  assert.ok(html.includes('0 metric(s) have source-reviewed compatible basis and enough peer observations.'));
+  assert.match(html, /class="missing">\s*<strong>Peer metric coverage<\/strong>/);
+  assert.ok(html.includes('Valuation score enabled: no'));
+ }
+ assert.equal(JSON.stringify(saved),original,'guard must not mutate saved source evidence');
+});
+test('minimum-data guard keeps known compatible coverage and unrelated checks',()=>{
+ const minimum={status:'minimum context available',valuationScoreEnabled:true,checks:[
+  {key:'peer_metric_coverage',label:'Peer metric coverage',met:true,detail:'legacy count'},
+  {key:'price_history',label:'Price-history observations',met:true,detail:'251 observed days'},
+ ]};
+ const metric={comparisonStatus:'compatible-reviewed-basis',minimumDataMet:true,focusValue:12,peerMedian:10,minimumPeerCount:3,peerCount:3};
+ const html=ctx.renderMinimumData(minimum,[metric]);
+ assert.match(html,/class="met">\s*<strong>Peer metric coverage<\/strong>/);
+ assert.ok(html.includes('1 metric(s) have source-reviewed compatible basis'));
+ assert.ok(html.includes('251 observed days'));
+ assert.ok(html.includes('minimum context available'));
+ for(const change of [{comparisonStatus:undefined},{minimumDataMet:false},{peerCount:2},{peerMedian:Infinity},{minimumPeerCount:undefined}]) {
+  const guarded=ctx.renderMinimumData(minimum,[{...metric,...change}]);
+  assert.match(guarded,/class="missing">\s*<strong>Peer metric coverage<\/strong>/);
+  assert.ok(guarded.includes('not considered'));
+ }
+});
