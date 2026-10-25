@@ -2560,15 +2560,48 @@ function renderFundamentalSource(row) {
 
 function renderFinancialReconciliation(note) {
   if (!note) return "";
+  const e = (text) => escapeHtml(String(text ?? ""));
+  const sources = (items) => items.filter(Boolean).map((source) => {
+    const label = source.title || source.file || "Issuer source";
+    const link = String(source.url || "").startsWith("https://") ? `<a href="${e(source.url)}" target="_blank" rel="noopener">${e(label)}</a>` : e(label);
+    return `<li>${link}; pages ${e((source.printed_pages || source.printed_page || []).join(", "))}; SHA-256 ${e(source.sha256)}; publication ${e(source.publication_date || source.published_on || "not authenticated")}.</li>`;
+  }).join("");
+  const debtRows = (rows) => rows.map((row) => `<tr><td>${e(row.fiscal_year)}</td><td>${e(row.currency)} currency units</td><td>${e(value(row.long_term_debt_excluding_leases_noncurrent))}</td><td>${e(value(row.current_portion_long_term_debt_excluding_leases))}</td><td>${e(row.classification_note)}</td></tr>`).join("");
+  const debtTable = (rows) => rows?.length ? `<h4>Selected non-lease annual debt facts — audit only</h4><table><thead><tr><th>FY</th><th>Units</th><th>Noncurrent debt</th><th>Current principal</th><th>Scope and limitations</th></tr></thead><tbody>${debtRows(rows)}</tbody></table>` : "";
+  // The Public Property schema is a translation/row-basis audit, not an EBITDA note.
+  if (note.issuer === "PUBLI.OL" && note.issuer_official_SEK_restatement) {
+    const official = note.issuer_official_SEK_restatement;
+    const revenue = (note.reconstructed_fields || []).find((row) => row.field === "revenue") || {};
+    const components = revenue.original_NOK_components || {};
+    const observations = Object.entries(note.raw_provider_observations || {}).map(([field, row]) => `<tr><td>${e(field)}</td><td>${e(value(row.value))} ${e(row.currency)} currency units</td><td>${e(row.period_end)}</td><td>${e(row.observed_at)}</td></tr>`).join("");
+    const rows = (note.reconstructed_fields || []).map((row) => `<tr><td>${e(row.field)}</td><td>${e(value(row.original_NOK ?? row.sum_NOK))} NOK</td><td>${e(value(row.provider_SEK ?? row.provider_SEK_reconstructed_not_raw))} SEK${row.provider_SEK_reconstructed_not_raw !== undefined ? " (research reconstruction; raw observation separately recorded)" : ""}</td></tr>`).join("");
+    return `<details class="compact-details"><summary>Public Property: separate SEK translation and revenue definitions — unresolved</summary>
+      <p>Numerically inferred uniform factor ${e(note.inferred_uniform_conversion_SEK_per_NOK)} SEK per NOK. This is not confirmed provider translation policy. The official IAS21 historical series uses distinct income-average, balance-sheet closing and acquisition FX treatments; no corrective uniform FX is applied.</p>
+      <table><thead><tr><th>Field</th><th>Original NOK / row sum</th><th>Provider-normalized or reconstructed SEK</th></tr></thead><tbody>${rows}</tbody></table>
+      <details><summary>Original raw provider observations — not issuer-verified</summary><table><thead><tr><th>Raw field</th><th>Value</th><th>Period</th><th>Observed at</th></tr></thead><tbody>${observations}</tbody></table></details>
+      <p>Revenue row distinction: provider reconstruction uses rental ${e(value(components.rental_income))} + reimbursed management fee ${e(value(components.reimbursed_property_management_fee))} = ${e(value(revenue.sum_NOK))} NOK currency units. Issuer operating income uses rental plus other income instead of the reimbursed fee. These are different definitions, not automatically an erroneous amount.</p>
+      <p>Selected official SEK million: operating income ${e(value(official.operating_income_m))}; owners' profit ${e(value(official.owners_profit_m))}; CFO ${e(value(official.CFO_m))}; assets ${e(value(official.total_assets_m))}. This is selected restatement data, not a full IFRS replacement. No unmatched provider numerators/denominators are blended.</p>
+      ${debtTable(note.annual_debt_selected_facts)}
+      ${(note.disclosure_scope_conflicts || []).map((text) => `<p>${e(text)}</p>`).join("")}
+      <p>${e(note.application_policy)}. Remaining uncertainties: ${e((note.unresolved || []).join("; "))}.</p>
+      <ul>${sources(Object.values(note.sources || {}))}</ul></details>`;
+  }
   const definitions = note.definitions || {};
   const issuer = definitions.ifrs_ebitda || {};
   const provider = definitions.provider_ebitda_reconstruction || {};
   const management = definitions.management_ebitda || {};
-  return `<details class="compact-details"><summary>Separate definition reconciliation: unresolved</summary>
-    <p>Issuer IFRS quarterly EBITDA ${escapeHtml(value(issuer.quarter))} ${escapeHtml(note.currency)} ${escapeHtml(note.source_unit)}; management EBITDA ${escapeHtml(value(management.quarter))} on ${escapeHtml(management.scope)}.</p>
-    <p>Provider quarterly EBITDA ${escapeHtml(value(provider.reported_provider_value))} is numerically consistent with ${escapeHtml(provider.expression)}. This is not confirmation of provider methodology.</p>
-    <p>${escapeHtml(provider.limitation || "")}</p><p>${escapeHtml(note.application_policy || "Audit only; no replacements")}</p>
-    <p>Source SHA-256 ${escapeHtml(note.source?.sha256 || "unknown")}; pages ${escapeHtml((note.source?.printed_page || []).join(", "))}.</p></details>`;
+  const annual = note.additional_annual_debt_and_TTM_reconciliation;
+  if (!Object.keys(definitions).length && !annual) return `<details class="compact-details"><summary>Reconciliation schema not supported — outputs remain unverified</summary><p>No financial values are replaced.</p></details>`;
+  const legacy = issuer.quarter !== undefined ? `<p>Issuer IFRS quarterly EBITDA ${e(value(issuer.quarter))} ${e(note.currency)} ${e(note.source_unit)}; management EBITDA ${e(value(management.quarter))} on ${e(management.scope)}.</p>
+    <p>Provider quarterly EBITDA ${e(value(provider.reported_provider_value))} is numerically consistent with ${e(provider.expression)}. This is not confirmation of provider methodology.</p><p>${e(provider.limitation)}</p>` : "";
+  const bridge = annual ? `<h4>Full TTM comparison — ${e(annual.scope)}</h4>
+    <p>IFRS consolidated EBITDA ${e(value(annual.issuer_reported_ebitda.TTM))} (${e(annual.issuer_reported_ebitda.expression)}); consistent gross-finance-cost numerical reconstruction ${e(value(annual.standardized_interest_cost_reconstruction.TTM))} (${e(annual.standardized_interest_cost_reconstruction.expression)}); frozen provider EBITDA ${e(value(annual.provider_frozen.TTM_EBITDA))}. Provider minus reconstruction: ${e(value(annual.residuals.provider_TTM_minus_standardized_reconstruction))}.</p>
+    <p>These definitions remain unreconciled. A matching Q2 reconstruction does not authenticate provider methodology. Missing provider Q3 is not filled with an implied ${e(value(annual.provider_frozen.Q32025_implied_if_TTM_is_four_quarter_sum))}m. Management gross-JV and IFRS consolidation remain separate. EV remains unresolved; no corrected valuation is published.</p>
+    ${debtTable(annual.annual_debt_selected_facts)}<p>${e(annual.debt_limitation)}</p>
+    <ul>${sources(Object.values(annual.source_provenance || {}))}</ul>` : "";
+  return `<details class="compact-details"><summary>DOF definition and component reconciliation — unresolved</summary>${legacy}${bridge}
+    <p>${e(note.application_policy || "Audit only; no replacements")}. Existing valuation and source gates remain unchanged.</p>
+    ${note.source && !Object.values(annual?.source_provenance || {}).some((source) => source.sha256 === note.source.sha256) ? `<ul>${sources([{...note.source, publication_date: note.published_at}])}</ul>` : ""}</details>`;
 }
 
 function renderPrimaryFinancials(primary) {
