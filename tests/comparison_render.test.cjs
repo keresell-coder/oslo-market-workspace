@@ -50,6 +50,12 @@ Object.assign(ctx, {
 vm.runInContext(['renderMinimumData','renderBenchmarkGroup'].map(fn).join('\n') + '\n' + source.slice(source.indexOf('function renderBenchmark(data)'), source.indexOf('function renderPeerReviewChecklist()')),ctx);
 test('saved MOWI legacy coverage is withheld both inside group and top-level benchmark',()=>{
  const saved=JSON.parse(fs.readFileSync('docs/data/benchmarks/MOWI.OL.json','utf8'));
+ // Construct the legacy affirmative state explicitly; generated snapshots change.
+ for (const scope of [saved, ...saved.groups]) {
+  scope.minimumData.valuationScoreEnabled=true;
+  scope.minimumData.checks=scope.minimumData.checks.map(c=>c.key==='peer_metric_coverage'
+   ? {...c,met:true,detail:'6 metric(s) have focus value plus enough peer observations.'} : c);
+ }
  assert.ok(saved.minimumData.checks.some(c=>c.key==='peer_metric_coverage' && c.met));
  const original=JSON.stringify(saved);
  for(const html of [ctx.renderBenchmarkGroup(saved.groups[0]),ctx.renderBenchmark(saved)]) {
