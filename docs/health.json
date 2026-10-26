@@ -12,24 +12,23 @@
     "received": 15,
     "refreshed": 15,
     "stale_quote_dates": 0,
-    "statement_periods": 78,
+    "statement_periods": 79,
     "technical_current": 15,
     "technical_missing": 0,
     "technical_withheld": 0
   },
-  "evaluated_at": "2026-10-25T12:22:27.877842+00:00",
+  "evaluated_at": "2026-10-26T11:25:42.921637+00:00",
   "expected_session": "2026-10-23",
-  "generated_at": "2026-10-25T12:22:27.877842+00:00",
+  "generated_at": "2026-10-26T11:25:42.921637+00:00",
   "issues": [
-    "NOD.OL: provider statements behind known issuer release 2026-10-22",
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
     "ODL.OL: peer source coverage incomplete",
     "TEL.OL: peer source coverage incomplete",
-    "Primary filing verification: 0/78 statement periods reviewed; filing publication dates unverified"
+    "Primary filing verification: 0/79 statement periods reviewed; filing publication dates unverified"
   ],
-  "last_good_snapshot_id": "5613e02aa5514360bde665d604075319",
-  "market_data_as_of": "2026-10-23",
+  "last_good_snapshot_id": "28e42173e5134c27b9c209ff3987eac0",
+  "market_data_as_of": "2026-10-26",
   "missing_peers": [
     "SDRL.OL",
     "SHLF.OL",
@@ -39,18 +38,17 @@
   ],
   "published_content_retained": false,
   "reasons": [
-    "NOD.OL: provider statements behind known issuer release 2026-10-22",
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
     "ODL.OL: peer source coverage incomplete",
     "TEL.OL: peer source coverage incomplete",
-    "Primary filing verification: 0/78 statement periods reviewed; filing publication dates unverified"
+    "Primary filing verification: 0/79 statement periods reviewed; filing publication dates unverified"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "5613e02aa5514360bde665d604075319",
-  "source_fetched_at": "2026-10-25T12:20:57+00:00",
-  "source_observation_end": "2026-10-23",
-  "source_observation_start": "2026-10-23",
+  "snapshot_id": "28e42173e5134c27b9c209ff3987eac0",
+  "source_fetched_at": "2026-10-26T11:24:33+00:00",
+  "source_observation_end": "2026-10-26",
+  "source_observation_start": "2026-10-26",
   "sources": {
     "news": {
       "missingDataPolicy": "No row means no NewsWeb/manual row was found during the on-demand lookup; verify the issuer directly if needed.",
@@ -284,7 +282,7 @@
         "OET.OL",
         "2020.OL"
       ],
-      "evaluated_at": "2026-10-25T12:20:56.379993+00:00",
+      "evaluated_at": "2026-10-26T11:24:32.264533+00:00",
       "excluded": [
         {
           "data_status": "stale",
@@ -316,7 +314,7 @@
   },
   "statements": {
     "filing_publication_dates": "unverified",
-    "latest_period_end": "2026-06-30",
+    "latest_period_end": "2026-09-30",
     "latest_period_start": "2026-06-30"
   },
   "status": "degraded",
