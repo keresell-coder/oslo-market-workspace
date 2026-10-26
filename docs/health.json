@@ -1,33 +1,36 @@
 {
   "coverage": {
     "aged_statements": 0,
-    "current": 15,
-    "expected": 15,
+    "current": 19,
+    "expected": 20,
     "invalid_quote_dates": 0,
     "missing": 0,
     "missing_peer_companies": 5,
     "missing_quote_dates": 0,
     "missing_statements": 0,
     "primary_reviewed_periods": 0,
-    "received": 15,
-    "refreshed": 15,
+    "received": 20,
+    "refreshed": 20,
     "stale_quote_dates": 0,
-    "statement_periods": 79,
-    "technical_current": 15,
-    "technical_missing": 0,
-    "technical_withheld": 0
+    "statement_periods": 104,
+    "technical_current": 19,
+    "technical_missing": 1,
+    "technical_withheld": 0,
+    "unvalidated_us_quote_sessions": 1
   },
-  "evaluated_at": "2026-10-26T21:07:36.853282+00:00",
+  "evaluated_at": "2026-10-26T22:05:45.211417+00:00",
   "expected_session": "2026-10-26",
-  "generated_at": "2026-10-26T21:07:36.853282+00:00",
+  "expected_session_scope": "Euronext Oslo only; no Nasdaq session validation",
+  "generated_at": "2026-10-26T22:05:45.211417+00:00",
   "issues": [
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
     "ODL.OL: peer source coverage incomplete",
     "TEL.OL: peer source coverage incomplete",
-    "Primary filing verification: 0/79 statement periods reviewed; filing publication dates unverified"
+    "VSAT: provider-observed USD quote date only; Nasdaq session freshness is not validated and Oslo technical coverage is unavailable",
+    "Primary filing verification: 0/104 statement periods reviewed; filing publication dates unverified",
+    "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
-  "last_good_snapshot_id": "4a46069696d64765a5e4217736bb99da",
   "market_data_as_of": "2026-10-26",
   "missing_peers": [
     "SDRL.OL",
@@ -36,17 +39,18 @@
     "TORM.CO",
     "UBXN.SW"
   ],
-  "published_content_retained": false,
   "reasons": [
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
     "ODL.OL: peer source coverage incomplete",
     "TEL.OL: peer source coverage incomplete",
-    "Primary filing verification: 0/79 statement periods reviewed; filing publication dates unverified"
+    "VSAT: provider-observed USD quote date only; Nasdaq session freshness is not validated and Oslo technical coverage is unavailable",
+    "Primary filing verification: 0/104 statement periods reviewed; filing publication dates unverified",
+    "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "4a46069696d64765a5e4217736bb99da",
-  "source_fetched_at": "2026-10-26T21:05:51+00:00",
+  "snapshot_id": "2d18f4e6ed1145009303dab29849e18d",
+  "source_fetched_at": "2026-10-26T21:48:53+00:00",
   "source_observation_end": "2026-10-26",
   "source_observation_start": "2026-10-26",
   "sources": {
@@ -55,17 +59,17 @@
       "newswebFetch": {
         "cacheTtlSeconds": 900,
         "errorSymbols": 0,
-        "freshSymbols": 15,
+        "freshSymbols": 19,
         "staleSymbols": 0
       },
       "sourceMix": {
         "manualRows": 0,
-        "newswebRows": 180
+        "newswebRows": 228
       },
-      "symbolsMissingEvents": 0,
-      "symbolsWithEvents": 15,
-      "trackedEventCount": 180,
-      "watchlistCount": 15
+      "symbolsMissingEvents": 1,
+      "symbolsWithEvents": 19,
+      "trackedEventCount": 228,
+      "watchlistCount": 20
     },
     "technical": {
       "actionable": true,
@@ -278,7 +282,7 @@
         "OKEA.OL",
         "ODL.OL"
       ],
-      "evaluated_at": "2026-10-26T21:05:50.976583+00:00",
+      "evaluated_at": "2026-10-26T21:48:50.058044+00:00",
       "excluded": [
         {
           "data_status": "stale",

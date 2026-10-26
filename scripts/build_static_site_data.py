@@ -93,20 +93,27 @@ def validate_watchlist(data: dict[str, Any]) -> dict[str, Any]:
     validate_keys("watchlist.yml", data, {"watchlist", "items"}, {"watchlist", "items", "notes"})
     watchlist = validate_str("watchlist.yml:watchlist", data["watchlist"])
     items = validate_row_list(data, "items", "watchlist.yml")
-    allowed = {"symbol", "name", "sector", "industry", "note"}
+    allowed = {"symbol", "name", "sector", "industry", "note", "exchange", "price_currency"}
     seen: set[str] = set()
     normalized = []
     for index, item in enumerate(items, start=1):
         validate_keys(f"watchlist.yml:items[{index}]", item, {"symbol"}, allowed)
         symbol = validate_str(f"watchlist.yml:items[{index}].symbol", item["symbol"]).upper()
-        if "." not in symbol:
+        if "." not in symbol and symbol != "VSAT":
             symbol = f"{symbol}.OL"
+        exchange = item.get("exchange", "NASDAQ" if symbol == "VSAT" else "Euronext Oslo")
+        price_currency = item.get("price_currency", "USD" if symbol == "VSAT" else "NOK")
+        expected = ("NASDAQ", "USD") if symbol == "VSAT" else ("Euronext Oslo", "NOK")
+        if (exchange, price_currency) != expected:
+            raise SchemaError(f"{symbol}: expected exchange/price_currency {expected}")
         if symbol in seen:
             raise SchemaError(f"watchlist.yml duplicates symbol {symbol}")
         seen.add(symbol)
         normalized.append(
             {
                 "symbol": symbol,
+                "exchange": exchange,
+                "price_currency": price_currency,
                 "name": validate_str(f"watchlist.yml:items[{index}].name", item.get("name", ""), required=False),
                 "sector": validate_str(f"watchlist.yml:items[{index}].sector", item.get("sector", ""), required=False),
                 "industry": validate_str(f"watchlist.yml:items[{index}].industry", item.get("industry", ""), required=False),
@@ -420,13 +427,14 @@ def install_inputs(server, inputs: dict[str, Any]) -> None:
                 values (?, ?, ?, ?, ?, ?, ?)
                 on conflict(symbol) do update set
                     name = coalesce(nullif(excluded.name, ''), tickers.name),
+                    exchange = excluded.exchange,
                     sector = coalesce(nullif(excluded.sector, ''), tickers.sector),
                     industry = coalesce(nullif(excluded.industry, ''), tickers.industry)
                 """,
                 (
                     item["symbol"],
                     item["name"] or item["symbol"].replace(".OL", ""),
-                    "Oslo Bors" if item["symbol"].endswith(".OL") else "International",
+                    item["exchange"],
                     item["sector"],
                     item["industry"],
                     "repo data/watchlist.yml",
@@ -649,7 +657,7 @@ def watchlist_payload(server, name: str) -> dict[str, Any]:
         items = server.rows_to_dicts(
             con.execute(
                 """
-                select wi.watchlist_name, wi.symbol, wi.note, t.name, t.sector, t.industry
+                select wi.watchlist_name, wi.symbol, wi.note, t.name, t.exchange, t.sector, t.industry
                 from watchlist_items wi
                 left join tickers t on t.symbol = wi.symbol
                 where wi.watchlist_name = ?
@@ -658,6 +666,8 @@ def watchlist_payload(server, name: str) -> dict[str, Any]:
                 (name,),
             ).fetchall()
         )
+    for item in items:
+        item["price_currency"] = "USD" if item["symbol"] == "VSAT" else "NOK"
     return {"watchlists": lists, "active": name, "items": items}
 
 

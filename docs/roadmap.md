@@ -937,3 +937,5 @@ Draft source and renderer safeguards implemented; independent review precedes
 publication. Next: verify exact deployment and observed-date/withholding display.
 Peer contract ingestion remains explicitly absent; do not promote unannotated
 provider ratios into comparable evidence. See `comparison-contracts.md`.
+
+2026-10-26 fixed coverage: local configuration and US identity repair prepared. Verify candidate generation/source health before publication; market-wide screeners and schedules are unchanged.

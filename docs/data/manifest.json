@@ -1,6 +1,8 @@
 {
   "benchmarkFiles": {
     "BRG.OL": "data/benchmarks/BRG.OL.json",
+    "CMBTO.OL": "data/benchmarks/CMBTO.OL.json",
+    "COSH.OL": "data/benchmarks/COSH.OL.json",
     "DOFG.OL": "data/benchmarks/DOFG.OL.json",
     "ELK.OL": "data/benchmarks/ELK.OL.json",
     "FRO.OL": "data/benchmarks/FRO.OL.json",
@@ -12,16 +14,19 @@
     "NOD.OL": "data/benchmarks/NOD.OL.json",
     "NORBT.OL": "data/benchmarks/NORBT.OL.json",
     "ODL.OL": "data/benchmarks/ODL.OL.json",
+    "ORK.OL": "data/benchmarks/ORK.OL.json",
     "PUBLI.OL": "data/benchmarks/PUBLI.OL.json",
+    "SCATC.OL": "data/benchmarks/SCATC.OL.json",
     "TEL.OL": "data/benchmarks/TEL.OL.json",
-    "VEND.OL": "data/benchmarks/VEND.OL.json"
+    "VEND.OL": "data/benchmarks/VEND.OL.json",
+    "VSAT": "data/benchmarks/VSAT.json"
   },
   "betaRelease": "Beta v0.1.0",
-  "generatedAt": "2026-10-26T21:05:50+00:00",
+  "generatedAt": "2026-10-26T21:48:49+00:00",
   "healthStatus": "degraded",
   "history": {
     "dateBasis": "UTC source retrieval date; latest retrieval per symbol/day",
-    "observationCount": 3423,
+    "observationCount": 3428,
     "path": "data/fundamentals-history.json"
   },
   "inputFiles": [
@@ -58,6 +63,11 @@
     "docs/data/benchmarks/PUBLI.OL.json",
     "docs/data/benchmarks/TEL.OL.json",
     "docs/data/benchmarks/VEND.OL.json",
+    "docs/data/benchmarks/VSAT.json",
+    "docs/data/benchmarks/COSH.OL.json",
+    "docs/data/benchmarks/SCATC.OL.json",
+    "docs/data/benchmarks/CMBTO.OL.json",
+    "docs/data/benchmarks/ORK.OL.json",
     "docs/data/watchlist-overview.json",
     "docs/data/fundamentals-watchlist.json",
     "docs/data/fundamentals-all.json",
@@ -68,16 +78,18 @@
     "docs/data/fundamentals-history.json"
   ],
   "refreshRequested": true,
-  "snapshotId": "4a46069696d64765a5e4217736bb99da",
+  "snapshotId": "2d18f4e6ed1145009303dab29849e18d",
   "sourceStatus": {
-    "eventErrors": [],
+    "eventErrors": [
+      "NewsWeb covers Oslo issuers; NASDAQ:VSAT requires a separate US announcement source."
+    ],
     "screenerError": null,
     "technicalError": null,
     "watchlistErrors": 0,
-    "watchlistRows": 15
+    "watchlistRows": 20
   },
   "watchlist": "Core Watchlist",
-  "watchlistCount": 15,
+  "watchlistCount": 20,
   "watchlistEdit": {
     "codexPrompt": "Please edit data/watchlist.yml in keresell-coder/oslo-market-workspace, keep the YAML schema valid, preserve the no-advice guardrails, and open a PR with the watchlist change. After merge, run the Static GitHub Pages data workflow or wait for the next scheduled refresh, then verify the public Pages URL and manifest.",
     "policy": "Public GitHub Pages JavaScript does not contain a GitHub write token. Watchlist edits happen through GitHub/Codex/PRs.",

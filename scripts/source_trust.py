@@ -122,6 +122,7 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
     if fundamentals.get("errors"):
         errors.append("Fundamental source collection failed")
     missing_quotes = stale_quotes = invalid_quotes = missing_periods = aged_periods = period_count = reviewed = received = 0
+    unvalidated_us_quotes = 0
     technical_health = technical.get("sourceHealth") or {}
     expected_session = technical_health.get("expected_session")
     for row in fundamentals.get("rows", []):
@@ -146,7 +147,9 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
             invalid_quotes += 1
         else:
             observations.append(quote.date().isoformat())
-            if expected_session and quote.date().isoformat() < expected_session:
+            if symbol == "VSAT":
+                unvalidated_us_quotes += 1
+            elif expected_session and quote.date().isoformat() < expected_session:
                 stale_quotes += 1
         guarded = copy.deepcopy(row)
         from app.server import apply_financial_contracts
@@ -200,6 +203,8 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
                     fetched = timestamp(peer.get("sourceFetchedAt"))
                     if not fetched or not timedelta(0) <= now - fetched <= timedelta(hours=24):
                         issues.append(f"{peer['symbol']}: peer source retrieval unknown/stale/future")
+    if unvalidated_us_quotes:
+        issues.append("VSAT: provider-observed USD quote date only; Nasdaq session freshness is not validated and Oslo technical coverage is unavailable")
     if missing_quotes:
         issues.append(f"{missing_quotes}/{len(expected)} quote observation timestamps unverified")
     if stale_quotes:
@@ -222,9 +227,11 @@ def validate_bundle(output_dir, symbols, snapshot_id=None, now=None):
             "source_observation_start": min(observations) if observations else None,
             "source_observation_end": max(observations) if observations else None,
             "market_data_as_of": min(observations) if observations else None,
-            "expected_session": expected_session, "valid_until": technical_health.get("valid_until"),
+            "expected_session": expected_session, "expected_session_scope": "Euronext Oslo only; no Nasdaq session validation",
+            "valid_until": technical_health.get("valid_until"),
             "coverage": {"expected": len(expected), "received": received, "refreshed": len(fetches),
-                         "current": max(0, received - missing_quotes - stale_quotes - invalid_quotes),
+                         "current": max(0, received - missing_quotes - stale_quotes - invalid_quotes - unvalidated_us_quotes),
+                         "unvalidated_us_quote_sessions": unvalidated_us_quotes,
                          "missing": len(expected) - received,
                          "missing_quote_dates": missing_quotes, "stale_quote_dates": stale_quotes,
                          "invalid_quote_dates": invalid_quotes,
