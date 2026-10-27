@@ -63,7 +63,7 @@ def test_saved_real_undated_rows_cannot_become_fresh():
     from pathlib import Path
     rows=json.loads((Path(__file__).parents[1]/'docs/data/consensus.json').read_text())['sources']
     undated=[row for row in rows if not row.get('as_of_date')]
-    assert len(undated)==66
+    assert undated, "Need undated provider rows to exercise freshness withholding"
     assert all(estimate_status(row,NOW)=='estimate-date-unknown' for row in undated)
     assert target_comparison(PRICE,undated,NOW)['target'] is None
 

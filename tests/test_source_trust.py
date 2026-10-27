@@ -294,3 +294,30 @@ def test_empty_peer_payload_is_not_loaded_coverage(monkeypatch):
     assert overview["loadedPeerCount"] == 1
     assert [r["symbol"] for r in detail["items"]] == ["MOWI.OL", "GOOD.OL"]
     assert detail["errors"][0]["symbol"] == "EMPTY.OL"
+
+
+def test_us_provider_quote_is_not_oslo_session_validated(tmp_path):
+    data = bundle(tmp_path)
+    row = data['fundamentals-watchlist.json']['rows'][0]
+    row.update(symbol='VSAT', currency='USD')
+    data['watchlist-overview.json']['rows'][0]['symbol']='VSAT'
+    data['technical-indicators-watchlist.json']['rows']=[{'symbol':'VSAT','signal':'MISSING'}]
+    benchmark=data.pop('benchmarks/MOWI.OL.json')
+    benchmark['groups'][0]['items'][0]['symbol']='VSAT'
+    data['benchmarks/VSAT.json']=benchmark
+    for name,payload in data.items(): trust.write_json(tmp_path/name,payload)
+    result=trust.validate_bundle(tmp_path,['VSAT'],'candidate',NOW)
+    assert result['status']=='degraded'
+    assert result['coverage']['received']==1
+    assert result['coverage']['current']==0
+    assert result['coverage']['unvalidated_us_quote_sessions']==1
+    assert result['coverage']['stale_quote_dates']==0
+    assert result['expected_session_scope']=='Euronext Oslo only; no Nasdaq session validation'
+    assert any('Nasdaq session freshness is not validated' in issue for issue in result['issues'])
+
+
+def test_oslo_session_count_unchanged(tmp_path):
+    bundle(tmp_path)
+    result=trust.validate_bundle(tmp_path,['MOWI.OL'],'candidate',NOW)
+    assert result['coverage']['current']==1
+    assert result['coverage']['unvalidated_us_quote_sessions']==0

@@ -575,3 +575,5 @@ Quote dates, target vintage/currency/horizon gates, and peer comparison-basis
 requirements are described in [comparison contracts](docs/comparison-contracts.md).
 Raw source evidence remains visible; unknown or incompatible inputs cannot
 support relative-value/target-gap conclusions. No trading rules or schedules change.
+
+Fixed coverage configuration now includes 20 companies, with NASDAQ:VSAT preserved as VSAT/USD and Oslo listings as .OL/NOK. NewsWeb US coverage is explicitly unsupported; missing technical source rows remain missing. See docs/fixed-coverage.md.

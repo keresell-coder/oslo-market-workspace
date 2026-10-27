@@ -669,3 +669,5 @@ metric-specific peer basis. Existing provider peer metadata is insufficient, so
 comparisons are withheld while raw values remain. No new source reconciliation,
 production publication or predictive validation is implied. Independent audit and
 live verification are still required before marking this change deployed.
+
+2026-10-26: Prepared additive fixed coverage (15 → 20), preserving all existing names and comparison/source gates. NASDAQ:VSAT identity is retained through static loading, fundamentals/cache paths and failure handling. NewsWeb returns an explicit unsupported status for VSAT. See fixed-coverage.md for verification and remaining source limitations.

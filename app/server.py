@@ -830,7 +830,7 @@ def utc_now() -> str:
 
 def normalize_symbol(symbol: str) -> str:
     value = symbol.strip().upper()
-    if value and "." not in value:
+    if value and "." not in value and value != "VSAT":
         value = f"{value}.OL"
     return value
 
@@ -1546,7 +1546,7 @@ def fetch_yfinance(symbol: str) -> dict:
         "priceObservedAt": quote_observed_at or None,
         "priceSourceField": quote_field,
         "priceObservationStatus": "provider quote timestamp" if quote_observed_at else "unverified",
-        "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or "NOK", now),
+        "priceHistory": fetch_yfinance_price_history(ticker, current_price, info.get("currency") or ("" if getattr(ticker, "ticker", ticker) == "VSAT" else "NOK"), now),
         "quarterlyStatements": fetch_yfinance_quarterly_statements(
             ticker,
             info.get("financialCurrency") or "",
@@ -2246,7 +2246,7 @@ def source_gated_ttm_statement_ratio_summary(
     fetched_at: str,
     limitation_note: str,
 ) -> dict:
-    quote_currency = info.get("currency") or "NOK"
+    quote_currency = info.get("currency") or ("" if getattr(ticker, "ticker", ticker) == "VSAT" else "NOK")
     financial_currency = info.get("financialCurrency") or ""
     ttm_value, source_row, period_end = ttm_statement_value(ticker, row_labels)
     fx = yfinance_fx_rate(financial_currency, quote_currency)
@@ -2344,7 +2344,7 @@ def dividend_yield_summary(info: dict, current_price: float | None, fetched_at: 
 
 
 def enterprise_to_ebitda_summary(ticker, info: dict, fetched_at: str) -> dict:
-    quote_currency = info.get("currency") or "NOK"
+    quote_currency = info.get("currency") or ("" if getattr(ticker, "ticker", ticker) == "VSAT" else "NOK")
     financial_currency = info.get("financialCurrency") or ""
     enterprise_value = pick_number(info, "enterpriseValue")
     provider_ratio = pick_number(info, "enterpriseToEbitda")
@@ -2462,7 +2462,7 @@ def fundamental_multiple_summaries(ticker, info: dict, current_price: float | No
     book_value = pick_number(info, "bookValue")
     market_cap = pick_number(info, "marketCap")
     enterprise_value = pick_number(info, "enterpriseValue")
-    quote_currency = info.get("currency") or "NOK"
+    quote_currency = info.get("currency") or ("" if getattr(ticker, "ticker", ticker) == "VSAT" else "NOK")
 
     summaries = {
         "trailingPE": source_gated_ratio_summary(
@@ -2633,7 +2633,7 @@ def normalize_fundamental_multiple_fields(payload: dict) -> dict:
         return payload
     metadata = dict(payload.get("multipleSourceMetadata") or {})
     fetched_at = payload.get("fetchedAt") or utc_now()
-    currency = payload.get("currency") or "NOK"
+    currency = payload.get("currency") or ("" if payload.get("symbol") == "VSAT" else "NOK")
 
     def provider_key(field: str) -> str:
         return {
@@ -3098,6 +3098,10 @@ def newsweb_message_url(message: dict) -> str:
 
 def newsweb_fetch_status(symbol: str) -> dict:
     normalized = normalize_symbol(symbol)
+    if normalized == "VSAT":
+        return {"symbol": normalized, "status": "unsupported", "label": "unsupported exchange",
+                "error": "NewsWeb covers Oslo issuers; NASDAQ:VSAT requires a separate US announcement source.",
+                "fetchedAt": None, "attemptedAt": None, "limitation": "No US announcement coverage is implied."}
     cached = NEWSWEB_CACHE.get(normalized) or {}
     now_epoch = int(time.time())
     fetched_at_epoch = int(cached.get("fetched_at_epoch") or 0)
@@ -3228,6 +3232,8 @@ def newsweb_event_from_message(symbol: str, message: dict, fetched_at: str) -> d
 
 
 def fetch_newsweb_symbol_events(symbol: str, refresh: bool = False, limit: int = 5) -> tuple[list[dict], str | None]:
+    if normalize_symbol(symbol) == "VSAT":
+        return [], newsweb_fetch_status(symbol)["error"]
     if requests is None:
         return [], "requests is required for NewsWeb event fetches"
     normalized = normalize_symbol(symbol)
@@ -3634,6 +3640,9 @@ def event_monitoring_payload(name: str = "Core Watchlist", refresh_newsweb: bool
 
 
 def enrich_fundamental_payload(payload: dict) -> dict:
+    if payload.get("symbol") == "VSAT":
+        payload["priceObservationStatus"] = ("provider-observed USD quote date; Nasdaq session not validated"
+                                             if payload.get("priceObservedAt") else "unverified")
     payload = normalize_enterprise_to_ebitda_fields(payload)
     payload = normalize_fundamental_multiple_fields(payload)
     payload.setdefault("targetPriceSource", "Yahoo Finance via yfinance")
@@ -4216,7 +4225,7 @@ def cached_fundamental(symbol: str, refresh: bool = False, assume_oslo: bool = T
             (
                 symbol,
                 payload.get("name"),
-                "Oslo Bors" if symbol.endswith(".OL") else "International",
+                "NASDAQ" if symbol == "VSAT" else ("Oslo Bors" if symbol.endswith(".OL") else "International"),
                 payload.get("sector"),
                 payload.get("industry"),
                 "Yahoo Finance via yfinance",

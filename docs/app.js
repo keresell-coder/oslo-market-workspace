@@ -641,7 +641,7 @@ function renderStaticModeBanner(manifest = staticManifest) {
       <div>
         <strong>Source health: ${escapeHtml(trustIssue ? "blocked / unverified" : health.status || "unverified")}</strong>
         <span>${escapeHtml(trustIssue || "Latest collection passed publication checks; source limitations still apply.")}</span>
-        <span>Quote observations ${escapeHtml(health.source_observation_start || "unknown")}–${escapeHtml(health.source_observation_end || "unknown")}; expected completed session ${escapeHtml(health.expected_session || "unknown")}. Source retrieved ${escapeHtml(dateTime(health.source_fetched_at))}; report rendered ${escapeHtml(dateTime(manifest?.generatedAt))}.</span>
+        <span>Quote observations ${escapeHtml(health.source_observation_start || "unknown")}–${escapeHtml(health.source_observation_end || "unknown")}; Oslo-only expected completed session ${escapeHtml(health.expected_session || "unknown")}. Source retrieved ${escapeHtml(dateTime(health.source_fetched_at))}; report rendered ${escapeHtml(dateTime(manifest?.generatedAt))}.</span>
         <span>${escapeHtml((health.issues || []).join(" · "))}</span>
         <a href="health.json" target="_blank" rel="noreferrer">Source dates and coverage</a>
         <span>${escapeHtml(manifest?.watchlistEdit?.policy || "Watchlist edits happen through GitHub/Codex/PRs.")}</span>
