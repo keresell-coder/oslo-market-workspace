@@ -35,7 +35,7 @@
         "met": false
       },
       {
-        "detail": "13 distinct daily snapshot(s), 12 calendar days; minimum 5 dates over 90 days.",
+        "detail": "14 distinct daily snapshot(s), 13 calendar days; minimum 5 dates over 90 days.",
         "key": "snapshot_history",
         "label": "Local multiple snapshots",
         "met": false
@@ -61,7 +61,7 @@
   },
   "ownHistory": {
     "firstSnapshotAt": "2026-10-26T21:49:49+00:00",
-    "lastSnapshotAt": "2026-11-07T13:46:40+00:00",
+    "lastSnapshotAt": "2026-11-08T14:05:12+00:00",
     "metrics": [
       {
         "current": null,
@@ -81,46 +81,46 @@
       {
         "current": 13.574554548296343,
         "historyMax": 13.754298218193187,
-        "historyMedian": 11.664670962004692,
+        "historyMedian": 11.678741735179607,
         "historyMin": 9.14887868143745,
         "key": "forwardPE",
         "label": "Forward P/E",
         "minimumDataMet": false,
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observations": 13,
-        "percentileInOwnHistory": 92.3076923076923,
-        "spanDays": 12,
+        "observations": 14,
+        "percentileInOwnHistory": 92.85714285714286,
+        "spanDays": 13,
         "unit": "x"
       },
       {
         "current": 1.6573478617636395,
         "historyMax": 1.6792931702383451,
-        "historyMedian": 1.3818702572797157,
+        "historyMedian": 1.3876314793172129,
         "historyMin": 1.3267271320636698,
         "key": "priceToBook",
         "label": "P/B",
         "minimumDataMet": false,
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observations": 13,
-        "percentileInOwnHistory": 92.3076923076923,
-        "spanDays": 12,
+        "observations": 14,
+        "percentileInOwnHistory": 92.85714285714286,
+        "spanDays": 13,
         "unit": "x"
       },
       {
         "current": 3.1866367529843895,
         "historyMax": 3.4824632175032173,
-        "historyMedian": 3.4104690326898326,
+        "historyMedian": 3.3631585194337195,
         "historyMin": 3.1224268282828285,
         "key": "priceToSalesTrailing12Months",
         "label": "P/S",
         "minimumDataMet": false,
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observations": 13,
-        "percentileInOwnHistory": 30.76923076923077,
-        "spanDays": 12,
+        "observations": 14,
+        "percentileInOwnHistory": 35.714285714285715,
+        "spanDays": 13,
         "unit": "x"
       },
       {
@@ -163,9 +163,9 @@
         "minimumDataMet": false,
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observations": 13,
+        "observations": 14,
         "percentileInOwnHistory": 100.0,
-        "spanDays": 12,
+        "spanDays": 13,
         "unit": "%"
       },
       {
@@ -187,8 +187,8 @@
     "minimumObservations": 5,
     "minimumSpanDays": 90,
     "requirement": "Own-history context requires five distinct UTC retrieval dates spanning at least 90 calendar days. This is a coverage policy, not proof of a representative valuation cycle or a backtest.",
-    "snapshotCount": 13,
-    "spanDays": 12,
+    "snapshotCount": 14,
+    "spanDays": 13,
     "status": "insufficient history",
     "symbol": "SCATC.OL",
     "trendCharts": [
@@ -212,54 +212,54 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-11-07T13:46:40+00:00",
+        "fetchedAt": "2026-11-08T14:05:12+00:00",
         "firstObservationAt": "2026-10-26T21:49:49+00:00",
         "key": "forwardPE",
         "label": "Forward P/E",
-        "lastObservationAt": "2026-11-07T13:46:40+00:00",
+        "lastObservationAt": "2026-11-08T14:05:12+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observationCount": 13,
+        "observationCount": 14,
         "points": [],
         "source": "local fundamentals snapshots",
-        "spanDays": 12,
+        "spanDays": 13,
         "status": "insufficient observations",
         "type": "fundamental_snapshot",
         "unit": "x"
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-11-07T13:46:40+00:00",
+        "fetchedAt": "2026-11-08T14:05:12+00:00",
         "firstObservationAt": "2026-10-26T21:49:49+00:00",
         "key": "priceToBook",
         "label": "P/B",
-        "lastObservationAt": "2026-11-07T13:46:40+00:00",
+        "lastObservationAt": "2026-11-08T14:05:12+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observationCount": 13,
+        "observationCount": 14,
         "points": [],
         "source": "local fundamentals snapshots",
-        "spanDays": 12,
+        "spanDays": 13,
         "status": "insufficient observations",
         "type": "fundamental_snapshot",
         "unit": "x"
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-11-07T13:46:40+00:00",
+        "fetchedAt": "2026-11-08T14:05:12+00:00",
         "firstObservationAt": "2026-10-26T21:49:49+00:00",
         "key": "priceToSalesTrailing12Months",
         "label": "P/S",
-        "lastObservationAt": "2026-11-07T13:46:40+00:00",
+        "lastObservationAt": "2026-11-08T14:05:12+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observationCount": 13,
+        "observationCount": 14,
         "points": [],
         "source": "local fundamentals snapshots",
-        "spanDays": 12,
+        "spanDays": 13,
         "status": "insufficient observations",
         "type": "fundamental_snapshot",
         "unit": "x"
@@ -302,34 +302,24 @@
       },
       {
         "confidence": "insufficient observations",
-        "fetchedAt": "2026-11-07T13:46:40+00:00",
+        "fetchedAt": "2026-11-08T14:05:12+00:00",
         "firstObservationAt": "2026-10-26T21:49:49+00:00",
         "key": "dividendYield",
         "label": "Dividend yield",
-        "lastObservationAt": "2026-11-07T13:46:40+00:00",
+        "lastObservationAt": "2026-11-08T14:05:12+00:00",
         "limitations": "Local snapshots only reflect dates when fundamentals were refreshed and inherit Yahoo/yfinance source limits.",
         "minimumObservations": 5,
         "minimumSpanDays": 90,
-        "observationCount": 13,
+        "observationCount": 14,
         "points": [],
         "source": "local fundamentals snapshots",
-        "spanDays": 12,
+        "spanDays": 13,
         "status": "insufficient observations",
         "type": "fundamental_snapshot",
         "unit": "%"
       }
     ],
     "trendRows": [
-      {
-        "dividendYield": 0.0,
-        "enterpriseToEbitda": null,
-        "enterpriseToRevenue": null,
-        "fetchedAt": "2026-10-31T13:22:55+00:00",
-        "forwardPE": 9.14887868143745,
-        "priceToBook": 1.3414363590263694,
-        "priceToSalesTrailing12Months": 3.4824632175032173,
-        "trailingPE": null
-      },
       {
         "dividendYield": 0.0,
         "enterpriseToEbitda": null,
@@ -399,6 +389,16 @@
         "priceToBook": 1.6573478617636395,
         "priceToSalesTrailing12Months": 3.1866367529843895,
         "trailingPE": null
+      },
+      {
+        "dividendYield": 0.0,
+        "enterpriseToEbitda": null,
+        "enterpriseToRevenue": null,
+        "fetchedAt": "2026-11-08T14:05:12+00:00",
+        "forwardPE": 13.574554548296343,
+        "priceToBook": 1.6573478617636395,
+        "priceToSalesTrailing12Months": 3.1866367529843895,
+        "trailingPE": null
       }
     ]
   },
@@ -443,7 +443,7 @@
     "status": "not configured",
     "symbol": "SCATC.OL"
   },
-  "snapshotId": "15c7d07810a54e0c8b65acf5b9df4420",
+  "snapshotId": "ed8b1a1596594cefb08fee54e6f0f82c",
   "status": "missing",
   "symbol": "SCATC.OL"
 }
