@@ -13,15 +13,15 @@
     "refreshed": 20,
     "stale_quote_dates": 0,
     "statement_periods": 108,
-    "technical_current": 19,
+    "technical_current": 0,
     "technical_missing": 1,
-    "technical_withheld": 0,
+    "technical_withheld": 19,
     "unvalidated_us_quote_sessions": 1
   },
-  "evaluated_at": "2026-11-19T14:39:40.087409+00:00",
-  "expected_session": "2026-11-18",
+  "evaluated_at": "2026-11-19T23:08:57.882862+00:00",
+  "expected_session": "2026-11-19",
   "expected_session_scope": "Euronext Oslo only; no Nasdaq session validation",
-  "generated_at": "2026-11-19T14:39:40.087409+00:00",
+  "generated_at": "2026-11-19T23:08:57.882862+00:00",
   "issues": [
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
@@ -29,9 +29,10 @@
     "TEL.OL: peer source coverage incomplete",
     "VSAT: provider-observed USD quote date only; Nasdaq session freshness is not validated and Oslo technical coverage is unavailable",
     "Primary filing verification: 0/108 statement periods reviewed; filing publication dates unverified",
+    "Technical source blocked/unverified; signal and sizing labels withheld",
     "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
-  "last_good_snapshot_id": "8f2fd987b11e467d8071bedc76fbddef",
+  "last_good_snapshot_id": "fa9ecf4390fc429183d6f9838f8b9e2c",
   "market_data_as_of": "2026-11-19",
   "missing_peers": [
     "SDRL.OL",
@@ -48,11 +49,12 @@
     "TEL.OL: peer source coverage incomplete",
     "VSAT: provider-observed USD quote date only; Nasdaq session freshness is not validated and Oslo technical coverage is unavailable",
     "Primary filing verification: 0/108 statement periods reviewed; filing publication dates unverified",
+    "Technical source blocked/unverified; signal and sizing labels withheld",
     "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "8f2fd987b11e467d8071bedc76fbddef",
-  "source_fetched_at": "2026-11-19T14:37:48+00:00",
+  "snapshot_id": "fa9ecf4390fc429183d6f9838f8b9e2c",
+  "source_fetched_at": "2026-11-19T23:07:15+00:00",
   "source_observation_end": "2026-11-19",
   "source_observation_start": "2026-11-19",
   "sources": {
@@ -74,215 +76,238 @@
       "watchlistCount": 20
     },
     "technical": {
-      "actionable": true,
+      "actionable": false,
       "calendar_verified_through": 2026,
       "coverage": {
-        "actionable_count": 192,
-        "current": 192,
-        "current_ratio": 0.9696969696969697,
-        "invalid": 1,
+        "actionable_count": 0,
+        "current": 0,
+        "current_ratio": 0.0,
+        "invalid": 191,
         "min_current_ratio": 0.005050505050505051,
         "missing": 0,
         "received_count": 198,
-        "stale": 5,
+        "stale": 7,
         "universe_count": 198
       },
-      "eligible_tickers": [
-        "QEC.OL",
-        "HYPRO.OL",
-        "EQVA.OL",
-        "PHO.OL",
-        "VOIM.OL",
-        "AUSS.OL",
-        "STRO.OL",
-        "KID.OL",
-        "SNTIA.OL",
-        "VEI.OL",
-        "NKR.OL",
-        "ENDUR.OL",
-        "REACH.OL",
-        "ENSU.OL",
-        "VOW.OL",
-        "HBC.OL",
-        "NYKD.OL",
-        "ARCH.OL",
-        "NHY.OL",
-        "TOM.OL",
-        "BWE.OL",
-        "CRNA.OL",
-        "GENO.OL",
-        "ZLNA.OL",
-        "AKER.OL",
-        "TRSB.OL",
-        "CONTX.OL",
-        "SATS.OL",
-        "MORLD.OL",
-        "STECH.OL",
-        "NAS.OL",
-        "WWI.OL",
-        "MEDI.OL",
-        "WWIB.OL",
-        "AKVA.OL",
-        "BONHR.OL",
-        "IDEX.OL",
-        "2020.OL",
-        "MOWI.OL",
-        "AKRBP.OL",
-        "VAR.OL",
-        "IOX.OL",
-        "NSKOG.OL",
-        "YAR.OL",
-        "BOR.OL",
-        "PRS.OL",
-        "BNOR.OL",
-        "PEN.OL",
-        "NEL.OL",
-        "HAVI.OL",
-        "NRC.OL",
-        "ARR.OL",
-        "PNOR.OL",
-        "MPCC.OL",
-        "GSF.OL",
-        "HPUR.OL",
-        "NAVA.OL",
-        "CAVEN.OL",
-        "MGN.OL",
-        "ACR.OL",
-        "SWON.OL",
-        "OTEC.OL",
-        "SCATC.OL",
-        "BWLPG.OL",
-        "KMAR.OL",
-        "NOL.OL",
-        "TRMED.OL",
-        "SUBC.OL",
-        "HAFNI.OL",
-        "FRO.OL",
-        "AGLX.OL",
-        "SNOR.OL",
-        "IWS.OL",
-        "PLT.OL",
-        "EQNR.OL",
-        "DELIA.OL",
-        "KIT.OL",
-        "BAKKA.OL",
-        "AKAST.OL",
-        "WSTEP.OL",
-        "SOFF.OL",
-        "SAGA.OL",
-        "NOM.OL",
-        "PARB.OL",
-        "NORCO.OL",
-        "OTOVO.OL",
-        "PYRUM.OL",
-        "ININ.OL",
-        "DFENS.OL",
-        "ENVIP.OL",
-        "CMBTO.OL",
-        "AKSO.OL",
-        "TECH.OL",
-        "TGS.OL",
-        "SBO.OL",
-        "APR.OL",
-        "HSHP.OL",
-        "LINK.OL",
-        "LIFE.OL",
-        "SALME.OL",
-        "SDSD.OL",
-        "NAPA.OL",
-        "BMA.OL",
-        "SOMA.OL",
-        "ODF.OL",
-        "SNI.OL",
-        "ELABS.OL",
-        "ROGS.OL",
-        "BORR.OL",
-        "HGSB.OL",
-        "SCANA.OL",
-        "ABG.OL",
-        "OET.OL",
-        "OTL.OL",
-        "NORBT.OL",
-        "ELK.OL",
-        "AFK.OL",
-        "BOHUS.OL",
-        "ODL.OL",
-        "KOA.OL",
-        "BEWI.OL",
-        "BIEN.OL",
-        "AQUA.OL",
-        "MULTI.OL",
-        "ODFB.OL",
-        "SOGN.OL",
-        "EIOF.OL",
-        "DOFG.OL",
-        "ZAP.OL",
-        "EPR.OL",
-        "GENT.OL",
-        "DNO.OL",
-        "AZT.OL",
-        "ENTRA.OL",
-        "PLSV.OL",
-        "COSH.OL",
-        "AURG.OL",
-        "GOD.OL",
-        "SOAG.OL",
-        "POL.OL",
-        "ENH.OL",
-        "WAWI.OL",
-        "AUTO.OL",
-        "VVL.OL",
-        "ONCIN.OL",
-        "OKEA.OL",
-        "SPOG.OL",
-        "BINT.OL",
-        "BRG.OL",
-        "MELG.OL",
-        "JIN.OL",
-        "PEXIP.OL",
-        "PUBLI.OL",
-        "ITERA.OL",
-        "ATEA.OL",
-        "VEND.OL",
-        "JAREN.OL",
-        "HEX.OL",
-        "NOD.OL",
-        "KOG.OL",
-        "HAUTO.OL",
-        "KCC.OL",
-        "TEKNA.OL",
-        "TEL.OL",
-        "HUNT.OL",
-        "CAPSL.OL",
-        "PSE.OL",
-        "CLOUD.OL",
-        "BOUV.OL",
-        "LSG.OL",
-        "B2I.OL",
-        "STB.OL",
-        "MING.OL",
-        "GJF.OL",
-        "SB1NO.OL",
-        "BWO.OL",
-        "SMOP.OL",
-        "KOMPL.OL",
-        "DNB.OL",
-        "ORK.OL",
-        "RING.OL",
-        "SPOL.OL",
-        "ELO.OL",
-        "SKUE.OL",
-        "NONG.OL",
-        "VISTN.OL",
-        "SALM.OL",
-        "SBNOR.OL",
-        "AFG.OL",
-        "PROT.OL",
-        "HELG.OL",
-        "MORG.OL"
-      ],
-      "evaluated_at": "2026-11-19T14:37:47.442565+00:00",
+      "eligible_tickers": [],
+      "evaluated_at": "2026-11-19T23:07:15.160575+00:00",
       "excluded": [
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "2020.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ABG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ACR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AFG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AFK.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AGLX.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AKAST.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AKER.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AKRBP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AKSO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AKVA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "APR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AQUA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ARCH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ARR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ATEA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AURG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AUSS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AUTO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "AZT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "B2I.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BAKKA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BEWI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BIEN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BINT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BMA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BNOR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BOHUS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BONHR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BOR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BORR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BOUV.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BRG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BWE.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BWLPG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "BWO.OL"
+        },
         {
           "data_status": "stale",
           "market_data_as_of": "2026-11-05",
@@ -291,49 +316,988 @@
         },
         {
           "data_status": "stale",
-          "market_data_as_of": "2026-11-17",
+          "market_data_as_of": "2026-11-18",
+          "reason": "missing_expected_completed_session",
+          "ticker": "CAPSL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "CAVEN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "CLOUD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "CMBTO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "CONTX.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "COSH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "CRNA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "DELIA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "DFENS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "DNB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "DNO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "DOFG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "EIOF.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ELABS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ELK.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ELO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ENDUR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ENH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ENSU.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ENTRA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ENVIP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "EPR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "EQNR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "EQVA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "FRO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "GENO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "GENT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "GJF.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "GOD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "GSF.OL"
+        },
+        {
+          "data_status": "stale",
+          "market_data_as_of": "2026-11-18",
           "reason": "missing_expected_completed_session",
           "ticker": "GYL.OL"
         },
         {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HAFNI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HAUTO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HAVI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HBC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HELG.OL"
+        },
+        {
           "data_status": "stale",
-          "market_data_as_of": "2026-11-17",
+          "market_data_as_of": "2026-11-18",
           "reason": "missing_expected_completed_session",
           "ticker": "HERMA.OL"
         },
         {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HEX.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HGSB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HPUR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HSHP.OL"
+        },
+        {
           "data_status": "stale",
-          "market_data_as_of": "2026-11-17",
+          "market_data_as_of": "2026-11-18",
           "reason": "missing_expected_completed_session",
           "ticker": "HSPG.OL"
         },
         {
-          "data_status": "stale",
-          "market_data_as_of": "2026-11-17",
-          "reason": "missing_expected_completed_session",
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HUNT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "HYPRO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "IDEX.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
           "ticker": "INIFY.OL"
         },
         {
           "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ININ.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "IOX.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ITERA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "IWS.OL"
+        },
+        {
+          "data_status": "stale",
           "market_data_as_of": "2026-11-18",
+          "reason": "missing_expected_completed_session",
+          "ticker": "JAREN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "JIN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KCC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KID.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KIT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KMAR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KOA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KOG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "KOMPL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "LIFE.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "LINK.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "LSG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MEDI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MELG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MGN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MING.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MORG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MORLD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MOWI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MPCC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "MULTI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NAPA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NAS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NAVA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NEL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NHY.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NKR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NOD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NOL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NOM.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NONG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NORBT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NORCO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NRC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NSKOG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "NYKD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ODF.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ODFB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ODL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "OET.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "OKEA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ONCIN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ORK.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "OTEC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "OTL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "OTOVO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
           "reason": "insufficient_indicator_warmup",
           "ticker": "OUTLT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PARB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PEN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PEXIP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PHO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PLSV.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PLT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PNOR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "POL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PROT.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PRS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PSE.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "PUBLI.OL"
+        },
+        {
+          "data_status": "stale",
+          "market_data_as_of": "2026-11-18",
+          "reason": "missing_expected_completed_session",
+          "ticker": "PYRUM.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "QEC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "REACH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "RING.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ROGS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SAGA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SALM.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SALME.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SATS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SB1NO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SBNOR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SBO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SCANA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SCATC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SDSD.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SKUE.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SMOP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SNI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SNOR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SNTIA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SOAG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SOFF.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SOGN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SOMA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SPOG.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SPOL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "STB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "STECH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "STRO.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SUBC.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "SWON.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TECH.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TEKNA.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TEL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TGS.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TOM.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TRMED.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "TRSB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VAR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VEI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VEND.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VISTN.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VOIM.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VOW.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "VVL.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "WAWI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "WSTEP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "WWI.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "WWIB.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "YAR.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ZAP.OL"
+        },
+        {
+          "data_status": "invalid",
+          "market_data_as_of": "2026-11-19",
+          "reason": "error: ValueError: missing_or_invalid_required_session_ohlc:Close,High,Low",
+          "ticker": "ZLNA.OL"
         }
       ],
-      "expected_session": "2026-11-18",
-      "generated_at": "2026-11-18T22:57:25Z",
+      "expected_session": "2026-11-19",
+      "generated_at": "2026-11-19T23:03:14Z",
       "market_data_as_of": "2026-11-18",
       "observation_dates": {
         "2026-11-05": 1,
-        "2026-11-17": 4,
-        "2026-11-18": 193
+        "2026-11-18": 6,
+        "2026-11-19": 191
       },
-      "reasons": [],
+      "reasons": [
+        "current_coverage_below_minimum",
+        "published_health_unverified: Published producer health withholds this snapshot"
+      ],
       "schema": "oslo_screener.health.v1",
       "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
-      "snapshot_id": "b70630f9aeaa4fa4bf0172caedaa44ac",
-      "status": "degraded",
-      "valid_until": "2026-11-19T16:45:00+01:00"
+      "snapshot_id": "e010ab9755584aa2b0a0d51d3503e092",
+      "status": "blocked",
+      "valid_until": "2026-11-20T16:45:00+01:00"
     }
   },
   "statements": {
@@ -342,5 +1306,5 @@
     "latest_period_start": "2026-06-30"
   },
   "status": "degraded",
-  "valid_until": "2026-11-19T16:45:00+01:00"
+  "valid_until": "2026-11-20T16:45:00+01:00"
 }
