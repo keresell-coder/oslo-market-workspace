@@ -18,10 +18,10 @@
     "technical_withheld": 19,
     "unvalidated_us_quote_sessions": 1
   },
-  "evaluated_at": "2026-11-25T00:56:18.136156+00:00",
-  "expected_session": "2026-11-24",
+  "evaluated_at": "2026-11-25T15:57:57.982853+00:00",
+  "expected_session": "2026-11-25",
   "expected_session_scope": "Euronext Oslo only; no Nasdaq session validation",
-  "generated_at": "2026-11-25T00:56:18.136156+00:00",
+  "generated_at": "2026-11-25T15:57:57.982853+00:00",
   "issues": [
     "HAFNI.OL: peer source coverage incomplete",
     "NOD.OL: peer source coverage incomplete",
@@ -32,8 +32,8 @@
     "Technical source blocked/unverified; signal and sizing labels withheld",
     "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
-  "last_good_snapshot_id": "1a15484aba6d4d51ac56b1d42fc895e0",
-  "market_data_as_of": "2026-11-24",
+  "last_good_snapshot_id": "a71e158ae1c6425aae33dd6c3be663a1",
+  "market_data_as_of": "2026-11-25",
   "missing_peers": [
     "SDRL.OL",
     "SHLF.OL",
@@ -53,10 +53,10 @@
     "NewsWeb source coverage incomplete; absence of events is not verified"
   ],
   "schema": "oslo_workspace.health.v1",
-  "snapshot_id": "1a15484aba6d4d51ac56b1d42fc895e0",
-  "source_fetched_at": "2026-11-25T00:54:41+00:00",
-  "source_observation_end": "2026-11-24",
-  "source_observation_start": "2026-11-24",
+  "snapshot_id": "a71e158ae1c6425aae33dd6c3be663a1",
+  "source_fetched_at": "2026-11-25T15:55:47+00:00",
+  "source_observation_end": "2026-11-25",
+  "source_observation_start": "2026-11-25",
   "sources": {
     "news": {
       "missingDataPolicy": "No row means no NewsWeb/manual row was found during the on-demand lookup; verify the issuer directly if needed.",
@@ -90,7 +90,7 @@
         "universe_count": 198
       },
       "eligible_tickers": [],
-      "evaluated_at": "2026-11-25T00:54:40.774120+00:00",
+      "evaluated_at": "2026-11-25T15:55:46.649993+00:00",
       "excluded": [
         {
           "data_status": "invalid",
@@ -1281,7 +1281,7 @@
           "ticker": "ZLNA.OL"
         }
       ],
-      "expected_session": "2026-11-24",
+      "expected_session": "2026-11-25",
       "generated_at": "2026-11-25T00:41:27Z",
       "market_data_as_of": "2026-11-23",
       "observation_dates": {
@@ -1291,13 +1291,14 @@
       },
       "reasons": [
         "current_coverage_below_minimum",
+        "snapshot_session_is_not_current",
         "published_health_unverified: Published producer health withholds this snapshot"
       ],
       "schema": "oslo_screener.health.v1",
       "session_policy": "Completed Oslo cash session plus 15-minute feed buffer; never intraday.",
       "snapshot_id": "ca37a22a49f8436da081eb6da0ec637c",
       "status": "blocked",
-      "valid_until": "2026-11-25T16:45:00+01:00"
+      "valid_until": "2026-11-26T16:45:00+01:00"
     }
   },
   "statements": {
@@ -1306,5 +1307,5 @@
     "latest_period_start": "2026-06-30"
   },
   "status": "degraded",
-  "valid_until": "2026-11-25T16:45:00+01:00"
+  "valid_until": "2026-11-26T16:45:00+01:00"
 }
